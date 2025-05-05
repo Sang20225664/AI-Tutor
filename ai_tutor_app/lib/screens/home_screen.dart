@@ -1,37 +1,138 @@
 import 'package:flutter/material.dart';
 import 'chat_screen.dart';
+import 'lesson_screen.dart';
+import 'history_screen.dart';
+import 'quiz_screen.dart';
+import 'profile_screen.dart';
+import 'subject_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
+  void _navigate(BuildContext context, Widget screen) {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Trang chính')),
-      body: Center(
+      appBar: AppBar(
+        title: const Text('AI Tutor'),
+        centerTitle: true,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Chào mừng bạn đến với AI Tutor',
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Hôm nay bạn muốn học gì?',
+              style: TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 24),
+            Expanded(
+              child: GridView.count(
+                crossAxisCount: 2,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                children: [
+                  _buildMenuCard(
+                    context,
+                    icon: Icons.chat,
+                    label: 'Chat với Gia sư',
+                    color: Colors.indigo,
+                    onTap: () => _navigate(context, const ChatScreen()),
+                  ),
+                  _buildMenuCard(
+                    context,
+                    icon: Icons.menu_book,
+                    label: 'Gợi ý bài học',
+                    color: Colors.green,
+                    onTap: () {
+                      // _navigate(context, const LessonScreen());
+                    },
+                  ),
+                  _buildMenuCard(
+                    context,
+                    icon: Icons.history,
+                    label: 'Lịch sử hội thoại',
+                    color: Colors.orange,
+                    onTap: () {
+                      // _navigate(context, const HistoryScreen());
+                    },
+                  ),
+                  _buildMenuCard(
+                    context,
+                    icon: Icons.quiz,
+                    label: 'Bài tập luyện tập',
+                    color: Colors.teal,
+                    onTap: () {
+                      // _navigate(context, const QuizScreen());
+                    },
+                  ),
+                  _buildMenuCard(
+                    context,
+                    icon: Icons.menu_book,
+                    label: 'Chọn Môn Học',
+                    color: Colors.brown,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const SubjectSelectionScreen()),
+                      );
+                    },
+                  ),
+
+                  _buildMenuCard(
+                    context,
+                    icon: Icons.person,
+                    label: 'Hồ sơ cá nhân',
+                    color: Colors.purple,
+                    onTap: () {
+                      // _navigate(context, const ProfileScreen());
+                    },
+                  ),
+
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMenuCard(
+      BuildContext context, {
+        required IconData icon,
+        required String label,
+        required Color color,
+        required VoidCallback onTap,
+      }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.9),
+          borderRadius: BorderRadius.circular(16),
+        ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text(
-              'Chào mừng đến AI Tutor App!',
-              style: TextStyle(fontSize: 18),
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const ChatScreen()),
-                );
-              },
-              icon: const Icon(Icons.chat),
-              label: const Text('Trò chuyện với Gia sư AI'),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 12,
-                ),
+            Icon(icon, size: 40, color: Colors.white),
+            const SizedBox(height: 12),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 16,
+                color: Colors.white,
               ),
+              textAlign: TextAlign.center,
             ),
           ],
         ),
