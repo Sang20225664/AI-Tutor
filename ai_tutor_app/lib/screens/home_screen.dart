@@ -1,4 +1,6 @@
+// Updated HomeScreen
 import 'package:flutter/material.dart';
+import 'notification_screen.dart';
 import 'chat_screen.dart';
 import 'lesson_screen.dart';
 import 'history_screen.dart';
@@ -17,8 +19,19 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('AI Tutor'),
+        title: const Text('AI Tutor', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const NotificationScreen()),
+              );
+            },
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -87,17 +100,18 @@ class HomeScreen extends StatelessWidget {
                       );
                     },
                   ),
-
                   _buildMenuCard(
                     context,
                     icon: Icons.person,
                     label: 'Hồ sơ cá nhân',
-                    color: Colors.purple,
+                    color: Colors.deepPurple,
                     onTap: () {
-                      // _navigate(context, const ProfileScreen());
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                      );
                     },
                   ),
-
                 ],
               ),
             ),
@@ -118,7 +132,7 @@ class HomeScreen extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: color.withOpacity(0.9),
+          color: color,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
