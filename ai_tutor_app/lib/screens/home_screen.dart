@@ -2,9 +2,9 @@
 import 'package:flutter/material.dart';
 import 'notification_screen.dart';
 import 'chat_screen.dart';
-import 'lesson_screen.dart';
+import 'lesson/lesson_screen.dart';
 import 'history_screen.dart';
-import 'quiz_screen.dart';
+import 'lesson/quiz_screen.dart';
 import 'profile_screen.dart';
 import 'subject_screen.dart';
 
@@ -65,11 +65,15 @@ class HomeScreen extends StatelessWidget {
                     context,
                     icon: Icons.menu_book,
                     label: 'Gợi ý bài học',
-                    color: Colors.green,
+                    color: Colors.orange,
                     onTap: () {
-                      // _navigate(context, const LessonScreen());
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => LessonSuggestionScreen()),
+                      );
                     },
                   ),
+
                   _buildMenuCard(
                     context,
                     icon: Icons.history,
