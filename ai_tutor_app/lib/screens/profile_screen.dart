@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'login_screen.dart';
+
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
@@ -76,7 +78,38 @@ class ProfileScreen extends StatelessWidget {
           // Nút đăng xuất
           Center(
             child: TextButton.icon(
-              onPressed: () {},
+              onPressed: () async {
+                // Hiển thị dialog xác nhận đăng xuất
+                final shouldLogout = await showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Xác nhận đăng xuất'),
+                    content: const Text('Bạn có chắc chắn muốn đăng xuất?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: const Text('Hủy'),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        child: const Text('Đăng xuất', style: TextStyle(color: Colors.red)),
+                      ),
+                    ],
+                  ),
+                );
+
+                if (shouldLogout == true) {
+                  // Đóng tất cả màn hình và chuyển đến LoginScreen
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (_) => const LoginScreen()),
+                        (route) => false, // Xóa toàn bộ stack navigation
+                  );
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Đăng xuất thành công')),
+                  );
+                }
+              },
               icon: const Icon(Icons.logout, color: Colors.red),
               label: const Text('Đăng xuất', style: TextStyle(color: Colors.red)),
             ),

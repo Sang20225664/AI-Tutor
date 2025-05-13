@@ -1,4 +1,3 @@
-// Updated HomeScreen
 import 'package:flutter/material.dart';
 import 'notification_screen.dart';
 import 'chat_screen.dart';
@@ -6,7 +5,7 @@ import 'lesson/lesson_screen.dart';
 import 'history_screen.dart';
 import 'lesson/quiz_screen.dart';
 import 'profile_screen.dart';
-import 'subject_screen.dart';
+import 'subject/subject_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -19,7 +18,10 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('AI Tutor', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),),
+        title: const Text(
+          'AI Tutor',
+          style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+        ),
         centerTitle: true,
         actions: [
           IconButton(
@@ -59,7 +61,12 @@ class HomeScreen extends StatelessWidget {
                     icon: Icons.chat,
                     label: 'Chat với Gia sư',
                     color: Colors.indigo,
-                    onTap: () => _navigate(context, const ChatScreen()),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ChatScreen()),
+                      );
+                    },
                   ),
                   _buildMenuCard(
                     context,
@@ -73,7 +80,6 @@ class HomeScreen extends StatelessWidget {
                       );
                     },
                   ),
-
                   _buildMenuCard(
                     context,
                     icon: Icons.history,
@@ -100,7 +106,7 @@ class HomeScreen extends StatelessWidget {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const SubjectSelectionScreen()),
+                        MaterialPageRoute(builder: (_) => const SubjectsScreen()),
                       );
                     },
                   ),
