@@ -1,6 +1,10 @@
+import 'dart:convert';
+
+import 'package:ai_tutor_app/services/gemini_service.dart';
 import 'package:flutter/material.dart';
 
 import '../models/subject.dart';
+import '../services/api_service.dart';
 
 class AIChatScreen extends StatefulWidget {
   final Subject subject;
@@ -14,23 +18,53 @@ class AIChatScreen extends StatefulWidget {
 class _AIChatScreenState extends State<AIChatScreen> {
   final _controller = TextEditingController();
   final _messages = <ChatMessage>[];
+  bool _isLoading = false;
 
   void _sendMessage() async {
-    final message = _controller.text;
+    if (_controller.text.isEmpty) return;
+
     setState(() {
-      _messages.add(ChatMessage(text: message, isUser: true, timestamp: DateTime.now()));
+      _messages.add(ChatMessage(
+        text: _controller.text,
+        isUser: true,
+      ));
+      _isLoading = true;
+    });
+
+    try {
+      final response = await GeminiService().chatWithAI(
+        prompt: _controller.text,
+        subject: widget.subject.name,
+        token: await SecureStorage.getToken(),
+      );
+
       _controller.clear();
-    });
+      String fullResponse = '';
 
-    // Mock API call
-    final response = await AIService.getTutorResponse(
-      subject: widget.subject.name,
-      question: message,
-    );
+      response.stream
+          .transform(utf8.decoder)
+          .transform(const LineSplitter())
+          .listen((chunk) {
+        if (chunk.startsWith('data:')) {
+          final data = jsonDecode(chunk.substring(5));
+          setState(() {
+            _isLoading = false;
+            fullResponse += data['text'];
 
-    setState(() {
-      _messages.add(ChatMessage(text: response, isUser: false, timestamp: DateTime.now()));
-    });
+            if (_messages.last.isUser) {
+              _messages.add(ChatMessage(
+                text: fullResponse,
+                isUser: false,
+              ));
+            } else {
+              _messages.last = _messages.last.copyWith(text: fullResponse);
+            }
+          });
+        }
+      });
+    } catch (e) {
+      // Handle error
+    }
   }
 
   @override
@@ -76,6 +110,14 @@ class ChatMessage {
   final DateTime? timestamp;
 
   ChatMessage({required this.text, required this.isUser, this.timestamp});
+
+  ChatMessage copyWith({String? text, bool? isUser, DateTime? timestamp}) {
+    return ChatMessage(
+      text: text ?? this.text,
+      isUser: isUser ?? this.isUser,
+      timestamp: timestamp ?? this.timestamp,
+    );
+  }
 }
 
 class ChatBubble extends StatelessWidget {
@@ -103,10 +145,10 @@ class ChatBubble extends StatelessWidget {
   }
 }
 
-class AIService {
-  static Future<String> getTutorResponse({required String subject, required String question}) async {
-    // Mock response
-    await Future.delayed(const Duration(seconds: 1));
-    return "This is a response for the question: '$question' in subject: '$subject'.";
+class SecureStorage {
+  static Future<String> getToken() async {
+    // Mock implementation
+    await Future.delayed(const Duration(milliseconds: 500));
+    return "mock_token";
   }
 }

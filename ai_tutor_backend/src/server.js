@@ -34,3 +34,4 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server chạy trên cổng ${PORT}`));
+console.log("Đang kết nối tới MongoDB với URI:", process.env.MONGO_URI);
