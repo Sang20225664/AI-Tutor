@@ -1,9 +1,56 @@
+import 'package:ai_tutor_app/screens/select_grade_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 
 import 'login_screen.dart';
+class ProfileScreen extends StatefulWidget {
 
-class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({super.key});
+  final Function toggleDarkMode;
+
+  const ProfileScreen({Key? key, required this.toggleDarkMode}) : super(key: key);
+
+  @override
+  _ProfileScreenState createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  int? _selectedGrade;
+
+  late bool isDarkMode;
+  @override
+  void initState() {
+    super.initState();
+    _loadPreferences();
+    _loadSelectedGrade();
+  }
+
+  Future<void> _loadPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _selectedGrade = prefs.getInt('selectedGrade');
+      isDarkMode = prefs.getBool('isDarkMode') ?? false;
+    });
+  }
+
+  Future<void> _toggleDarkMode() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      isDarkMode = !isDarkMode;
+    });
+    prefs.setBool('isDarkMode', isDarkMode);
+  }
+
+  @override
+
+
+
+  Future<void> _loadSelectedGrade() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _selectedGrade = prefs.getInt('selectedGrade');
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,8 +100,14 @@ class ProfileScreen extends StatelessWidget {
             'Trình độ',
                 () {
               // Chuyển đến màn hình chỉnh sửa trình độ
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>  SelectGradeScreen(),
+                ),
+              ).then((_) => _loadSelectedGrade());
             },
-            subtitle: 'Lớp 9',
+            subtitle: _selectedGrade != null ? 'Lớp $_selectedGrade' : 'Chưa chọn',
           ),
 
           _buildTile(Icons.history, 'Lịch sử học tập', () {}),
@@ -68,10 +121,19 @@ class ProfileScreen extends StatelessWidget {
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Text('Cài đặt & trợ giúp', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           ),
-          _buildTile(Icons.notifications, 'Thông báo', () {}),
           _buildTile(Icons.settings, 'Cài đặt', () {}),
-          _buildTile(Icons.help, 'Trung tâm trợ giúp', () {}),
+
           _buildTile(Icons.info, 'Thông tin ứng dụng', () {}),
+
+          // Nút bật/tắt Dark Mode
+          ElevatedButton.icon(
+            onPressed: () {
+              widget.toggleDarkMode();
+              _toggleDarkMode();
+            },
+            icon: Icon(isDarkMode ? Icons.light_mode : Icons.dark_mode),
+            label: Text(isDarkMode ? 'Tắt chế độ tối' : 'Bật chế độ tối'),
+          ),
 
           const SizedBox(height: 20),
 
@@ -114,9 +176,14 @@ class ProfileScreen extends StatelessWidget {
               label: const Text('Đăng xuất', style: TextStyle(color: Colors.red)),
             ),
           ),
+
+
+
         ],
       ),
+
     );
+
   }
 
   Widget _buildTile(IconData icon, String title, VoidCallback onTap, {String? subtitle}) {
@@ -128,5 +195,4 @@ class ProfileScreen extends StatelessWidget {
       onTap: onTap,
     );
   }
-
 }

@@ -3,35 +3,34 @@ const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
-
 const connectDB = require("./config/mongoose");
-const userRoutes = require("./routes/userRoutes");
-const lessonRoutes = require("./routes/lessonRoutes");
-const chatRoutes = require("./routes/chatRoutes");
 
+// Khởi tạo app
 const app = express();
 
 // Kết nối MongoDB
 connectDB();
 
 // Middleware
-app.use(express.json());
+app.use(express.json({ extended: false }));
+app.use(cors());
+app.use(helmet());
+app.use(morgan("dev"));
 
-app.use(cors()); // Cho phép truy cập từ frontend
-app.use(helmet()); // Tăng cường bảo mật HTTP headers
-app.use(morgan("dev")); // Logging request
+// Routes
+app.use("/api/users", require("./routes/userRoutes"));
+app.use("/api/lessons", require("./routes/lessonRoutes"));
+app.use("/api/chats", require("./routes/chatRoutes"));
 
-// Định nghĩa API routes
-app.use("/api/users", userRoutes);
-app.use("/api/lessons", lessonRoutes);
-app.use("/api/chats", chatRoutes);
-
-// Middleware xử lý lỗi tập trung
+// Error handling middleware
 app.use((err, req, res, next) => {
-    console.error("Lỗi Server:", err.message);
-    res.status(500).json({ success: false, message: "Lỗi Server!" });
+  console.error("Server Error:", err.message);
+  res.status(500).json({ success: false, message: "Server Error!" });
 });
 
+// Khởi động server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server chạy trên cổng ${PORT}`));
-console.log("Đang kết nối tới MongoDB với URI:", process.env.MONGO_URI);
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+  console.log("MongoDB URI:", process.env.MONGO_URI);
+});
