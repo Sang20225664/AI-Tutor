@@ -1,0 +1,21 @@
+# System & IDE files
+.DS_Store
+*.swp
+*.swm
+*.tmp
+*.tmp.*
+migrate_working_dir/
+
+# IDE specific
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+*.iml
+*.ipr
+*.iws
+
+# Version control settings
+.vscode/  # Bỏ comment nếu muốn chia sẻ cấu hình VSCode
