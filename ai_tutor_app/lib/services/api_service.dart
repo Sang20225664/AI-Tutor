@@ -19,13 +19,18 @@ class ApiService {
     } else {
       return {
         'success': false,
-        'message': data['message'] ?? 'Request failed with status ${response.statusCode}'
+        'message':
+            data['message'] ??
+            'Request failed with status ${response.statusCode}',
       };
     }
   }
 
   // Login
-  static Future<Map<String, dynamic>> login(String email, String password) async {
+  static Future<Map<String, dynamic>> login(
+    String email,
+    String password,
+  ) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/api/users/login'),
@@ -39,7 +44,10 @@ class ApiService {
   }
 
   // Register
-  static Future<Map<String, dynamic>> register(String email, String password) async {
+  static Future<Map<String, dynamic>> register(
+    String email,
+    String password,
+  ) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/api/users/register'),
@@ -63,6 +71,26 @@ class ApiService {
       return _handleResponse(response);
     } catch (e) {
       return {'success': false, 'message': 'Connection error: $e'};
+    }
+  }
+
+  static Future<dynamic> post(
+      String endpoint,
+      Map<String, dynamic> body, {
+        Map<String, String>? headers, // Add headers as an optional parameter
+      }) async {
+    final url = Uri.parse('https://your-backend-url.com/$endpoint');
+
+    final response = await http.post(
+      url,
+      headers: headers, // Pass headers to the request
+      body: jsonEncode(body),
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Error: ${response.statusCode} - ${response.body}');
     }
   }
 }

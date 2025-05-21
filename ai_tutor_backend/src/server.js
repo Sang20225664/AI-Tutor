@@ -5,25 +5,25 @@ const helmet = require("helmet");
 const morgan = require("morgan");
 const mongoose = require("mongoose"); // Thêm dòng này
 const path = require("path");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+const geminiRoutes = require("./routes/geminiRoute");
 
 // Initialize the app
 const app = express();
+const mongoURI = process.env.MONGO_URI;
 
 // Middleware
 app.use(express.json({ extended: false }));
 app.use(cors({
-  origin: ['http://localhost', 'http://your-flutter-app-ip'],
+  origin: ['http://localhost', 'http://your-flutter-app-ip', 'http://10.0.2.2'],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(helmet());
 app.use(morgan("dev"));
+app.use("api/gemini", geminiRoutes);
 
-// Kết nối MongoDB (viết trực tiếp thay vì dùng file riêng)
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
+mongoose.connect(mongoURI)
 .then(() => console.log("MongoDB Connected"))
 .catch(err => console.error("MongoDB Connection Error:", err));
 

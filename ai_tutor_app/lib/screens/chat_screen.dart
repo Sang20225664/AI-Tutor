@@ -1,102 +1,78 @@
+// lib/screens/chat_screen.dart
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import '../services/chat_service.dart';
 
+import '../services/gemini_service.dart';
+import 'ai_chat_screen.dart';
 
 class ChatScreen extends StatefulWidget {
-  const ChatScreen({super.key});
-
   @override
-  State<ChatScreen> createState() => _ChatScreenState();
+  _ChatScreenState createState() => _ChatScreenState();
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  final List<Map<String, String>> _messages = [];
   final TextEditingController _controller = TextEditingController();
+  List<ChatMessage> _messages = [];
+  bool _isLoading = false;
 
   void _sendMessage() async {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
 
     setState(() {
-      _messages.add({'role': 'user', 'text': text});
+      _messages.add(ChatMessage(text: text, isUser: true));
+      _isLoading = true;
+      _controller.clear();
     });
 
-    _controller.clear();
-
-    final response = await ChatService.sendMessage(text);
-
-    if (response['success'] == true) {
+    try {
+      final response = await GeminiService.generateContent(prompt: text);
       setState(() {
-        _messages.add({
-          'role': 'ai',
-          'text': response['reply'] ?? 'Không có phản hồi từ AI'
-        });
+        _messages.add(ChatMessage(text: response, isUser: false));
       });
-    } else {
+    } catch (e) {
+      final errorMessage = e.toString().replaceAll('Exception: ', '');
       setState(() {
-        _messages.add({
-          'role': 'ai',
-          'text': '⚠️ Lỗi: ${response['message'] ?? 'Không rõ lỗi'}'
-        });
+        _messages.add(ChatMessage(
+          text: "⚠️ Error: $errorMessage",
+          isUser: false,
+        ));
       });
+    } finally {
+      setState(() => _isLoading = false);
     }
-  }
-
-
-
-
-  Widget _buildMessage(String text, bool isUser) {
-    return Align(
-      alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: isUser ? Colors.blue[200] : Colors.grey[300],
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Text(text),
-      ),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Chat với Gia sư AI')),
+      appBar: AppBar(title: Text('AI Tutor')),
       body: Column(
         children: [
           Expanded(
             child: ListView.builder(
-              reverse: true,
               itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                final msg = _messages[_messages.length - index - 1];
-                final isUser = msg['role'] == 'user';
-                return _buildMessage(msg['text'] ?? '', isUser);
-              },
+              itemBuilder: (ctx, index) => ChatBubble(
+                message: _messages[index],
+              ),
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            color: Colors.grey[200],
+          Padding(
+            padding: const EdgeInsets.all(8.0),
             child: Row(
               children: [
                 Expanded(
                   child: TextField(
                     controller: _controller,
-                    decoration: const InputDecoration(
-                      hintText: 'Nhập tin nhắn...',
-                      border: InputBorder.none,
-                    ),
-                    onSubmitted: (_) => _sendMessage(),
+                    decoration: InputDecoration(hintText: 'Type your question...'),
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.send),
-                  onPressed: _sendMessage,
-                  color: Colors.blue,
-                )
+                  icon: _isLoading
+                      ? CircularProgressIndicator()
+                      : Icon(Icons.send),
+                  onPressed: _isLoading ? null : _sendMessage,
+                ),
               ],
             ),
           ),
