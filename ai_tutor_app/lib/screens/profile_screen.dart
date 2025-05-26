@@ -2,13 +2,13 @@ import 'package:ai_tutor_app/screens/select_grade_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-
 import 'login_screen.dart';
-class ProfileScreen extends StatefulWidget {
 
+class ProfileScreen extends StatefulWidget {
   final Function toggleDarkMode;
 
-  const ProfileScreen({Key? key, required this.toggleDarkMode}) : super(key: key);
+  const ProfileScreen({Key? key, required this.toggleDarkMode})
+    : super(key: key);
 
   @override
   _ProfileScreenState createState() => _ProfileScreenState();
@@ -17,7 +17,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   int? _selectedGrade;
 
-  late bool isDarkMode;
+  bool isDarkMode = false;
   @override
   void initState() {
     super.initState();
@@ -42,9 +42,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   @override
-
-
-
   Future<void> _loadSelectedGrade() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
@@ -62,7 +59,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: const BoxDecoration(
-              gradient: LinearGradient(colors: [Colors.deepPurple, Colors.blue]),
+              gradient: LinearGradient(
+                colors: [Colors.deepPurple, Colors.blue],
+              ),
             ),
             child: Row(
               children: [
@@ -76,38 +75,43 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: const [
-                    Text('Nguyễn Đức Tấn Sang',
-                        style: TextStyle(color: Colors.white, fontSize: 20)),
-                    Text('sanga4k48@gmail.com',
-                        style: TextStyle(color: Colors.white70)),
+                    Text(
+                      'Nguyễn Đức Tấn Sang',
+                      style: TextStyle(color: Colors.white, fontSize: 20),
+                    ),
+                    Text(
+                      'sanga4k48@gmail.com',
+                      style: TextStyle(color: Colors.white70),
+                    ),
                   ],
                 ),
               ],
             ),
           ),
 
-
           const SizedBox(height: 10),
 
           // Nhóm: Hồ sơ & học tập
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Text('Hồ sơ & học tập', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            child: Text(
+              'Hồ sơ & học tập',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
           ),
           _buildTile(Icons.person, 'Chỉnh sửa thông tin cá nhân', () {}),
           _buildTile(
             Icons.school,
             'Trình độ',
-                () {
+            () {
               // Chuyển đến màn hình chỉnh sửa trình độ
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) =>  SelectGradeScreen(),
-                ),
+                MaterialPageRoute(builder: (context) => SelectGradeScreen()),
               ).then((_) => _loadSelectedGrade());
             },
-            subtitle: _selectedGrade != null ? 'Lớp $_selectedGrade' : 'Chưa chọn',
+            subtitle:
+                _selectedGrade != null ? 'Lớp $_selectedGrade' : 'Chưa chọn',
           ),
 
           _buildTile(Icons.history, 'Lịch sử học tập', () {}),
@@ -119,7 +123,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
           // Nhóm: Cài đặt
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Text('Cài đặt & trợ giúp', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            child: Text(
+              'Cài đặt & trợ giúp',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
           ),
           _buildTile(Icons.settings, 'Cài đặt', () {}),
 
@@ -144,27 +151,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 // Hiển thị dialog xác nhận đăng xuất
                 final shouldLogout = await showDialog(
                   context: context,
-                  builder: (context) => AlertDialog(
-                    title: const Text('Xác nhận đăng xuất'),
-                    content: const Text('Bạn có chắc chắn muốn đăng xuất?'),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context, false),
-                        child: const Text('Hủy'),
+                  builder:
+                      (context) => AlertDialog(
+                        title: const Text('Xác nhận đăng xuất'),
+                        content: const Text('Bạn có chắc chắn muốn đăng xuất?'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, false),
+                            child: const Text('Hủy'),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, true),
+                            child: const Text(
+                              'Đăng xuất',
+                              style: TextStyle(color: Colors.red),
+                            ),
+                          ),
+                        ],
                       ),
-                      TextButton(
-                        onPressed: () => Navigator.pop(context, true),
-                        child: const Text('Đăng xuất', style: TextStyle(color: Colors.red)),
-                      ),
-                    ],
-                  ),
                 );
 
                 if (shouldLogout == true) {
                   // Đóng tất cả màn hình và chuyển đến LoginScreen
                   Navigator.of(context).pushAndRemoveUntil(
                     MaterialPageRoute(builder: (_) => const LoginScreen()),
-                        (route) => false, // Xóa toàn bộ stack navigation
+                    (route) => false, // Xóa toàn bộ stack navigation
                   );
 
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -173,20 +184,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 }
               },
               icon: const Icon(Icons.logout, color: Colors.red),
-              label: const Text('Đăng xuất', style: TextStyle(color: Colors.red)),
+              label: const Text(
+                'Đăng xuất',
+                style: TextStyle(color: Colors.red),
+              ),
             ),
           ),
-
-
-
         ],
       ),
-
     );
-
   }
 
-  Widget _buildTile(IconData icon, String title, VoidCallback onTap, {String? subtitle}) {
+  Widget _buildTile(
+    IconData icon,
+    String title,
+    VoidCallback onTap, {
+    String? subtitle,
+  }) {
     return ListTile(
       leading: Icon(icon, color: Colors.indigo),
       title: Text(title),

@@ -1,12 +1,22 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/userMiddleware');
-const User = require('../models/user');
+const { registerUser, loginUser } = require('../controllers/userController');
+const User = require('../models/User');
+
+// Đăng ký
+router.post('/register', registerUser);
+
+// Đăng nhập
+router.post('/login', loginUser);
 
 // Example of a protected route
 router.get('/profile', auth, async (req, res) => {
     try {
         const user = await User.findById(req.user.id).select('-password');
+        if (!user) {
+            return res.status(404).json({ msg: 'User not found' });
+        }
         res.json(user);
     } catch (err) {
         console.error(err.message);

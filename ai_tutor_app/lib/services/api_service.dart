@@ -28,14 +28,14 @@ class ApiService {
 
   // Login
   static Future<Map<String, dynamic>> login(
-    String email,
+    String username,
     String password,
   ) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/api/users/login'),
         headers: headers,
-        body: jsonEncode({'email': email, 'password': password}),
+        body: jsonEncode({'username': username, 'password': password}),
       );
       return _handleResponse(response);
     } catch (e) {
@@ -45,6 +45,7 @@ class ApiService {
 
   // Register
   static Future<Map<String, dynamic>> register(
+    String username,
     String email,
     String password,
   ) async {
@@ -52,7 +53,11 @@ class ApiService {
       final response = await http.post(
         Uri.parse('$baseUrl/api/users/register'),
         headers: headers,
-        body: jsonEncode({'email': email, 'password': password}),
+        body: jsonEncode({
+          'username': username,
+          'email': email,
+          'password': password,
+        }),
       );
       return _handleResponse(response);
     } catch (e) {
@@ -74,11 +79,39 @@ class ApiService {
     }
   }
 
+  // Login with Google
+  static Future<Map<String, dynamic>> loginWithGoogle() async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/users/login/google'),
+        headers: headers,
+        body: jsonEncode({}), // ...existing data if needed...
+      );
+      return _handleResponse(response);
+    } catch (e) {
+      return {'success': false, 'message': 'Connection error: $e'};
+    }
+  }
+
+  // Login with Facebook
+  static Future<Map<String, dynamic>> loginWithFacebook() async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/users/login/facebook'),
+        headers: headers,
+        body: jsonEncode({}), // ...existing data if needed...
+      );
+      return _handleResponse(response);
+    } catch (e) {
+      return {'success': false, 'message': 'Connection error: $e'};
+    }
+  }
+
   static Future<dynamic> post(
-      String endpoint,
-      Map<String, dynamic> body, {
-        Map<String, String>? headers, // Add headers as an optional parameter
-      }) async {
+    String endpoint,
+    Map<String, dynamic> body, {
+    Map<String, String>? headers, // Add headers as an optional parameter
+  }) async {
     final url = Uri.parse('https://your-backend-url.com/$endpoint');
 
     final response = await http.post(

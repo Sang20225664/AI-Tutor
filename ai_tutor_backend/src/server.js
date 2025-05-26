@@ -6,7 +6,7 @@ const morgan = require("morgan");
 const mongoose = require("mongoose"); // Thêm dòng này
 const path = require("path");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
-const geminiRoutes = require("./routes/geminiRoute");
+const geminiRoutes = require("./routes/geminiRoutes");
 
 // Initialize the app
 const app = express();
@@ -15,13 +15,14 @@ const mongoURI = process.env.MONGO_URI;
 // Middleware
 app.use(express.json({ extended: false }));
 app.use(cors({
-  origin: ['http://localhost', 'http://your-flutter-app-ip', 'http://10.0.2.2'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  origin: ['http://localhost:3000', 'http://localhost:5000', 'http://10.0.2.2:5000'], // Thêm origin của app
+  credentials: true, // Cho phép gửi cookie/auth headers
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Cho phép các method
+  allowedHeaders: ['Content-Type', 'Authorization'] // Cho phép các headers
 }));
 app.use(helmet());
 app.use(morgan("dev"));
-app.use("api/gemini", geminiRoutes);
+app.use("/api/gemini", geminiRoutes);
 
 mongoose.connect(mongoURI)
 .then(() => console.log("MongoDB Connected"))
@@ -35,6 +36,14 @@ app.use("/api/chats", require("./routes/chatRoutes"));
 // Test route
 app.get("/api/test", (req, res) => {
   res.json({ status: "success", message: "API is working" });
+});
+// Test route for frontend to backend communication
+app.get('/api/ping', (req, res) => {
+  console.log('Backend nhận request từ frontend');
+  res.status(200).json({
+    success: true,
+    message: 'Pong from Backend'
+  });
 });
 
 // Error handling middleware

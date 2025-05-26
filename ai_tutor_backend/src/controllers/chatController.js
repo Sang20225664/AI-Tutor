@@ -18,9 +18,18 @@ const getChat = async (req, res) => {
 const createChat = async (req, res) => {
   try {
     const { message } = req.body;
+    if (!message) {
+      return res.status(400).json({ 
+        success: false,
+        error: "Message is required" 
+      });
+    }
+
+    console.log("Received message:", message); // Debug log
 
     // Gửi câu hỏi tới Gemini
     const aiReply = await askGemini(message);
+    console.log("AI Reply:", aiReply); // Debug log
 
     const newChat = new Chat({
       messages: [
@@ -30,10 +39,17 @@ const createChat = async (req, res) => {
     });
 
     await newChat.save();
-    res.status(201).json({ reply: aiReply, chatId: newChat._id });
+    res.status(201).json({ 
+      success: true,
+      reply: aiReply, 
+      chatId: newChat._id 
+    });
   } catch (error) {
-    console.error("Lỗi tạo chat:", error);
-    res.status(500).json({ error: "Lỗi server khi tạo chat" });
+    console.error("Chat creation error:", error);
+    res.status(500).json({ 
+      success: false,
+      error: "Failed to process chat" 
+    });
   }
 };
 

@@ -9,21 +9,31 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
+  final TextEditingController usernameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final TextEditingController confirmPasswordController =
+      TextEditingController();
   bool isLoading = false;
 
   Future<void> _register() async {
+    if (passwordController.text != confirmPasswordController.text) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Mật khẩu không khớp')));
+      return;
+    }
     setState(() => isLoading = true);
     final result = await ApiService.register(
+      usernameController.text,
       emailController.text,
       passwordController.text,
     );
     setState(() => isLoading = false);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(result['message'] ?? 'Thử lại')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(result['message'] ?? 'Thử lại')));
     if (result['success']) {
       Navigator.pop(context); // Quay lại màn login
     }
@@ -37,13 +47,31 @@ class _RegisterScreenState extends State<RegisterScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            TextField(controller: emailController, decoration: const InputDecoration(labelText: 'Email/SĐT')),
-            TextField(controller: passwordController, obscureText: true, decoration: const InputDecoration(labelText: 'Mật khẩu')),
-            TextField(controller: passwordController, obscureText: true, decoration: const InputDecoration(labelText: 'Nhập lại mật khẩu')),
+            TextField(
+              controller: usernameController,
+              decoration: const InputDecoration(labelText: 'Tên người dùng'),
+            ),
+            TextField(
+              controller: emailController,
+              decoration: const InputDecoration(labelText: 'Tên đăng nhập'),
+            ),
+            TextField(
+              controller: passwordController,
+              obscureText: true,
+              decoration: const InputDecoration(labelText: 'Mật khẩu'),
+            ),
+            TextField(
+              controller: confirmPasswordController,
+              obscureText: true,
+              decoration: const InputDecoration(labelText: 'Nhập lại mật khẩu'),
+            ),
             const SizedBox(height: 20),
             isLoading
                 ? const CircularProgressIndicator()
-                : ElevatedButton(onPressed: _register, child: const Text('Đăng ký')),
+                : ElevatedButton(
+                  onPressed: _register,
+                  child: const Text('Đăng ký'),
+                ),
           ],
         ),
       ),

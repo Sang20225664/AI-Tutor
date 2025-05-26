@@ -10,6 +10,17 @@ class SelectGradeScreen extends StatefulWidget {
 class _SelectGradeScreenState extends State<SelectGradeScreen> {
   int? _selectedGrade;
   final List<int> grades = List.generate(12, (index) => index + 1); // Lớp 1-12
+  TextEditingController searchController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    searchController.addListener(_filterGrades);
+  }
+
+  void _filterGrades() {
+    setState(() {});
+  }
 
   Future<void> _saveGradeAndContinue() async {
     if (_selectedGrade == null) return;
@@ -39,39 +50,69 @@ class _SelectGradeScreenState extends State<SelectGradeScreen> {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
             ),
             SizedBox(height: 20),
+            TextField(
+              controller: searchController,
+              decoration: InputDecoration(
+                hintText: 'Tìm kiếm nhanh lớp...',
+                prefixIcon: Icon(Icons.search),
+                suffixIcon:
+                    searchController.text.isNotEmpty
+                        ? IconButton(
+                          icon: Icon(Icons.clear),
+                          onPressed: () {
+                            searchController.clear();
+                          },
+                        )
+                        : null,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                filled: true,
+                fillColor: Colors.white,
+              ),
+            ),
+            SizedBox(height: 20),
             Expanded(
               child: ListView.builder(
                 itemCount: grades.length,
                 itemBuilder: (context, index) {
                   final grade = grades[index];
+                  if (searchController.text.isNotEmpty &&
+                      !grade.toString().contains(searchController.text)) {
+                    return SizedBox.shrink();
+                  }
                   return Card(
                     elevation: 2,
                     margin: EdgeInsets.symmetric(vertical: 6),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    color: _selectedGrade == grade
-                        ? Colors.blue[50]
-                        : Colors.white,
+                    color:
+                        _selectedGrade == grade
+                            ? Colors.blue[50]
+                            : Colors.white,
                     child: ListTile(
                       leading: Icon(
                         Icons.school,
-                        color: _selectedGrade == grade
-                            ? Colors.blue[700]
-                            : Colors.grey,
+                        color:
+                            _selectedGrade == grade
+                                ? Colors.blue[700]
+                                : Colors.grey,
                       ),
                       title: Text(
                         'Lớp $grade',
                         style: TextStyle(
                           fontSize: 16,
-                          fontWeight: _selectedGrade == grade
-                              ? FontWeight.bold
-                              : FontWeight.normal,
+                          fontWeight:
+                              _selectedGrade == grade
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
                         ),
                       ),
-                      trailing: _selectedGrade == grade
-                          ? Icon(Icons.check_circle, color: Colors.green)
-                          : null,
+                      trailing:
+                          _selectedGrade == grade
+                              ? Icon(Icons.check_circle, color: Colors.green)
+                              : null,
                       onTap: () {
                         setState(() {
                           _selectedGrade = grade;
@@ -89,14 +130,14 @@ class _SelectGradeScreenState extends State<SelectGradeScreen> {
               height: 50,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: _selectedGrade != null
-                      ? Colors.blue[700]
-                      : Colors.grey,
+                  backgroundColor:
+                      _selectedGrade != null ? Colors.blue[700] : Colors.grey,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                onPressed: _selectedGrade != null ? _saveGradeAndContinue : null,
+                onPressed:
+                    _selectedGrade != null ? _saveGradeAndContinue : null,
                 child: Text(
                   'TIẾP TỤC',
                   style: TextStyle(
@@ -111,5 +152,11 @@ class _SelectGradeScreenState extends State<SelectGradeScreen> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    searchController.dispose();
+    super.dispose();
   }
 }
