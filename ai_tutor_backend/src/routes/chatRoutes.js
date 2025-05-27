@@ -1,11 +1,10 @@
 const express = require("express");
 const router = express.Router();
-const { createChat, getChat } = require("../controllers/chatController");
+const chatController = require("../controllers/chatController");
 
-// Gửi câu hỏi đến AI và nhận phản hồi (chat mới)
-router.post("/", createChat);
-
-// Lấy lại 1 cuộc hội thoại theo ID
-router.get("/:id", getChat);
+// Chat routes
+router.post("/", chatController.handleNewMessage);
+router.get("/:id", chatController.getChatDetails);
+router.get("/user/:userId", chatController.getUserChatHistoryList);
 
 module.exports = router;

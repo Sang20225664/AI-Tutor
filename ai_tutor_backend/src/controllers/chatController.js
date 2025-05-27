@@ -1,56 +1,158 @@
-const Chat = require("../models/chatModel");
-const askGemini = require("../services/geminiService");
+const { ChatHistory, Chat } = require('../models');
+const askGemini = require('../services/geminiService');
 
-// Lấy lịch sử chat
-const getChat = async (req, res) => {
+const getChatDetails = async (req, res) => {
   try {
-    const chat = await Chat.findById(req.params.id);
-    if (!chat) return res.status(404).json({ error: "Không tìm thấy chat" });
-    res.json(chat);
-
+    const chat = await ChatHistory.findById(req.params.id);
+    if (!chat) {
+      return res.status(404).json({
+        success: false,
+        message: "Chat not found"
+      });
+    }
+    res.json({
+      success: true,
+      data: chat
+    });
   } catch (error) {
-    console.error("Lỗi lấy chat:", error);
-    res.status(500).json({ error: "Lỗi server khi lấy chat" });
+    console.error("Error getting chat details:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error while getting chat details"
+    });
   }
 };
 
-// Tạo cuộc hội thoại mới
-const createChat = async (req, res) => {
+const handleNewMessage = async (req, res) => {
   try {
-    const { message } = req.body;
-    if (!message) {
-      return res.status(400).json({ 
+    const { message, userId, sessionId, subject } = req.body;
+
+    if (!message || !userId) {
+      return res.status(400).json({
         success: false,
-        error: "Message is required" 
+        message: "Message and userId are required"
       });
     }
 
-    console.log("Received message:", message); // Debug log
-
-    // Gửi câu hỏi tới Gemini
+    // Get AI response
     const aiReply = await askGemini(message);
-    console.log("AI Reply:", aiReply); // Debug log
 
-    const newChat = new Chat({
+    if (sessionId) {
+      // Add messages to existing chat
+      const chatHistory = await ChatHistory.findByIdAndUpdate(
+        sessionId,
+        {
+          $push: {
+            messages: [
+              {
+                role: 'user',
+                content: message,
+                timestamp: new Date()
+              },
+              {
+                role: 'assistant',
+                content: aiReply,
+                timestamp: new Date()
+              }
+            ]
+          },
+          updatedAt: new Date()
+        },
+        { new: true }
+      );
+
+      if (!chatHistory) {
+        return res.status(404).json({
+          success: false,
+          message: "Chat session not found"
+        });
+      }
+
+      return res.json({
+        success: true,
+        data: {
+          reply: aiReply,
+          chatId: chatHistory._id,
+          updatedSession: chatHistory
+        }
+      });
+    }
+
+    // Create new chat
+    const chatHistory = new ChatHistory({
+      userId,
+      subject: subject || `Chat ${new Date().toLocaleString()}`,
       messages: [
-        { role: "user", text: message },
-        { role: "ai", text: aiReply }
+        {
+          role: 'user',
+          content: message,
+          timestamp: new Date()
+        },
+        {
+          role: 'assistant',
+          content: aiReply,
+          timestamp: new Date()
+        }
       ]
     });
 
-    await newChat.save();
-    res.status(201).json({ 
+    await chatHistory.save();
+
+    res.status(201).json({
       success: true,
-      reply: aiReply, 
-      chatId: newChat._id 
+      data: {
+        reply: aiReply,
+        chatId: chatHistory._id,
+        updatedSession: chatHistory
+      }
     });
+
   } catch (error) {
-    console.error("Chat creation error:", error);
-    res.status(500).json({ 
+    console.error("Error handling message:", error);
+    res.status(500).json({
       success: false,
-      error: "Failed to process chat" 
+      message: error.message || "Server error while handling message"
     });
   }
 };
 
-module.exports = { getChat, createChat };
+const getUserChatHistoryList = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { page = 1, limit = 10 } = req.query;
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    const chats = await ChatHistory.find({ userId })
+      .sort({ updatedAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit))
+      .lean();
+
+    const total = await ChatHistory.countDocuments({ userId });
+
+    res.json({
+      success: true,
+      data: chats,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / parseInt(limit))
+      }
+    });
+
+  } catch (error) {
+    console.error("Error getting chat history:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error while getting chat history"
+    });
+  }
+};
+
+module.exports = {
+  getChatDetails,
+  handleNewMessage,
+  getUserChatHistoryList
+};

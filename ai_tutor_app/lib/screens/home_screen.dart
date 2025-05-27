@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'notification_screen.dart';
-import 'chat_screen.dart';
+import 'chat/chat_screen.dart';
 import 'lesson/lesson_screen.dart';
-import 'history_screen.dart';
+import 'chat/history_screen.dart';
 import 'lesson/quiz_screen.dart';
 import 'profile_screen.dart';
 import 'subject/subject_screen.dart';
@@ -86,7 +86,8 @@ class HomeScreen extends StatelessWidget {
                     label: 'Lịch sử hội thoại',
                     color: Colors.orange,
                     onTap: () {
-                      // _navigate(context, const HistoryScreen());
+                      // TODO: Lấy userId động nếu có hệ thống đăng nhập
+                      _navigate(context, HistoryScreen());
                     },
                   ),
                   _buildMenuCard(
@@ -164,3 +165,4 @@ class HomeScreen extends StatelessWidget {
     );
   }
 }
+

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../models/subject.dart';
-import '../ai_chat_screen.dart';
+import '../chat/ai_chat_screen.dart';
 
 
 class SubjectDetailScreen extends StatelessWidget {

@@ -1,6 +1,7 @@
 // lib/screens/chat_screen.dart
 import 'package:flutter/material.dart';
-import '../services/gemini_service.dart';
+
+import '../../services/gemini_service.dart';
 
 class ChatScreen extends StatefulWidget {
   @override

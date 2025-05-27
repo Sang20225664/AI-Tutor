@@ -1,12 +1,14 @@
-require("dotenv").config(); // Sửa đường dẫn .env
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
-const mongoose = require("mongoose"); // Thêm dòng này
+const mongoose = require("mongoose");
 const path = require("path");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const geminiRoutes = require("./routes/geminiRoutes");
+const models = require("./models");
+const chatHistoryRoutes = require("./routes/chatHistoryRoutes");
 
 // Initialize the app
 const app = express();
@@ -31,6 +33,7 @@ mongoose.connect(mongoURI)
 app.use("/api/users", require("./routes/userRoutes"));
 app.use("/api/lessons", require("./routes/lessonRoutes"));
 app.use("/api/chats", require("./routes/chatRoutes"));
+app.use("/api/chat-history", require("./routes/chatHistoryRoutes"));
 
 // Test route
 app.get("/api/test", (req, res) => {
@@ -58,3 +61,4 @@ app.listen(PORT, () => {
   // Chỉ hiển thị 10 ký tự đầu của MONGO_URI để bảo mật
   console.log("MongoDB URI:", process.env.MONGO_URI?.substring(0, 10) + "...");
 });
+

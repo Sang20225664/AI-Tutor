@@ -1,31 +1,18 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
-// Định nghĩa schema cho mỗi tin nhắn
-const messageSchema = new mongoose.Schema({
-  role: {
-    type: String,
-    enum: ["user", "ai"],
-    required: true
-  },
-  text: {
-    type: String,
-    required: true
-  }
+const conversationSchema = new mongoose.Schema({
+  userMessage: String,
+  aiResponse: String,
+  timestamp: { type: Date, default: Date.now }
 });
 
-// Định nghĩa schema cho cuộc hội thoại
 const chatSchema = new mongoose.Schema({
-  messages: {
-    type: [messageSchema],
+  userId: {
+    type: String, // Changed from ObjectId to String
     required: true
   },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  }
+  conversations: [conversationSchema],
+  createdAt: { type: Date, default: Date.now }
 });
 
-// Tạo model Chat từ schema
-const Chat = mongoose.model("Chat", chatSchema);
-
-module.exports = Chat;
+module.exports = mongoose.models.Chat || mongoose.model('Chat', chatSchema);

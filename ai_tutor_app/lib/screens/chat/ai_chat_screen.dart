@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:ai_tutor_app/services/gemini_service.dart';
-import '../models/subject.dart';
+import '../../models/subject.dart';
 
 class AIChatScreen extends StatefulWidget {
   final Subject subject;
