@@ -9,12 +9,12 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 const askGemini = async (prompt) => {
   try {
-    // Đảo ngược chuỗi prompt
-    const reversedPrompt = prompt.split('').reverse().join('');
-    return reversedPrompt;
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const result = await model.generateContent(prompt);
+    return result.response.text();
   } catch (err) {
-    console.error("Error reversing prompt:", err);
-    return "Error processing the message.";
+    console.error("Error calling Gemini:", err);
+    throw err;
   }
 };
 

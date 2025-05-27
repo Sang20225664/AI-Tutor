@@ -1,129 +1,127 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  // Sử dụng const cho baseUrl để tránh khai báo nhiều lần
-  static const String baseUrl = 'http://10.0.2.2:5000'; // Android emulator
-  // static const String baseUrl = 'http://<your-real-ip>:5000'; // Cho thiết bị thật
+  static const String baseUrl = 'http://10.0.2.2:5000';
 
-  // Common headers
-  static const Map<String, String> headers = {
+  static final Map<String, String> _defaultHeaders = {
     'Content-Type': 'application/json',
+    'Accept': 'application/json',
   };
 
-  // Xử lý response tập trung
+  // Generic HTTP Methods
+  static Future<Map<String, dynamic>> get(String endpoint, {Map<String, String>? headers}) async {
+    try {
+      final response = await http.get(
+        _buildUri(endpoint),
+        headers: headers ?? _defaultHeaders,
+      );
+      return _handleResponse(response);
+    } catch (e) {
+      return _handleError(e);
+    }
+  }
+
+  static Future<Map<String, dynamic>> post(
+      String endpoint,
+      Map<String, dynamic> body, {
+        Map<String, String>? headers,
+      }) async {
+    try {
+      final response = await http.post(
+        _buildUri(endpoint),
+        headers: headers ?? _defaultHeaders,
+        body: jsonEncode(body),
+      );
+      return _handleResponse(response);
+    } catch (e) {
+      return _handleError(e);
+    }
+  }
+
+  // Auth APIs
+  static Future<Map<String, dynamic>> login(String username, String password) async {
+    return post('api/users/login', {
+      'username': username,
+      'password': password,
+    });
+  }
+
+  static Future<Map<String, dynamic>> register(String username, String email, String password) async {
+    return post('api/users/register', {
+      'username': username,
+      'email': email,
+      'password': password,
+    });
+  }
+
+  static Future<Map<String, dynamic>> loginWithGoogle() async {
+    return post('api/users/login/google', {});
+  }
+
+  static Future<Map<String, dynamic>> loginWithFacebook() async {
+    return post('api/users/login/facebook', {});
+  }
+
+  // Chat APIs
+  static Future<Map<String, dynamic>> sendMessage(String message) async {
+    return post('api/chats', {'message': message});
+  }
+
+  static Future<Map<String, dynamic>> generateGeminiResponse(String prompt) async {
+    return post('api/gemini/generate', {'prompt': prompt});
+  }
+
+  // Helper Methods
+  static Uri _buildUri(String endpoint) {
+    final cleanEndpoint = endpoint.startsWith('/') ? endpoint.substring(1) : endpoint;
+    return Uri.parse('$baseUrl/$cleanEndpoint');
+  }
+
   static Map<String, dynamic> _handleResponse(http.Response response) {
-    final data = jsonDecode(response.body);
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      return {'success': true, ...data};
-    } else {
+    try {
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return {
+          'success': true,
+          ...data,
+        };
+      }
+
       return {
         'success': false,
-        'message':
-            data['message'] ??
-            'Request failed with status ${response.statusCode}',
+        'message': data['message'] ?? data['error'] ?? 'Request failed with status ${response.statusCode}',
+        'statusCode': response.statusCode,
+      };
+    } on FormatException catch (e) {
+      return {
+        'success': false,
+        'message': 'Failed to parse response: $e',
+        'statusCode': response.statusCode,
       };
     }
   }
 
-  // Login
-  static Future<Map<String, dynamic>> login(
-    String username,
-    String password,
-  ) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/api/users/login'),
-        headers: headers,
-        body: jsonEncode({'username': username, 'password': password}),
-      );
-      return _handleResponse(response);
-    } catch (e) {
-      return {'success': false, 'message': 'Connection error: $e'};
+  static Map<String, dynamic> _handleError(dynamic error) {
+    if (error is SocketException) {
+      return {
+        'success': false,
+        'message': 'Connection error: Could not connect to the server.',
+      };
     }
-  }
 
-  // Register
-  static Future<Map<String, dynamic>> register(
-    String username,
-    String email,
-    String password,
-  ) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/api/users/register'),
-        headers: headers,
-        body: jsonEncode({
-          'username': username,
-          'email': email,
-          'password': password,
-        }),
-      );
-      return _handleResponse(response);
-    } catch (e) {
-      return {'success': false, 'message': 'Connection error: $e'};
+    if (error is http.ClientException) {
+      return {
+        'success': false,
+        'message': 'Network error: ${error.message}',
+      };
     }
-  }
 
-  // Send Message
-  static Future<Map<String, dynamic>> sendMessage(String message) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/api/chats'),
-        headers: headers,
-        body: jsonEncode({'message': message}),
-      );
-      return _handleResponse(response);
-    } catch (e) {
-      return {'success': false, 'message': 'Connection error: $e'};
-    }
-  }
-
-  // Login with Google
-  static Future<Map<String, dynamic>> loginWithGoogle() async {
-    try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/api/users/login/google'),
-        headers: headers,
-        body: jsonEncode({}), // ...existing data if needed...
-      );
-      return _handleResponse(response);
-    } catch (e) {
-      return {'success': false, 'message': 'Connection error: $e'};
-    }
-  }
-
-  // Login with Facebook
-  static Future<Map<String, dynamic>> loginWithFacebook() async {
-    try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/api/users/login/facebook'),
-        headers: headers,
-        body: jsonEncode({}), // ...existing data if needed...
-      );
-      return _handleResponse(response);
-    } catch (e) {
-      return {'success': false, 'message': 'Connection error: $e'};
-    }
-  }
-
-  static Future<dynamic> post(
-    String endpoint,
-    Map<String, dynamic> body, {
-    Map<String, String>? headers, // Add headers as an optional parameter
-  }) async {
-    final url = Uri.parse('https://your-backend-url.com/$endpoint');
-
-    final response = await http.post(
-      url,
-      headers: headers, // Pass headers to the request
-      body: jsonEncode(body),
-    );
-
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body);
-    } else {
-      throw Exception('Error: ${response.statusCode} - ${response.body}');
-    }
+    return {
+      'success': false,
+      'message': 'An unexpected error occurred: $error',
+    };
   }
 }

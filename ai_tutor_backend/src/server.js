@@ -15,10 +15,9 @@ const mongoURI = process.env.MONGO_URI;
 // Middleware
 app.use(express.json({ extended: false }));
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:5000', 'http://10.0.2.2:5000'], // Thêm origin của app
-  credentials: true, // Cho phép gửi cookie/auth headers
-  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Cho phép các method
-  allowedHeaders: ['Content-Type', 'Authorization'] // Cho phép các headers
+  origin: ['http://localhost:*', 'http://10.0.2.2:*'],
+  methods: ['GET', 'POST'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(helmet());
 app.use(morgan("dev"));

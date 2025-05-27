@@ -11,7 +11,7 @@ const registerUser = async (req, res) => {
         }
         const userExists = await User.findOne({ email });
         if (userExists) {
-            return res.status(400).json({ message: "Email đã tồn tại!" });
+            return res.status(400).json({ message: "Tên đăng nhập đã tồn tại!" });
         }
         const hashedPassword = await bcrypt.hash(password, 10);
         const newUser = new User({ username, email, password: hashedPassword });
