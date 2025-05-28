@@ -46,6 +46,52 @@ final List<Map<String, dynamic>> quizList = [
         'options': ['Trần Hưng Đạo', 'Hồ Chí Minh', 'Lê Lợi', 'Ngô Quyền'],
         'answer': 1,
       },
+      {
+        'question': 'Ai là vị vua đầu tiên của nhà Nguyễn?',
+        'options': ['Gia Long', 'Minh Mạng', 'Thiệu Trị', 'Tự Đức'],
+        'answer': 0,
+      },
+      {
+        'question': 'Chiến dịch Điện Biên Phủ diễn ra vào năm nào?',
+        'options': ['1954', '1945', '1968', '1975'],
+        'answer': 0,
+      },
+      {
+        'question': 'Ai là người sáng lập ra nhà Nguyễn?',
+        'options': ['Nguyễn Huệ', 'Nguyễn Ánh', 'Nguyễn Thái Học', 'Nguyễn Trãi'],
+        'answer': 1,
+      },
+      {
+        'question': 'Sự kiện nào đánh dấu sự kết thúc của Chiến tranh Việt Nam?',
+        'options': ['Hiệp định Paris', 'Chiến dịch Hồ Chí Minh', 'Chiến dịch Điện Biên Phủ', 'Cách mạng tháng Tám'],
+        'answer': 1,
+      },
+      {
+        'question': 'Ai là người lãnh đạo cuộc khởi nghĩa Lam Sơn?',
+        'options': ['Lê Lợi', 'Trần Hưng Đạo', 'Nguyễn Huệ', 'Ngô Quyền'],
+        'answer': 0,
+      },
+      {
+        'question': 'Năm 1975, sự kiện nào diễn ra ở Việt Nam?',
+        'options': ['Giải phóng miền Nam', 'Cách mạng tháng Tám', 'Chiến tranh thế giới thứ hai', 'Khởi nghĩa Lam Sơn'],
+        'answer': 0,
+      },
+      {
+        'question': 'Ai là người sáng lập ra Đảng Cộng sản Việt Nam?',
+        'options': ['Hồ Chí Minh', 'Trường Chinh', 'Lê Duẩn', 'Phạm Văn Đồng'],
+        'answer': 0,
+      },
+      {
+        'question': 'Ai là người lãnh đạo cuộc khởi nghĩa chống Pháp ở Bắc Kỳ?',
+        'options': ['Trần Hưng Đạo', 'Nguyễn Huệ', 'Ngô Quyền', 'Lê Lợi'],
+        'answer': 0,
+      },
+      {
+        'question': 'Ai là người lãnh đạo cuộc khởi nghĩa chống Pháp ở Nam Kỳ?',
+        'options': ['Nguyễn Thái Học', 'Nguyễn Huệ', 'Ngô Quyền', 'Lê Lợi'],
+        'answer': 0,
+      }
+
     ],
   },
   {
