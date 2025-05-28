@@ -1,84 +1,159 @@
 import 'package:flutter/material.dart';
+import 'package:ai_tutor_app/data/quiz_data.dart'; // Import your quiz data
 
 class QuizScreen extends StatefulWidget {
-  const QuizScreen({super.key});
+  const QuizScreen({Key? key}) : super(key: key);
 
   @override
   State<QuizScreen> createState() => _QuizScreenState();
 }
 
 class _QuizScreenState extends State<QuizScreen> {
-  int _selectedIndex = -1;
-  bool _submitted = false;
-  final int _correctIndex = 2; // Đáp án đúng (ví dụ)
+  int? selectedQuizIndex;
+  Map<int, int> selectedAnswers = {}; // question index -> selected option index
 
-  final List<String> _answers = [
-    'Hệ điều hành',
-    'Cấu trúc dữ liệu',
-    'Trí tuệ nhân tạo',
-    'Lập trình hướng đối tượng',
-  ];
-
-  void _submitAnswer() {
-    if (_selectedIndex == -1) return;
-
+  void _onOptionSelected(int questionIdx, int optionIdx) {
     setState(() {
-      _submitted = true;
+      selectedAnswers[questionIdx] = optionIdx;
     });
+  }
+
+  void _showResultDialog(int correct, int total) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Kết quả', style: TextStyle(fontWeight: FontWeight.bold)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              correct == total ? Icons.emoji_events : Icons.check_circle,
+              color: correct == total ? Colors.amber : Colors.green,
+              size: 48,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Bạn trả lời đúng $correct/$total câu hỏi!',
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Đóng'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Bài tập trắc nghiệm')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Câu hỏi: Lĩnh vực nào liên quan đến việc mô phỏng tư duy con người?',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
-            for (int i = 0; i < _answers.length; i++)
-              ListTile(
-                title: Text(_answers[i]),
-                leading: Radio<int>(
-                  value: i,
-                  groupValue: _selectedIndex,
-                  onChanged: _submitted
-                      ? null
-                      : (value) {
-                    setState(() {
-                      _selectedIndex = value!;
-                    });
-                  },
-                ),
-              ),
-            const SizedBox(height: 20),
-            Center(
-              child: ElevatedButton(
-                onPressed: _submitted ? null : _submitAnswer,
-                child: const Text('Nộp bài'),
-              ),
-            ),
-            const SizedBox(height: 16),
-            if (_submitted)
-              Center(
-                child: Text(
-                  _selectedIndex == _correctIndex
-                      ? '✅ Chính xác!'
-                      : '❌ Sai rồi. Đáp án đúng là: ${_answers[_correctIndex]}',
-                  style: TextStyle(
-                    fontSize: 20,
-                    color: _selectedIndex == _correctIndex ? Colors.green : Colors.red,
-                  ),
-                ),
-              )
-          ],
-        ),
+      appBar: AppBar(
+        title: const Text('Bài tập luyện tập'),
       ),
+      body: selectedQuizIndex == null
+          ? ListView.builder(
+              itemCount: quizList.length,
+              itemBuilder: (context, index) {
+                final quiz = quizList[index];
+                return Card(
+                  child: ListTile(
+                    title: Text(quiz['title'] ?? ''),
+                    subtitle: Text(quiz['description'] ?? ''),
+                    onTap: () {
+                      setState(() {
+                        selectedQuizIndex = index;
+                        selectedAnswers.clear();
+                      });
+                    },
+                  ),
+                );
+              },
+            )
+          : _buildQuizDetail(context, quizList[selectedQuizIndex!]),
+    );
+  }
+
+  Widget _buildQuizDetail(BuildContext context, Map<String, dynamic> quiz) {
+    int totalQuestions = quiz['questions'].length;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Text(
+            quiz['title'] ?? '',
+            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          ),
+        ),
+        Expanded(
+          child: ListView.builder(
+            itemCount: quiz['questions'].length,
+            itemBuilder: (context, idx) {
+              final q = quiz['questions'][idx];
+              final selected = selectedAnswers[idx];
+              return Card(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ListTile(
+                      title: Text(q['question'] ?? ''),
+                    ),
+                    ...List.generate(q['options'].length, (optIdx) {
+                      return RadioListTile<int>(
+                        title: Text(q['options'][optIdx]),
+                        value: optIdx,
+                        groupValue: selected,
+                        onChanged: (val) {
+                          _onOptionSelected(idx, optIdx);
+                        },
+                      );
+                    }),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Row(
+            children: [
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () {
+                    int correct = 0;
+                    for (int i = 0; i < totalQuestions; i++) {
+                      if (selectedAnswers[i] != null && selectedAnswers[i] == quiz['questions'][i]['answer']) {
+                        correct++;
+                      }
+                    }
+                    _showResultDialog(correct, totalQuestions);
+                  },
+                  child: const Text('Nộp bài'),
+                ),
+              ),
+              const SizedBox(width: 16),
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    selectedQuizIndex = null;
+                    selectedAnswers.clear();
+                  });
+                },
+                child: const Text('Quay lại'),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+      ],
     );
   }
 }
+

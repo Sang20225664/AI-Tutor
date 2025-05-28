@@ -1,47 +1,34 @@
 const { ChatHistory } = require('../models');
+const askGemini = require('../services/geminiService');
 
 exports.getChatHistoryByUser = async (req, res) => {
   try {
-    const userId = req.params.userId;
+    const { userId } = req.params;
+    const { page = 1, limit = 10 } = req.query;
 
-    // Create a default chat history if none exists
-    const existingHistory = await ChatHistory.find({ userId });
-    if (existingHistory.length === 0) {
-      const defaultChat = new ChatHistory({
-        userId,
-        subject: 'Welcome Chat',
-        messages: [{
-          content: 'Welcome to AI Tutor! How can I help you today?',
-          role: 'assistant'
-        }]
-      });
-      await defaultChat.save();
-      return res.json({
-        success: true,
-        data: [defaultChat]
-      });
-    }
+    const skip = (parseInt(page) - 1) * parseInt(limit);
 
-    // Return existing chat history
     const chatHistory = await ChatHistory.find({ userId })
       .sort({ updatedAt: -1 })
-      .select('subject messages createdAt updatedAt')
+      .skip(skip)
+      .limit(parseInt(limit))
       .lean();
 
-    return res.json({
+    const total = await ChatHistory.countDocuments({ userId });
+
+    res.json({
       success: true,
-      data: chatHistory.map(chat => ({
-        id: chat._id,
-        subject: chat.subject,
-        lastMessage: chat.messages[chat.messages.length - 1]?.content,
-        messageCount: chat.messages.length,
-        createdAt: chat.createdAt,
-        updatedAt: chat.updatedAt
-      }))
+      data: chatHistory,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / limit)
+      }
     });
 
   } catch (error) {
-    console.error('Lỗi lấy lịch sử chat:', error);
+    console.error('Error getting chat history:', error);
     res.status(500).json({
       success: false,
       message: error.message
@@ -51,37 +38,109 @@ exports.getChatHistoryByUser = async (req, res) => {
 
 exports.createChatHistory = async (req, res) => {
   try {
-    const { userId, message, subject } = req.body;
-    if (!userId || !message) {
+    const { message, userId, subject } = req.body;
+
+    if (!message || !userId) {
       return res.status(400).json({
         success: false,
-        message: 'userId and message are required'
+        message: 'Message and userId are required'
       });
     }
 
+    // Get AI response
+    const aiReply = await askGemini(message);
+
     const chatHistory = new ChatHistory({
       userId,
-      subject: subject || `Conversation ${new Date().toLocaleString()}`,
-      messages: [{
-        content: message,
-        role: 'user'
-      }]
+      subject: subject || `Chat ${new Date().toLocaleString()}`,
+      messages: [
+        {
+          role: 'user',
+          content: message,
+          timestamp: new Date()
+        },
+        {
+          role: 'assistant',
+          content: aiReply,
+          timestamp: new Date()
+        }
+      ]
     });
 
     await chatHistory.save();
-    res.json({
+
+    res.status(201).json({
       success: true,
       data: {
-        id: chatHistory._id,
-        subject: chatHistory.subject,
-        lastMessage: message,
-        messageCount: 1,
-        createdAt: chatHistory.createdAt,
-        updatedAt: chatHistory.updatedAt
+        reply: aiReply,
+        chatId: chatHistory._id,
+        updatedSession: chatHistory
       }
     });
+
   } catch (error) {
-    console.error('Lỗi tạo chat history:', error);
+    console.error('Error creating chat history:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+exports.updateChatHistory = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { messages } = req.body;
+
+    const chatHistory = await ChatHistory.findByIdAndUpdate(
+      id,
+      {
+        $set: { messages },
+        updatedAt: new Date()
+      },
+      { new: true }
+    );
+
+    if (!chatHistory) {
+      return res.status(404).json({
+        success: false,
+        message: 'Chat history not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: chatHistory
+    });
+
+  } catch (error) {
+    console.error('Error updating chat history:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+exports.deleteChatHistory = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await ChatHistory.findByIdAndDelete(id);
+
+    if (!result) {
+      return res.status(404).json({
+        success: false,
+        message: 'Chat history not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Chat history deleted successfully'
+    });
+
+  } catch (error) {
+    console.error('Error deleting chat history:', error);
     res.status(500).json({
       success: false,
       message: error.message

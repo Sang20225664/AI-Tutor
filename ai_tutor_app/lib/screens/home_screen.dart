@@ -96,7 +96,7 @@ class HomeScreen extends StatelessWidget {
                     label: 'Bài tập luyện tập',
                     color: Colors.teal,
                     onTap: () {
-                      // _navigate(context, const QuizScreen());
+                      _navigate(context, const QuizScreen());
                     },
                   ),
                   _buildMenuCard(
