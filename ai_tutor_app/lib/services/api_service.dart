@@ -1,30 +1,49 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
   static const String baseUrl = 'http://10.0.2.2:5000';
+  static const String tokenKey = 'auth_token';
+
+  // New token management methods
+  static Future<void> saveToken(String token) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(tokenKey, token);
+  }
+
+  static Future<String?> getToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(tokenKey);
+  }
+
+  static Future<void> removeToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(tokenKey);
+  }
 
   static final Map<String, String> _defaultHeaders = {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   };
 
-  // Thêm token vào headers nếu có
-  static Map<String, String> _getHeadersWithAuth() {
-    // Thêm logic lấy token từ storage nếu cần
+  // Updated to use stored token
+  static Future<Map<String, String>> _getHeadersWithAuth() async {
+    final token = await getToken();
     return {
       ..._defaultHeaders,
-      // 'Authorization': 'Bearer $token',
+      if (token != null) 'Authorization': 'Bearer $token',
     };
   }
 
   // Generic HTTP Methods
   static Future<Map<String, dynamic>> get(String endpoint, {Map<String, String>? headers}) async {
     try {
+      final authHeaders = headers ?? await _getHeadersWithAuth();
       final response = await http.get(
         _buildUri(endpoint),
-        headers: headers ?? _getHeadersWithAuth(),
+        headers: authHeaders,
       );
       return _handleResponse(response);
     } catch (e) {
@@ -38,9 +57,10 @@ class ApiService {
         Map<String, String>? headers,
       }) async {
     try {
+      final authHeaders = headers ?? await _getHeadersWithAuth();
       final response = await http.post(
         _buildUri(endpoint),
-        headers: headers ?? _getHeadersWithAuth(),
+        headers: authHeaders,
         body: jsonEncode(body),
       );
       return _handleResponse(response);
@@ -55,9 +75,10 @@ class ApiService {
         Map<String, String>? headers,
       }) async {
     try {
+      final authHeaders = headers ?? await _getHeadersWithAuth();
       final response = await http.patch(
         _buildUri(endpoint),
-        headers: headers ?? _getHeadersWithAuth(),
+        headers: authHeaders,
         body: jsonEncode(body),
       );
       return _handleResponse(response);
@@ -68,9 +89,10 @@ class ApiService {
 
   static Future<Map<String, dynamic>> delete(String endpoint, {Map<String, String>? headers}) async {
     try {
+      final authHeaders = headers ?? await _getHeadersWithAuth();
       final response = await http.delete(
         _buildUri(endpoint),
-        headers: headers ?? _getHeadersWithAuth(),
+        headers: authHeaders,
       );
       return _handleResponse(response);
     } catch (e) {
