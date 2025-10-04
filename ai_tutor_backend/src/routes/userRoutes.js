@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/userMiddleware');
 const { registerUser, loginUser } = require('../controllers/userController');
-const User = require('../models/User');
+const User = require('../models/user'); // Đổi từ '../models/User' thành '../models/user'
 
 // Đăng ký
 router.post('/register', registerUser);

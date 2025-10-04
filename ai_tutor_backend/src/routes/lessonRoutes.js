@@ -1,6 +1,8 @@
 const express = require("express");
 const { getLessons, createLesson } = require("../controllers/lessonController");
 const auth = require("../middleware/userMiddleware");
+const Lesson = require('../models/lesson'); // Đảm bảo tên file đúng
+const User = require('../models/user'); // Nếu có import User
 
 const router = express.Router();
 

@@ -1,5 +1,7 @@
 const { ChatHistory, Chat } = require('../models');
 const askGemini = require('../services/geminiService');
+const User = require('../models/user'); // Nếu có import User
+const ChatModel = require('../models/chatModel');
 
 const getChatDetails = async (req, res) => {
   try {

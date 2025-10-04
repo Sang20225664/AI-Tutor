@@ -1,4 +1,5 @@
-const { ChatHistory } = require('../models');
+const { ChatHistory } = require('../models/chatHistory');
+const User = require('../models/user'); // Nếu có
 const askGemini = require('../services/geminiService');
 
 exports.getChatHistoryByUser = async (req, res) => {
