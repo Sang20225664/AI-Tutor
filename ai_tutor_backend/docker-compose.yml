@@ -1,0 +1,37 @@
+services:
+  backend:
+    build: .
+    container_name: ai_tutor_backend
+    ports:
+      - "5000:5000"
+    depends_on:
+      - mongo
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/ai_tutor
+      - NODE_ENV=development
+      - HOST=0.0.0.0
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    command: [ "npm", "run", "dev" ]
+    networks:
+      - ai_tutor_network
+
+  mongo:
+    image: mongo:7
+    container_name: mongo_ai_tutor
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - ai_tutor_network
+
+volumes:
+  mongo_data:
+
+
+networks:
+  ai_tutor_network:
+    driver: bridge
