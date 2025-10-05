@@ -7,8 +7,7 @@ import 'login_screen.dart';
 class ProfileScreen extends StatefulWidget {
   final Function toggleDarkMode;
 
-  const ProfileScreen({Key? key, required this.toggleDarkMode})
-    : super(key: key);
+  const ProfileScreen({super.key, required this.toggleDarkMode});
 
   @override
   _ProfileScreenState createState() => _ProfileScreenState();

@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:ai_tutor_app/services/gemini_service.dart';
 import '../../models/subject.dart';
@@ -28,38 +27,33 @@ class _AIChatScreenState extends State<AIChatScreen> {
     if (messageText.isEmpty) return;
 
     setState(() {
-      _messages.add(ChatMessage(
-        text: messageText,
-        isUser: true,
-        timestamp: DateTime.now(),
-      ));
+      _messages.add(
+        ChatMessage(text: messageText, isUser: true, timestamp: DateTime.now()),
+      );
       _isLoading = true;
     });
 
     _controller.clear();
 
     try {
-      final response = await GeminiService.generateContent(
-        prompt: messageText,
-        useBackendProxy: true,
-      );
+      final response = await GeminiService.generateContent(prompt: messageText);
 
       setState(() {
         _isLoading = false;
-        _messages.add(ChatMessage(
-          text: response,
-          isUser: false,
-          timestamp: DateTime.now(),
-        ));
+        _messages.add(
+          ChatMessage(text: response, isUser: false, timestamp: DateTime.now()),
+        );
       });
     } catch (e) {
       setState(() {
         _isLoading = false;
-        _messages.add(ChatMessage(
-          text: 'Error: ${e.toString()}',
-          isUser: false,
-          timestamp: DateTime.now(),
-        ));
+        _messages.add(
+          ChatMessage(
+            text: 'Error: ${e.toString()}',
+            isUser: false,
+            timestamp: DateTime.now(),
+          ),
+        );
       });
     }
   }
@@ -67,19 +61,15 @@ class _AIChatScreenState extends State<AIChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.subject.name),
-        elevation: 1,
-      ),
+      appBar: AppBar(title: Text(widget.subject.name), elevation: 1),
       body: Column(
         children: [
           Expanded(
             child: ListView.builder(
               padding: const EdgeInsets.all(8.0),
               itemCount: _messages.length,
-              itemBuilder: (context, index) => ChatBubble(
-                message: _messages[index],
-              ),
+              itemBuilder:
+                  (context, index) => ChatBubble(message: _messages[index]),
             ),
           ),
           if (_isLoading)
@@ -140,17 +130,9 @@ class ChatMessage {
   final bool isUser;
   final DateTime? timestamp;
 
-  const ChatMessage({
-    required this.text,
-    required this.isUser,
-    this.timestamp,
-  });
+  const ChatMessage({required this.text, required this.isUser, this.timestamp});
 
-  ChatMessage copyWith({
-    String? text,
-    bool? isUser,
-    DateTime? timestamp,
-  }) {
+  ChatMessage copyWith({String? text, bool? isUser, DateTime? timestamp}) {
     return ChatMessage(
       text: text ?? this.text,
       isUser: isUser ?? this.isUser,
@@ -175,9 +157,10 @@ class ChatBubble extends StatelessWidget {
         margin: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
         decoration: BoxDecoration(
-          color: message.isUser
-              ? Theme.of(context).primaryColor
-              : Colors.grey[200],
+          color:
+              message.isUser
+                  ? Theme.of(context).primaryColor
+                  : Colors.grey[200],
           borderRadius: BorderRadius.circular(20.0),
         ),
         child: Text(

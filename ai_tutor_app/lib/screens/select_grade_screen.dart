@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SelectGradeScreen extends StatefulWidget {
+  const SelectGradeScreen({super.key});
+
   @override
   _SelectGradeScreenState createState() => _SelectGradeScreenState();
 }

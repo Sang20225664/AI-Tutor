@@ -1,74 +1,55 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:ai_tutor_app/services/api_service.dart';
-import 'package:google_generative_ai/google_generative_ai.dart';
 
 class GeminiService {
-  static const String baseUrl = 'http://10.0.2.2:5000';
+  /// Test backend connection
+  static Future<bool> testBackendConnection() async {
+    try {
+      print('DEBUG: Testing backend connection...');
+      final response = await ApiService.get('api/ping');
 
-  // Initialize with the API key from backend
-  static late final String _apiKey;
-
-  static void initialize(String apiKey) {
-    _apiKey = apiKey;
+      if (response['success'] == true) {
+        print('DEBUG: Backend connection SUCCESS');
+        return true;
+      } else {
+        print('DEBUG: Backend connection FAILED: ${response['message']}');
+        return false;
+      }
+    } catch (e) {
+      print('DEBUG: Backend connection ERROR: $e');
+      return false;
+    }
   }
 
-  /// Generate content using Gemini API
-  static Future<String> generateContent({
-    required String prompt,
-    bool useBackendProxy = true,
-  }) async {
-    if (useBackendProxy) {
-      return _generateViaBackend(prompt);
-    } else {
-      if (_apiKey.isEmpty) {
-        throw Exception('Gemini API Key is not configured');
-      }
-      return _generateViaSDK(prompt);
-    }
+  /// Generate content using backend proxy only
+  static Future<String> generateContent({required String prompt}) async {
+    return _generateViaBackend(prompt);
   }
 
   /// Generate content via backend proxy
   static Future<String> _generateViaBackend(String prompt) async {
     try {
-      final response = await ApiService.post(
-        'api/gemini/generate',
-        {'prompt': prompt},
-      );
+      print('DEBUG: Using backend proxy');
+      print('DEBUG: URL: ${ApiService.baseUrl}/api/gemini/chat');
+      print('DEBUG: Message: $prompt');
 
-      if (response['success']) {
-        return response['response'];
+      final response = await ApiService.post('api/gemini/chat', {
+        'message': prompt,
+      });
+
+      print('DEBUG: Backend response: $response');
+
+      if (response['success'] == true) {
+        final responseText = response['response'] ?? 'No response text';
+        print(
+          'DEBUG: Backend SUCCESS - Response length: ${responseText.length}',
+        );
+        return responseText;
+      } else {
+        throw Exception(response['message'] ?? 'Backend error');
       }
-      throw Exception(response['message'] ?? 'Unknown error occurred');
     } catch (e) {
+      print('DEBUG: Backend error: $e');
       throw Exception('Backend error: $e');
-    }
-  }
-
-  /// Generate content directly via Gemini SDK
-  static Future<String> _generateViaSDK(String prompt) async {
-    try {
-      final model = GenerativeModel(
-        model: 'gemini-1.5-flash',
-        apiKey: _apiKey,
-      );
-
-      final response = await model.generateContent([
-        Content.text(prompt)
-      ]);
-
-      if (response.text != null) {
-        return response.text!;
-      }
-
-      throw Exception(
-          response.promptFeedback?.blockReasonMessage ??
-              'No content generated'
-      );
-    } on GenerativeAIException catch (e) {
-      throw Exception('Gemini API error: ${e.message}');
-    } catch (e) {
-      throw Exception('Unexpected error: $e');
     }
   }
 
@@ -78,18 +59,15 @@ class GeminiService {
     required String subject,
   }) async* {
     try {
-      final response = await ApiService.post(
-        'api/chats',
-        {
-          'message': prompt,
-          'subject': subject,
-        },
-      );
+      final response = await ApiService.post('api/gemini/chat', {
+        'message': prompt,
+        'subject': subject,
+      });
 
-      if (response['success']) {
-        yield response['response'];
+      if (response['success'] == true) {
+        yield response['response'] ?? 'No response';
       } else {
-        throw Exception(response['message']);
+        throw Exception(response['message'] ?? 'Chat failed');
       }
     } catch (e) {
       throw Exception('Chat error: $e');

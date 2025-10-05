@@ -4,9 +4,8 @@ import 'package:intl/intl.dart';
 import '../../services/api_service.dart';
 import 'chat_detail_screen.dart';
 
-
 class HistoryScreen extends StatefulWidget {
-  const HistoryScreen({Key? key}) : super(key: key);
+  const HistoryScreen({super.key});
 
   @override
   State<HistoryScreen> createState() => _HistoryScreenState();
@@ -71,7 +70,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
         await _fetchChatHistory();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(response['message'] ?? 'Failed to delete chat')),
+          SnackBar(
+            content: Text(response['message'] ?? 'Failed to delete chat'),
+          ),
         );
       }
     } catch (e) {
@@ -85,19 +86,28 @@ class _HistoryScreenState extends State<HistoryScreen> {
     }
   }
 
-  void _navigateToChatDetail(BuildContext context, Map<String, dynamic> chatSession) {
+  void _navigateToChatDetail(
+    BuildContext context,
+    Map<String, dynamic> chatSession,
+  ) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ChatDetailScreen(
-          chatId: chatSession['_id'],
-          initialMessages: (chatSession['messages'] as List).map((msg) => {
-            'role': msg['role'],
-            'content': msg['content'],
-            'timestamp': msg['timestamp'],
-          }).toList(),
-          chatTitle: chatSession['title'] ?? 'Chat',
-        ),
+        builder:
+            (context) => ChatDetailScreen(
+              chatId: chatSession['_id'],
+              initialMessages:
+                  (chatSession['messages'] as List)
+                      .map(
+                        (msg) => {
+                          'role': msg['role'],
+                          'content': msg['content'],
+                          'timestamp': msg['timestamp'],
+                        },
+                      )
+                      .toList(),
+              chatTitle: chatSession['title'] ?? 'Chat',
+            ),
       ),
     );
   }
@@ -118,9 +128,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final lastMessage = messages.last;
     final content = lastMessage['content']?.toString() ?? '';
 
-    return content.length > 50
-        ? '${content.substring(0, 50)}...'
-        : content;
+    return content.length > 50 ? '${content.substring(0, 50)}...' : content;
   }
 
   @override
@@ -196,7 +204,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
           final chatId = chat['_id'];
           final title = chat['title'] ?? 'Chat ${index + 1}';
           final messages = chat['messages'] ?? [];
-          final timestamp = _formatTimestamp(chat['updatedAt'] ?? chat['createdAt']);
+          final timestamp = _formatTimestamp(
+            chat['updatedAt'] ?? chat['createdAt'],
+          );
 
           return Dismissible(
             key: Key(chatId),
@@ -204,20 +214,26 @@ class _HistoryScreenState extends State<HistoryScreen> {
             confirmDismiss: (direction) async {
               return await showDialog(
                 context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('Delete Chat'),
-                  content: const Text('Are you sure you want to delete this chat?'),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(false),
-                      child: const Text('Cancel'),
+                builder:
+                    (context) => AlertDialog(
+                      title: const Text('Delete Chat'),
+                      content: const Text(
+                        'Are you sure you want to delete this chat?',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(false),
+                          child: const Text('Cancel'),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(true),
+                          child: const Text(
+                            'Delete',
+                            style: TextStyle(color: Colors.red),
+                          ),
+                        ),
+                      ],
                     ),
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(true),
-                      child: const Text('Delete', style: TextStyle(color: Colors.red)),
-                    ),
-                  ],
-                ),
               );
             },
             onDismissed: (direction) => _deleteChat(chatId),

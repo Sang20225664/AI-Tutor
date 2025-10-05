@@ -1,35 +1,26 @@
-import 'dart:convert';
-
-import 'package:http/http.dart' as http;
+import 'package:ai_tutor_app/services/gemini_service.dart';
 
 class ChatService {
-  static const String baseUrl = 'http://10.0.2.2:5000/api/chats';
-
   static Future<Map<String, dynamic>> sendMessage(String message) async {
     try {
-      final response = await http.post(
-        Uri.parse(baseUrl),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'message': message}),
-      );
+      print('=== CHAT SERVICE DEBUG ===');
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return {
-          'success': true,
-          'reply': data['reply'] ?? 'Không nhận được phản hồi'
-        };
+      // Test backend connection first
+      final isBackendConnected = await GeminiService.testBackendConnection();
+
+      if (isBackendConnected) {
+        print('✅ Using backend connection');
+
+        // Remove useBackendProxy parameter since it's no longer needed
+        final response = await GeminiService.generateContent(prompt: message);
+
+        return {'success': true, 'reply': response, 'source': 'backend'};
       } else {
-        return {
-          'success': false,
-          'message': 'Lỗi server: ${response.statusCode}'
-        };
+        throw Exception('Backend not available');
       }
     } catch (e) {
-      return {
-        'success': false,
-        'message': 'Lỗi kết nối API: $e'
-      };
+      print('DEBUG: ChatService error: $e');
+      return {'success': false, 'message': 'Lỗi kết nối backend: $e'};
     }
   }
 }

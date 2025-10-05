@@ -21,7 +21,11 @@ void main() async {
 class MyApp extends StatefulWidget {
   final String initialRoute;
   final bool isDarkMode;
-  MyApp({required this.initialRoute, required this.isDarkMode});
+  const MyApp({
+    super.key,
+    required this.initialRoute,
+    required this.isDarkMode,
+  });
 
   @override
   _MyAppState createState() => _MyAppState();

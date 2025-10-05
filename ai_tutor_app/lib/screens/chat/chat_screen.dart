@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import '../../services/gemini_service.dart';
 
 class ChatScreen extends StatefulWidget {
+  const ChatScreen({super.key});
+
   @override
   _ChatScreenState createState() => _ChatScreenState();
 }
@@ -108,7 +110,7 @@ class ChatMessage {
 class ChatBubble extends StatelessWidget {
   final ChatMessage message;
 
-  const ChatBubble({required this.message});
+  const ChatBubble({super.key, required this.message});
 
   @override
   Widget build(BuildContext context) {

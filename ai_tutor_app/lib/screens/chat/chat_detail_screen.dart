@@ -8,11 +8,11 @@ class ChatDetailScreen extends StatefulWidget {
   final String chatTitle;
 
   const ChatDetailScreen({
-    Key? key,
+    super.key,
     required this.chatId,
     required this.initialMessages,
     required this.chatTitle,
-  }) : super(key: key);
+  });
 
   @override
   State<ChatDetailScreen> createState() => _ChatDetailScreenState();
@@ -67,9 +67,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   }
 
   void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   String _formatTime(String timestamp) {
@@ -80,10 +80,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.chatTitle),
-        elevation: 1,
-      ),
+      appBar: AppBar(title: Text(widget.chatTitle), elevation: 1),
       body: Column(
         children: [
           Expanded(
@@ -96,7 +93,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                 final bool isUserMessage = message['role'] == 'user';
 
                 return Align(
-                  alignment: isUserMessage ? Alignment.centerRight : Alignment.centerLeft,
+                  alignment:
+                      isUserMessage
+                          ? Alignment.centerRight
+                          : Alignment.centerLeft,
                   child: Container(
                     constraints: BoxConstraints(
                       maxWidth: MediaQuery.of(context).size.width * 0.75,
@@ -104,9 +104,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                     padding: const EdgeInsets.all(12.0),
                     margin: const EdgeInsets.symmetric(vertical: 4.0),
                     decoration: BoxDecoration(
-                      color: isUserMessage
-                          ? Theme.of(context).primaryColor
-                          : Colors.grey[200],
+                      color:
+                          isUserMessage
+                              ? Theme.of(context).primaryColor
+                              : Colors.grey[200],
                       borderRadius: BorderRadius.circular(12.0),
                     ),
                     child: Column(
@@ -115,7 +116,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                         Text(
                           message['content'] ?? 'No content',
                           style: TextStyle(
-                            color: isUserMessage ? Colors.white : Colors.black87,
+                            color:
+                                isUserMessage ? Colors.white : Colors.black87,
                             fontSize: 16.0,
                           ),
                         ),
@@ -123,9 +125,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                         Text(
                           _formatTime(message['timestamp']),
                           style: TextStyle(
-                            color: isUserMessage
-                                ? Colors.white70
-                                : Colors.black54,
+                            color:
+                                isUserMessage ? Colors.white70 : Colors.black54,
                             fontSize: 12.0,
                           ),
                         ),
