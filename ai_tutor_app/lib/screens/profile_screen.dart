@@ -1,13 +1,18 @@
 import 'package:ai_tutor_app/screens/select_grade_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:ai_tutor_app/services/api_service.dart';
 import 'login_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final Function toggleDarkMode;
+  final bool isDarkMode;
 
-  const ProfileScreen({super.key, required this.toggleDarkMode});
+  const ProfileScreen({
+    super.key,
+    required this.toggleDarkMode,
+    required this.isDarkMode,
+  });
 
   @override
   _ProfileScreenState createState() => _ProfileScreenState();
@@ -15,37 +20,65 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   int? _selectedGrade;
+  String _username = '';
+  String _email = '';
+  bool _isGuest = false;
+  String _avatarUrl = '';
 
-  bool isDarkMode = false;
   @override
   void initState() {
     super.initState();
-    _loadPreferences();
-    _loadSelectedGrade();
+    _loadUserData();
   }
 
-  Future<void> _loadPreferences() async {
+  Future<void> _loadUserData() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _selectedGrade = prefs.getInt('selectedGrade');
-      isDarkMode = prefs.getBool('isDarkMode') ?? false;
+      _isGuest = prefs.getBool('isGuest') ?? false;
+
+      // Load user data from preferences or set defaults
+      if (_isGuest) {
+        _username = 'Khách';
+        _email = 'Chế độ khách';
+        _avatarUrl = '';
+      } else {
+        _username = prefs.getString('username') ?? 'Người dùng';
+        _email = prefs.getString('email') ?? 'Chưa có email';
+        _avatarUrl = prefs.getString('avatarUrl') ?? '';
+      }
     });
   }
 
   Future<void> _toggleDarkMode() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      isDarkMode = !isDarkMode;
+      // No local isDarkMode, so just call the widget's toggle function
     });
-    prefs.setBool('isDarkMode', isDarkMode);
+    await prefs.setBool('isDarkMode', !widget.isDarkMode);
+    widget.toggleDarkMode();
   }
 
-  @override
-  Future<void> _loadSelectedGrade() async {
+  Future<void> _logout() async {
     final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _selectedGrade = prefs.getInt('selectedGrade');
-    });
+
+    // Clear all user data
+    await prefs.remove('isLoggedIn');
+    await prefs.remove('isGuest');
+    await prefs.remove('username');
+    await prefs.remove('email');
+    await prefs.remove('avatarUrl');
+    await ApiService.removeToken();
+
+    // Navigate to login screen
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => LoginScreen()),
+      (route) => false,
+    );
+
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Đăng xuất thành công')));
   }
 
   @override
@@ -66,23 +99,59 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 CircleAvatar(
                   radius: 30,
-                  backgroundImage: NetworkImage(
-                    'https://lh3.googleusercontent.com/a/ACg8ocI4tu8e47diztqeaz7XsuNhJn5o8fQjBx556SL9WdC9dIXo5w=s360-c-no',
-                  ),
+                  backgroundColor: Colors.grey[300],
+                  backgroundImage:
+                      _avatarUrl.isNotEmpty ? NetworkImage(_avatarUrl) : null,
+                  child:
+                      _avatarUrl.isEmpty
+                          ? Icon(
+                            _isGuest ? Icons.person_outline : Icons.person,
+                            size: 35,
+                            color: Colors.grey[600],
+                          )
+                          : null,
                 ),
                 const SizedBox(width: 16),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Text(
-                      'Nguyễn Đức Tấn Sang',
-                      style: TextStyle(color: Colors.white, fontSize: 20),
-                    ),
-                    Text(
-                      'sanga4k48@gmail.com',
-                      style: TextStyle(color: Colors.white70),
-                    ),
-                  ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _username,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        _email,
+                        style: const TextStyle(color: Colors.white70),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (_isGuest)
+                        Container(
+                          margin: const EdgeInsets.only(top: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.orange,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Text(
+                            'Khách',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -98,24 +167,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ),
-          _buildTile(Icons.person, 'Chỉnh sửa thông tin cá nhân', () {}),
+
+          if (!_isGuest) ...[
+            _buildTile(
+              Icons.person,
+              'Chỉnh sửa thông tin cá nhân',
+              () => _showEditProfileDialog(),
+            ),
+          ],
+
           _buildTile(
             Icons.school,
             'Trình độ',
-            () {
-              // Chuyển đến màn hình chỉnh sửa trình độ
-              Navigator.push(
+            () async {
+              await Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => SelectGradeScreen()),
-              ).then((_) => _loadSelectedGrade());
+              );
+              _loadUserData();
             },
             subtitle:
                 _selectedGrade != null ? 'Lớp $_selectedGrade' : 'Chưa chọn',
           ),
 
           _buildTile(Icons.history, 'Lịch sử học tập', () {}),
-          _buildTile(Icons.star, 'Gói học tập: Miễn phí', () {}),
-          _buildTile(Icons.upgrade, 'Nâng cấp Premium', () {}),
+          _buildTile(
+            Icons.star,
+            _isGuest
+                ? 'Đăng nhập để sử dụng đầy đủ tính năng'
+                : 'Gói học tập: Miễn phí',
+            () {},
+          ),
+
+          if (!_isGuest) _buildTile(Icons.upgrade, 'Nâng cấp Premium', () {}),
 
           const Divider(),
 
@@ -127,18 +211,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ),
-          _buildTile(Icons.settings, 'Cài đặt', () {}),
 
+          _buildTile(Icons.settings, 'Cài đặt', () {}),
           _buildTile(Icons.info, 'Thông tin ứng dụng', () {}),
 
-          // Nút bật/tắt Dark Mode
-          ElevatedButton.icon(
-            onPressed: () {
-              widget.toggleDarkMode();
-              _toggleDarkMode();
-            },
-            icon: Icon(isDarkMode ? Icons.light_mode : Icons.dark_mode),
-            label: Text(isDarkMode ? 'Tắt chế độ tối' : 'Bật chế độ tối'),
+          // Dark mode toggle
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: SwitchListTile(
+              title: const Text('Chế độ tối'),
+              subtitle: Text(widget.isDarkMode ? 'Đang bật' : 'Đang tắt'),
+              value: widget.isDarkMode,
+              onChanged: (value) {
+                widget.toggleDarkMode();
+              },
+              secondary: Icon(
+                widget.isDarkMode ? Icons.dark_mode : Icons.light_mode,
+              ),
+            ),
           ),
 
           const SizedBox(height: 20),
@@ -146,46 +236,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
           // Nút đăng xuất
           Center(
             child: TextButton.icon(
-              onPressed: () async {
-                // Hiển thị dialog xác nhận đăng xuất
-                final shouldLogout = await showDialog(
-                  context: context,
-                  builder:
-                      (context) => AlertDialog(
-                        title: const Text('Xác nhận đăng xuất'),
-                        content: const Text('Bạn có chắc chắn muốn đăng xuất?'),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context, false),
-                            child: const Text('Hủy'),
-                          ),
-                          TextButton(
-                            onPressed: () => Navigator.pop(context, true),
-                            child: const Text(
-                              'Đăng xuất',
-                              style: TextStyle(color: Colors.red),
-                            ),
-                          ),
-                        ],
-                      ),
-                );
-
-                if (shouldLogout == true) {
-                  // Đóng tất cả màn hình và chuyển đến LoginScreen
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (_) => const LoginScreen()),
-                    (route) => false, // Xóa toàn bộ stack navigation
-                  );
-
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Đăng xuất thành công')),
-                  );
-                }
-              },
+              onPressed: () => _showLogoutDialog(),
               icon: const Icon(Icons.logout, color: Colors.red),
-              label: const Text(
-                'Đăng xuất',
-                style: TextStyle(color: Colors.red),
+              label: Text(
+                _isGuest ? 'Đăng nhập' : 'Đăng xuất',
+                style: const TextStyle(color: Colors.red),
               ),
             ),
           ),
@@ -206,6 +261,96 @@ class _ProfileScreenState extends State<ProfileScreen> {
       subtitle: subtitle != null ? Text(subtitle) : null,
       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
       onTap: onTap,
+    );
+  }
+
+  void _showEditProfileDialog() {
+    final usernameController = TextEditingController(text: _username);
+    final emailController = TextEditingController(text: _email);
+
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Chỉnh sửa thông tin'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: usernameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Tên người dùng',
+                    prefixIcon: Icon(Icons.person),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: emailController,
+                  decoration: const InputDecoration(
+                    labelText: 'Email',
+                    prefixIcon: Icon(Icons.email),
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Hủy'),
+              ),
+              TextButton(
+                onPressed: () async {
+                  final prefs = await SharedPreferences.getInstance();
+                  await prefs.setString('username', usernameController.text);
+                  await prefs.setString('email', emailController.text);
+
+                  setState(() {
+                    _username = usernameController.text;
+                    _email = emailController.text;
+                  });
+
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Cập nhật thông tin thành công'),
+                    ),
+                  );
+                },
+                child: const Text('Lưu'),
+              ),
+            ],
+          ),
+    );
+  }
+
+  void _showLogoutDialog() {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: Text(_isGuest ? 'Đăng nhập' : 'Xác nhận đăng xuất'),
+            content: Text(
+              _isGuest
+                  ? 'Bạn có muốn đăng nhập để sử dụng đầy đủ tính năng?'
+                  : 'Bạn có chắc chắn muốn đăng xuất?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Hủy'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _logout();
+                },
+                child: Text(
+                  _isGuest ? 'Đăng nhập' : 'Đăng xuất',
+                  style: const TextStyle(color: Colors.red),
+                ),
+              ),
+            ],
+          ),
     );
   }
 }

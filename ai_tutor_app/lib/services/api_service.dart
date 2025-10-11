@@ -3,18 +3,11 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart';
+import 'package:ai_tutor_app/services/config_service.dart';
 
 class ApiService {
   // Dynamic base URL based on platform
-  static String get baseUrl {
-    if (kIsWeb) {
-      return 'http://127.0.0.1:5000';
-    } else if (Platform.isAndroid) {
-      return 'http://10.0.2.2:5000';
-    } else {
-      return 'http://localhost:5000';
-    }
-  }
+  static String get baseUrl => ConfigService.backendUrl;
 
   static const String tokenKey = 'auth_token';
 
@@ -72,9 +65,15 @@ class ApiService {
   }) async {
     try {
       final authHeaders = headers ?? await _getHeadersWithAuth();
-      print('DEBUG: POST to ${_buildUri(endpoint)}');
-      print('DEBUG: Body: ${jsonEncode(body)}');
-      print('DEBUG: Headers: $authHeaders');
+
+      // Add more headers for web compatibility
+      if (kIsWeb) {
+        authHeaders.addAll({
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type',
+        });
+      }
 
       final response = await http
           .post(
@@ -82,14 +81,11 @@ class ApiService {
             headers: authHeaders,
             body: jsonEncode(body),
           )
-          .timeout(const Duration(seconds: 30));
-
-      print('DEBUG: Response status: ${response.statusCode}');
-      print('DEBUG: Response body: ${response.body}');
+          .timeout(ConfigService.defaultTimeout);
 
       return _handleResponse(response);
     } catch (e) {
-      print('DEBUG: HTTP Error: $e');
+      if (ConfigService.isDebugMode) print('API Error: $e');
       return _handleError(e);
     }
   }
@@ -128,7 +124,7 @@ class ApiService {
     }
   }
 
-  // Auth APIs (giữ nguyên)
+  // Auth APIs
   static Future<Map<String, dynamic>> login(
     String username,
     String password,
@@ -141,49 +137,28 @@ class ApiService {
 
   static Future<Map<String, dynamic>> register(
     String username,
-    String email,
     String password,
   ) async {
     return post('api/users/register', {
       'username': username,
-      'email': email,
       'password': password,
     });
   }
 
-  static Future<Map<String, dynamic>> loginWithGoogle() async {
-    return post('api/users/login/google', {});
+  // Chat APIs
+  static Future<Map<String, dynamic>> sendChatMessage(String message) async {
+    return post('api/gemini/chat', {'message': message});
   }
 
-  static Future<Map<String, dynamic>> loginWithFacebook() async {
-    return post('api/users/login/facebook', {});
-  }
-
-  // Chat APIs (đã cập nhật)
-  static Future<Map<String, dynamic>> sendMessage(
-    String chatId,
-    String message,
-  ) async {
-    return post('api/chats/$chatId/messages', {'message': message});
-  }
-
+  // Legacy methods for backward compatibility
   static Future<Map<String, dynamic>> generateGeminiResponse(
     String prompt,
   ) async {
-    return post('api/gemini/generate', {'prompt': prompt});
+    return sendChatMessage(prompt);
   }
 
-  // History APIs (mới)
   static Future<Map<String, dynamic>> getChatHistories() async {
     return get('api/chats');
-  }
-
-  static Future<Map<String, dynamic>> createChatHistory() async {
-    return post('api/chats', {'title': 'New Chat', 'messages': []});
-  }
-
-  static Future<Map<String, dynamic>> getChatHistory(String chatId) async {
-    return get('api/chats/$chatId');
   }
 
   static Future<Map<String, dynamic>> updateChatHistory(
@@ -230,14 +205,20 @@ class ApiService {
   }
 
   static Map<String, dynamic> _handleError(dynamic error) {
-    print('DEBUG: Handling error: $error');
-
     if (error is SocketException) {
-      return {'success': false, 'message': 'Network error: Failed to fetch'};
+      return {
+        'success': false,
+        'message':
+            'Network error: Cannot connect to server. Please check if backend is running.',
+      };
     }
 
     if (error is http.ClientException) {
-      return {'success': false, 'message': 'Network error: ${error.message}'};
+      return {
+        'success': false,
+        'message':
+            'CORS error: ${error.message}. Backend may not be accessible from web.',
+      };
     }
 
     return {'success': false, 'message': 'Network error: $error'};

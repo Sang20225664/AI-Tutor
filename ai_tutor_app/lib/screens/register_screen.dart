@@ -1,78 +1,231 @@
 import 'package:flutter/material.dart';
-import '../services/api_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:ai_tutor_app/services/api_service.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
   @override
-  State<RegisterScreen> createState() => _RegisterScreenState();
+  _RegisterScreenState createState() => _RegisterScreenState();
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  final TextEditingController usernameController = TextEditingController();
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController =
-      TextEditingController();
-  bool isLoading = false;
+  final _formKey = GlobalKey<FormState>();
+  final _usernameController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+  bool _isLoading = false;
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
 
   Future<void> _register() async {
-    if (passwordController.text != confirmPasswordController.text) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Mật khẩu không khớp')));
-      return;
-    }
-    setState(() => isLoading = true);
-    final result = await ApiService.register(
-      usernameController.text,
-      emailController.text,
-      passwordController.text,
-    );
-    setState(() => isLoading = false);
+    if (!_formKey.currentState!.validate()) return;
 
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(result['message'] ?? 'Thử lại')));
-    if (result['success']) {
-      Navigator.pop(context); // Quay lại màn login
+    setState(() => _isLoading = true);
+
+    try {
+      final response = await ApiService.register(
+        _usernameController.text.trim(),
+        _passwordController.text, // Remove third parameter
+      );
+
+      if (response['success']) {
+        // Save user info and login status
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('isLoggedIn', true);
+        await prefs.setString('username', _usernameController.text.trim());
+
+        if (response['token'] != null) {
+          await ApiService.saveToken(response['token']);
+        }
+
+        // Show success message
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Đăng ký thành công!')));
+
+        // Navigate to select grade screen
+        Navigator.of(context).pushReplacementNamed('/select-grade');
+      } else {
+        _showErrorDialog(response['message'] ?? 'Đăng ký thất bại');
+      }
+    } catch (e) {
+      _showErrorDialog('Lỗi mạng: $e');
+    } finally {
+      setState(() => _isLoading = false);
     }
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Lỗi'),
+            content: Text(message),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Đăng ký')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            TextField(
-              controller: usernameController,
-              decoration: const InputDecoration(labelText: 'Tên người dùng'),
-            ),
-            TextField(
-              controller: emailController,
-              decoration: const InputDecoration(labelText: 'Tên đăng nhập'),
-            ),
-            TextField(
-              controller: passwordController,
-              obscureText: true,
-              decoration: const InputDecoration(labelText: 'Mật khẩu'),
-            ),
-            TextField(
-              controller: confirmPasswordController,
-              obscureText: true,
-              decoration: const InputDecoration(labelText: 'Nhập lại mật khẩu'),
-            ),
-            const SizedBox(height: 20),
-            isLoading
-                ? const CircularProgressIndicator()
-                : ElevatedButton(
-                  onPressed: _register,
-                  child: const Text('Đăng ký'),
+      appBar: AppBar(title: const Text('Đăng ký'), centerTitle: true),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Logo/Title
+                Icon(
+                  Icons.person_add,
+                  size: 80,
+                  color: Theme.of(context).primaryColor,
                 ),
-          ],
+                const SizedBox(height: 16),
+                Text(
+                  'Tạo tài khoản mới',
+                  style: Theme.of(context).textTheme.headlineMedium,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Bắt đầu hành trình học tập cùng AI Tutor',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 48),
+
+                // Username field
+                TextFormField(
+                  controller: _usernameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Tên người dùng',
+                    prefixIcon: Icon(Icons.person),
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Hãy nhập tên người dùng';
+                    }
+                    if (value.length < 3) {
+                      return 'Tên người dùng phải có ít nhất 3 ký tự';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                // Password field
+                TextFormField(
+                  controller: _passwordController,
+                  obscureText: _obscurePassword,
+                  decoration: InputDecoration(
+                    labelText: 'Mật khẩu',
+                    prefixIcon: const Icon(Icons.lock),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePassword
+                            ? Icons.visibility
+                            : Icons.visibility_off,
+                      ),
+                      onPressed:
+                          () => setState(
+                            () => _obscurePassword = !_obscurePassword,
+                          ),
+                    ),
+                    border: const OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Hãy nhập mật khẩu';
+                    }
+                    if (value.length < 6) {
+                      return 'Mật khẩu phải có ít nhất 6 ký tự';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                // Confirm Password field
+                TextFormField(
+                  controller: _confirmPasswordController,
+                  obscureText: _obscureConfirmPassword,
+                  decoration: InputDecoration(
+                    labelText: 'Xác nhận mật khẩu',
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscureConfirmPassword
+                            ? Icons.visibility
+                            : Icons.visibility_off,
+                      ),
+                      onPressed:
+                          () => setState(
+                            () =>
+                                _obscureConfirmPassword =
+                                    !_obscureConfirmPassword,
+                          ),
+                    ),
+                    border: const OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Hãy xác nhận mật khẩu';
+                    }
+                    if (value != _passwordController.text) {
+                      return 'Mật khẩu xác nhận không khớp';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 24),
+
+                // Register button
+                ElevatedButton(
+                  onPressed: _isLoading ? null : _register,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                  child:
+                      _isLoading
+                          ? const CircularProgressIndicator()
+                          : const Text('Đăng ký'),
+                ),
+                const SizedBox(height: 24),
+
+                // Login link
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('Đã có tài khoản? '),
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: const Text('Đăng nhập ngay'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

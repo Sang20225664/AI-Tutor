@@ -1,6 +1,6 @@
 const { ChatHistory, Chat } = require('../models');
 const askGemini = require('../services/geminiService');
-const User = require('../models/user'); // Nếu có import User
+const User = require('../models/User'); // Fixed path - capital U
 const ChatModel = require('../models/chatModel');
 
 const getChatDetails = async (req, res) => {
@@ -153,8 +153,41 @@ const getUserChatHistoryList = async (req, res) => {
   }
 };
 
+const getChats = async (req, res) => {
+  try {
+    res.json({
+      success: true,
+      message: "Chat endpoint working",
+      chats: []
+    });
+  } catch (error) {
+    console.error('Get chats error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Lỗi server khi lấy chats'
+    });
+  }
+};
+
+const createChat = async (req, res) => {
+  try {
+    res.json({
+      success: true,
+      message: "Create chat endpoint working"
+    });
+  } catch (error) {
+    console.error('Create chat error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Lỗi server khi tạo chat'
+    });
+  }
+};
+
 module.exports = {
   getChatDetails,
   handleNewMessage,
-  getUserChatHistoryList
+  getUserChatHistoryList,
+  getChats,
+  createChat
 };

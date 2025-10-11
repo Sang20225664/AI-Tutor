@@ -76,7 +76,9 @@ class HomeScreen extends StatelessWidget {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => LessonSuggestionScreen()),
+                        MaterialPageRoute(
+                          builder: (_) => LessonSuggestionScreen(),
+                        ),
                       );
                     },
                   ),
@@ -107,7 +109,9 @@ class HomeScreen extends StatelessWidget {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const SubjectsScreen()),
+                        MaterialPageRoute(
+                          builder: (_) => const SubjectsScreen(),
+                        ),
                       );
                     },
                   ),
@@ -119,7 +123,13 @@ class HomeScreen extends StatelessWidget {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => ProfileScreen(toggleDarkMode: () {  },)),
+                        MaterialPageRoute(
+                          builder:
+                              (_) => ProfileScreen(
+                                toggleDarkMode: () {},
+                                isDarkMode: false,
+                              ),
+                        ),
                       );
                     },
                   ),
@@ -133,12 +143,12 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _buildMenuCard(
-      BuildContext context, {
-        required IconData icon,
-        required String label,
-        required Color color,
-        required VoidCallback onTap,
-      }) {
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -153,10 +163,7 @@ class HomeScreen extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               label,
-              style: const TextStyle(
-                fontSize: 16,
-                color: Colors.white,
-              ),
+              style: const TextStyle(fontSize: 16, color: Colors.white),
               textAlign: TextAlign.center,
             ),
           ],
@@ -165,4 +172,3 @@ class HomeScreen extends StatelessWidget {
     );
   }
 }
-

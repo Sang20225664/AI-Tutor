@@ -27,6 +27,9 @@ services:
       - mongo_data:/data/db
     networks:
       - ai_tutor_network
+    # Suppress most MongoDB logs
+    logging:
+      driver: "none"
 
 volumes:
   mongo_data:

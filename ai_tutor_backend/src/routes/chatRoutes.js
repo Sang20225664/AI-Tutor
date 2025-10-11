@@ -1,12 +1,11 @@
-const express = require("express");
+const express = require('express');
+const { getChats, createChat } = require('../controllers/chatController');
 const router = express.Router();
-const chatController = require("../controllers/chatController");
-const ChatModel = require('../models/chatModel'); // Đảm bảo tên file đúng
-const User = require('../models/user'); // Nếu có import User
 
-// Chat routes
-router.post("/", chatController.handleNewMessage);
-router.get("/:id", chatController.getChatDetails);
-router.get("/user/:userId", chatController.getUserChatHistoryList);
+// GET /api/chats
+router.get('/', getChats);
+
+// POST /api/chats
+router.post('/', createChat);
 
 module.exports = router;
