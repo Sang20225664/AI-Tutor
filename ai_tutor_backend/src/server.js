@@ -213,15 +213,7 @@ app.get("/admin", async (req, res) => {
         .join("")}
       </table>
 
-      <div style="margin-top: 30px;">
-        <h3>  API Endpoints</h3>
-        <ul>
-          <li><a href="/api/users">GET /api/users</a> - Danh sách users (JSON)</li>
-          <li><a href="/api/users/stats">GET /api/users/stats</a> - Thống kê (JSON)</li>
-          <li><a href="/api/ping">GET /api/ping</a> - Test ping</li>
-          <li><a href="/api/gemini/test">GET /api/gemini/test</a> - Test Gemini</li>
-        </ul>
-      </div>
+      
     </body>
     </html>
     `;
