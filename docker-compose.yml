@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  # Backend service (start first)
+  backend:
+    build:
+      context: ./ai_tutor_backend
+      dockerfile: Dockerfile
+    container_name: ai_tutor_backend_main
+    ports:
+      - "5000:5000"
+    depends_on:
+      - mongo
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/ai_tutor
+      - NODE_ENV=production
+      - HOST=0.0.0.0
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - JWT_SECRET=${JWT_SECRET}
+    networks:
+      - ai_tutor_network
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:5000/api/ping" ]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+
+  # Frontend service - remove health check dependency for now
+  frontend:
+    build:
+      context: ./ai_tutor_app
+      dockerfile: Dockerfile
+      args:
+        - BUILDKIT_INLINE_CACHE=1
+    container_name: ai_tutor_frontend_main
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - ai_tutor_network
+    restart: unless-stopped
+
+  # Database service
+  mongo:
+    image: mongo:7
+    container_name: ai_tutor_mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - ai_tutor_network
+    command: [ "mongod", "--quiet" ]
+
+volumes:
+  mongo_data:
+
+
+networks:
+  ai_tutor_network:
+    driver: bridge

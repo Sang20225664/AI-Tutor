@@ -14,7 +14,3 @@ class ChatService {
     }
   }
 }
-      return {'success': false, 'message': 'Lỗi kết nối backend: $e'};
-    }
-  }
-}

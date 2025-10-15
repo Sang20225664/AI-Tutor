@@ -3,8 +3,15 @@ import 'dart:io';
 
 class ConfigService {
   static String get backendUrl {
-    if (kIsWeb) return 'http://127.0.0.1:5000';
-    if (!kIsWeb && Platform.isAndroid) return 'http://10.0.2.2:5000';
+    // In Docker container, backend is accessible via service name
+    if (kIsWeb) {
+      // For web, use the same host but different port
+      return 'http://localhost:5000';
+    }
+    if (!kIsWeb && Platform.isAndroid) {
+      // For mobile emulator
+      return 'http://10.0.2.2:5000';
+    }
     return 'http://localhost:5000';
   }
 
