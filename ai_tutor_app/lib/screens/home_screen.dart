@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ai_tutor_app/utils/responsive_utils.dart';
 import 'notification_screen.dart';
 import 'chat/chat_screen.dart';
 import 'lesson/lesson_screen.dart';
@@ -16,11 +17,21 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final gridColumns = Responsive.getGridColumns(
+      context,
+      mobile: 2,
+      tablet: 3,
+      desktop: 4,
+    );
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'AI Tutor',
-          style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: Responsive.getScaledFontSize(context, 28),
+            fontWeight: FontWeight.bold,
+          ),
         ),
         centerTitle: true,
         actions: [
@@ -35,26 +46,57 @@ class HomeScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Chào mừng bạn đến với AI Tutor',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Hôm nay bạn muốn học gì?',
-              style: TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 24),
-            Expanded(
-              child: GridView.count(
-                crossAxisCount: 2,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
+      body: Responsive.constrainedContent(
+        context,
+        SingleChildScrollView(
+          padding: Responsive.getScreenPadding(context),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Chào mừng bạn đến với AI Tutor',
+                style: TextStyle(
+                  fontSize: Responsive.getScaledFontSize(context, 22),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Hôm nay bạn muốn học gì?',
+                style: TextStyle(
+                  fontSize: Responsive.getScaledFontSize(context, 16),
+                ),
+              ),
+              SizedBox(
+                height: Responsive.getValue(
+                  context,
+                  mobile: 24,
+                  tablet: 32,
+                  desktop: 40,
+                ),
+              ),
+              GridView.count(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                crossAxisCount: gridColumns,
+                crossAxisSpacing: Responsive.getValue(
+                  context,
+                  mobile: 16,
+                  tablet: 20,
+                  desktop: 24,
+                ),
+                mainAxisSpacing: Responsive.getValue(
+                  context,
+                  mobile: 16,
+                  tablet: 20,
+                  desktop: 24,
+                ),
+                childAspectRatio: Responsive.getValue(
+                  context,
+                  mobile: 1.0,
+                  tablet: 1.1,
+                  desktop: 1.2,
+                ),
                 children: [
                   _buildMenuCard(
                     context,
@@ -135,8 +177,8 @@ class HomeScreen extends StatelessWidget {
                   ),
                 ],
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -149,6 +191,14 @@ class HomeScreen extends StatelessWidget {
     required Color color,
     required VoidCallback onTap,
   }) {
+    final iconSize = Responsive.getValue(
+      context,
+      mobile: 40.0,
+      tablet: 48.0,
+      desktop: 56.0,
+    );
+    final fontSize = Responsive.getScaledFontSize(context, 16);
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -159,12 +209,17 @@ class HomeScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 40, color: Colors.white),
+            Icon(icon, size: iconSize, color: Colors.white),
             const SizedBox(height: 12),
-            Text(
-              label,
-              style: const TextStyle(fontSize: 16, color: Colors.white),
-              textAlign: TextAlign.center,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Text(
+                label,
+                style: TextStyle(fontSize: fontSize, color: Colors.white),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ],
         ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:ai_tutor_app/utils/responsive_utils.dart';
 
 import '../../data/subject_data.dart';
 import '../../models/subject.dart';
@@ -37,10 +38,7 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
             transitionDuration: const Duration(milliseconds: 500),
             pageBuilder: (_, __, ___) => SubjectDetailScreen(subject: subject),
             transitionsBuilder: (_, animation, __, child) {
-              return FadeTransition(
-                opacity: animation,
-                child: child,
-              );
+              return FadeTransition(opacity: animation, child: child);
             },
           ),
         ).then((_) {
@@ -54,6 +52,13 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final gridColumns = Responsive.getGridColumns(
+      context,
+      mobile: 2,
+      tablet: 3,
+      desktop: 4,
+    );
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Chọn Môn Học'),
@@ -71,80 +76,106 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: GridView.builder(
-          itemCount: subjects.length,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-            childAspectRatio: 1.2,
-          ),
-          itemBuilder: (context, index) {
-            final subject = subjects[index];
-            final isSelected = _selectedSubjects[subject.name] ?? false;
+      body: Responsive.constrainedContent(
+        context,
+        Padding(
+          padding: Responsive.getScreenPadding(context),
+          child: GridView.builder(
+            itemCount: subjects.length,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: gridColumns,
+              crossAxisSpacing: Responsive.getValue(
+                context,
+                mobile: 16,
+                tablet: 20,
+                desktop: 24,
+              ),
+              mainAxisSpacing: Responsive.getValue(
+                context,
+                mobile: 16,
+                tablet: 20,
+                desktop: 24,
+              ),
+              childAspectRatio: Responsive.getValue(
+                context,
+                mobile: 1.2,
+                tablet: 1.25,
+                desktop: 1.3,
+              ),
+            ),
+            itemBuilder: (context, index) {
+              final subject = subjects[index];
+              final isSelected = _selectedSubjects[subject.name] ?? false;
 
-            return AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-              transform: Matrix4.identity()
-                ..scale(isSelected ? 0.95 : 1.0),
-              child: Card(
-                elevation: 4,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  side: isSelected
-                      ? BorderSide(color: subject.color, width: 3)
-                      : BorderSide.none,
-                ),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(16),
-                  onTap: () => _onSubjectSelected(subject, context),
-                  splashColor: subject.color.withOpacity(0.2),
-                  highlightColor: subject.color.withOpacity(0.1),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            Icon(
-                              subject.icon,
-                              size: 48,
-                              color: subject.color,
-                            ),
-                            if (isSelected)
-                              const Positioned(
-                                right: 0,
-                                top: 0,
-                                child: Icon(
-                                  Icons.check_circle,
-                                  color: Colors.green,
-                                  size: 24,
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+                transform: Matrix4.identity()..scale(isSelected ? 0.95 : 1.0),
+                child: Card(
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    side:
+                        isSelected
+                            ? BorderSide(color: subject.color, width: 3)
+                            : BorderSide.none,
+                  ),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(16),
+                    onTap: () => _onSubjectSelected(subject, context),
+                    splashColor: subject.color.withOpacity(0.2),
+                    highlightColor: subject.color.withOpacity(0.1),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              Icon(
+                                subject.icon,
+                                size: Responsive.getValue(
+                                  context,
+                                  mobile: 48,
+                                  tablet: 56,
+                                  desktop: 64,
                                 ),
+                                color: subject.color,
                               ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          subject.name,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
+                              if (isSelected)
+                                const Positioned(
+                                  right: 0,
+                                  top: 0,
+                                  child: Icon(
+                                    Icons.check_circle,
+                                    color: Colors.green,
+                                    size: 24,
+                                  ),
+                                ),
+                            ],
                           ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
+                          const SizedBox(height: 12),
+                          Text(
+                            subject.name,
+                            style: TextStyle(
+                              fontSize: Responsive.getScaledFontSize(
+                                context,
+                                18,
+                              ),
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );
@@ -189,9 +220,10 @@ class SubjectSearchDelegate extends SearchDelegate {
   }
 
   Widget _buildSearchResults() {
-    final filteredSubjects = subjects.where((subject) {
-      return subject.name.toLowerCase().contains(query.toLowerCase());
-    }).toList();
+    final filteredSubjects =
+        subjects.where((subject) {
+          return subject.name.toLowerCase().contains(query.toLowerCase());
+        }).toList();
 
     return ListView.builder(
       itemCount: filteredSubjects.length,

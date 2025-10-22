@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ai_tutor_app/services/api_service.dart';
+import 'package:ai_tutor_app/utils/responsive_utils.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -147,145 +148,225 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Logo/Title
-                Icon(
-                  Icons.school,
-                  size: 80,
-                  color: Theme.of(context).primaryColor,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'AI Tutor',
-                  style: Theme.of(context).textTheme.headlineMedium,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Trợ lý học tập cá nhân của bạn',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 48),
-
-                // Username field
-                TextFormField(
-                  controller: _usernameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Tên người dùng',
-                    prefixIcon: Icon(Icons.person),
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Hãy nhập tên người dùng của bạn';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                // Password field
-                TextFormField(
-                  controller: _passwordController,
-                  obscureText: _obscurePassword,
-                  decoration: InputDecoration(
-                    labelText: 'Mật khẩu',
-                    prefixIcon: const Icon(Icons.lock),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscurePassword
-                            ? Icons.visibility
-                            : Icons.visibility_off,
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final formArea = Responsive.constrainedContent(
+            context,
+            SingleChildScrollView(
+              padding: Responsive.getScreenPadding(context),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    SizedBox(
+                      height: Responsive.getValue(
+                        context,
+                        mobile: 40,
+                        tablet: 60,
+                        desktop: 80,
                       ),
-                      onPressed:
-                          () => setState(
-                            () => _obscurePassword = !_obscurePassword,
-                          ),
                     ),
-                    border: const OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Hãy nhập mật khẩu của bạn';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 24),
+                    // Logo/Title
+                    Icon(
+                      Icons.school,
+                      size: Responsive.getValue(
+                        context,
+                        mobile: 80,
+                        tablet: 100,
+                        desktop: 120,
+                      ),
+                      color: Theme.of(context).primaryColor,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'AI Tutor',
+                      style: TextStyle(
+                        fontSize: Responsive.getScaledFontSize(context, 32),
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Trợ lý học tập cá nhân của bạn',
+                      style: TextStyle(
+                        fontSize: Responsive.getScaledFontSize(context, 16),
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 48),
 
-                // Login button
-                ElevatedButton(
-                  onPressed: _isLoading ? null : _login,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  child:
-                      _isLoading
-                          ? const CircularProgressIndicator()
-                          : const Text('Đăng nhập'),
-                ),
-                const SizedBox(height: 16),
+                    // Username field
+                    TextFormField(
+                      controller: _usernameController,
+                      decoration: const InputDecoration(
+                        labelText: 'Tên người dùng',
+                        prefixIcon: Icon(Icons.person),
+                        border: OutlineInputBorder(),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Hãy nhập tên người dùng của bạn';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
 
-                // Google Sign In Button (with coming soon indicator)
-                Container(
-                  width: double.infinity,
-                  height: 50,
-                  child: OutlinedButton.icon(
-                    onPressed: _isLoading ? null : _signInWithGoogle,
-                    icon: const Icon(Icons.account_circle, color: Colors.grey),
-                    label: Row(
+                    // Password field
+                    TextFormField(
+                      controller: _passwordController,
+                      obscureText: _obscurePassword,
+                      decoration: InputDecoration(
+                        labelText: 'Mật khẩu',
+                        prefixIcon: const Icon(Icons.lock),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility
+                                : Icons.visibility_off,
+                          ),
+                          onPressed:
+                              () => setState(
+                                () => _obscurePassword = !_obscurePassword,
+                              ),
+                        ),
+                        border: const OutlineInputBorder(),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Hãy nhập mật khẩu của bạn';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Login button
+                    ElevatedButton(
+                      onPressed: _isLoading ? null : _login,
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                      child:
+                          _isLoading
+                              ? const CircularProgressIndicator()
+                              : const Text('Đăng nhập'),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Google Sign In Button (with coming soon indicator)
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: OutlinedButton.icon(
+                        onPressed: _isLoading ? null : _signInWithGoogle,
+                        icon: const Icon(
+                          Icons.account_circle,
+                          color: Colors.grey,
+                        ),
+                        label: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: const [
+                            Text('Đăng nhập bằng Google'),
+                            SizedBox(width: 8),
+                            Text(
+                              '(Sắp có)',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontStyle: FontStyle.italic,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Colors.grey),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Guest button
+                    OutlinedButton(
+                      onPressed: _isLoading ? null : _loginAsGuest,
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                      child: const Text('Tiếp tục mà không cần đăng nhập'),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Register link
+                    TextButton(
+                      onPressed:
+                          () => Navigator.of(context).pushNamed('/register'),
+                      child: const Text('Chưa có tài khoản? Đăng ký ngay'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            maxWidth: 480,
+          );
+
+          if (Responsive.isDesktop(context)) {
+            return Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    padding: EdgeInsets.all(
+                      Responsive.getValue(
+                        context,
+                        mobile: 32,
+                        tablet: 48,
+                        desktop: 64,
+                      ),
+                    ),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primaryContainer.withOpacity(0.3),
+                    child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        Text('Đăng nhập bằng Google'),
-                        SizedBox(width: 8),
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.auto_stories,
+                          size: 120,
+                          color: Theme.of(context).primaryColor,
+                        ),
+                        const SizedBox(height: 32),
                         Text(
-                          '(Sắp có)',
+                          'Học tập thông minh\nvới AI Tutor',
                           style: TextStyle(
-                            fontSize: 12,
-                            fontStyle: FontStyle.italic,
-                            color: Colors.grey,
+                            fontSize: 36,
+                            fontWeight: FontWeight.bold,
+                            height: 1.3,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Trợ lý học tập cá nhân được hỗ trợ bởi trí tuệ nhân tạo',
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.grey[700],
                           ),
                         ),
                       ],
                     ),
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: Colors.grey),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
                   ),
                 ),
-                const SizedBox(height: 16),
-
-                // Guest button
-                OutlinedButton(
-                  onPressed: _isLoading ? null : _loginAsGuest,
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  child: const Text('Tiếp tục mà không cần đăng nhập'),
-                ),
-                const SizedBox(height: 24),
-
-                // Register link
-                TextButton(
-                  onPressed: () => Navigator.of(context).pushNamed('/register'),
-                  child: const Text('Chưa có tài khoản? Đăng ký ngay'),
-                ),
+                Expanded(child: formArea),
               ],
-            ),
-          ),
-        ),
+            );
+          }
+
+          return formArea;
+        },
       ),
     );
   }

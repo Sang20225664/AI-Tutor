@@ -2,6 +2,7 @@ import 'package:ai_tutor_app/screens/select_grade_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ai_tutor_app/services/api_service.dart';
+import 'package:ai_tutor_app/utils/responsive_utils.dart';
 import 'login_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -50,15 +51,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
   }
 
-  Future<void> _toggleDarkMode() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      // No local isDarkMode, so just call the widget's toggle function
-    });
-    await prefs.setBool('isDarkMode', !widget.isDarkMode);
-    widget.toggleDarkMode();
-  }
-
   Future<void> _logout() async {
     final prefs = await SharedPreferences.getInstance();
 
@@ -85,166 +77,213 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Tài khoản'), centerTitle: true),
-      body: ListView(
-        children: [
-          // Header người dùng
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Colors.deepPurple, Colors.blue],
-              ),
-            ),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 30,
-                  backgroundColor: Colors.grey[300],
-                  backgroundImage:
-                      _avatarUrl.isNotEmpty ? NetworkImage(_avatarUrl) : null,
-                  child:
-                      _avatarUrl.isEmpty
-                          ? Icon(
-                            _isGuest ? Icons.person_outline : Icons.person,
-                            size: 35,
-                            color: Colors.grey[600],
-                          )
-                          : null,
+      body: Responsive.constrainedContent(
+        context,
+        ListView(
+          children: [
+            // Header người dùng
+            Container(
+              padding: Responsive.getScreenPadding(context),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.deepPurple, Colors.blue],
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        _username,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
+              ),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: Responsive.getValue(
+                      context,
+                      mobile: 30,
+                      tablet: 40,
+                      desktop: 50,
+                    ),
+                    backgroundColor: Colors.grey[300],
+                    backgroundImage:
+                        _avatarUrl.isNotEmpty ? NetworkImage(_avatarUrl) : null,
+                    child:
+                        _avatarUrl.isEmpty
+                            ? Icon(
+                              _isGuest ? Icons.person_outline : Icons.person,
+                              size: Responsive.getValue(
+                                context,
+                                mobile: 35,
+                                tablet: 45,
+                                desktop: 55,
+                              ),
+                              color: Colors.grey[600],
+                            )
+                            : null,
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _username,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: Responsive.getScaledFontSize(context, 20),
+                            fontWeight: FontWeight.bold,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      Text(
-                        _email,
-                        style: const TextStyle(color: Colors.white70),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      if (_isGuest)
-                        Container(
-                          margin: const EdgeInsets.only(top: 4),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 2,
+                        Text(
+                          _email,
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: Responsive.getScaledFontSize(context, 14),
                           ),
-                          decoration: BoxDecoration(
-                            color: Colors.orange,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Text(
-                            'Khách',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        if (_isGuest)
+                          Container(
+                            margin: const EdgeInsets.only(top: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.orange,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Text(
+                              'Khách',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
-                        ),
-                    ],
+                      ],
+                    ),
                   ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 10),
+
+            // Nhóm: Hồ sơ & học tập
+            Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: Responsive.getValue(
+                  context,
+                  mobile: 16,
+                  tablet: 24,
+                  desktop: 32,
                 ),
-              ],
+                vertical: 8,
+              ),
+              child: Text(
+                'Hồ sơ & học tập',
+                style: TextStyle(
+                  fontSize: Responsive.getScaledFontSize(context, 16),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
-          ),
 
-          const SizedBox(height: 10),
+            if (!_isGuest) ...[
+              _buildTile(
+                Icons.person,
+                'Chỉnh sửa thông tin cá nhân',
+                () => _showEditProfileDialog(),
+              ),
+            ],
 
-          // Nhóm: Hồ sơ & học tập
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Text(
-              'Hồ sơ & học tập',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-          ),
-
-          if (!_isGuest) ...[
             _buildTile(
-              Icons.person,
-              'Chỉnh sửa thông tin cá nhân',
-              () => _showEditProfileDialog(),
+              Icons.school,
+              'Trình độ',
+              () async {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => SelectGradeScreen()),
+                );
+                _loadUserData();
+              },
+              subtitle:
+                  _selectedGrade != null ? 'Lớp $_selectedGrade' : 'Chưa chọn',
+            ),
+
+            _buildTile(Icons.history, 'Lịch sử học tập', () {}),
+            _buildTile(
+              Icons.star,
+              _isGuest
+                  ? 'Đăng nhập để sử dụng đầy đủ tính năng'
+                  : 'Gói học tập: Miễn phí',
+              () {},
+            ),
+
+            if (!_isGuest) _buildTile(Icons.upgrade, 'Nâng cấp Premium', () {}),
+
+            const Divider(),
+
+            // Nhóm: Cài đặt
+            Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: Responsive.getValue(
+                  context,
+                  mobile: 16,
+                  tablet: 24,
+                  desktop: 32,
+                ),
+                vertical: 8,
+              ),
+              child: Text(
+                'Cài đặt & trợ giúp',
+                style: TextStyle(
+                  fontSize: Responsive.getScaledFontSize(context, 16),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+
+            _buildTile(Icons.settings, 'Cài đặt', () {}),
+            _buildTile(Icons.info, 'Thông tin ứng dụng', () {}),
+
+            // Dark mode toggle
+            Container(
+              margin: EdgeInsets.symmetric(
+                horizontal: Responsive.getValue(
+                  context,
+                  mobile: 16,
+                  tablet: 24,
+                  desktop: 32,
+                ),
+                vertical: 8,
+              ),
+              child: SwitchListTile(
+                title: const Text('Chế độ tối'),
+                subtitle: Text(widget.isDarkMode ? 'Đang bật' : 'Đang tắt'),
+                value: widget.isDarkMode,
+                onChanged: (value) {
+                  widget.toggleDarkMode();
+                },
+                secondary: Icon(
+                  widget.isDarkMode ? Icons.dark_mode : Icons.light_mode,
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // Nút đăng xuất
+            Center(
+              child: TextButton.icon(
+                onPressed: () => _showLogoutDialog(),
+                icon: const Icon(Icons.logout, color: Colors.red),
+                label: Text(
+                  _isGuest ? 'Đăng nhập' : 'Đăng xuất',
+                  style: const TextStyle(color: Colors.red),
+                ),
+              ),
             ),
           ],
-
-          _buildTile(
-            Icons.school,
-            'Trình độ',
-            () async {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => SelectGradeScreen()),
-              );
-              _loadUserData();
-            },
-            subtitle:
-                _selectedGrade != null ? 'Lớp $_selectedGrade' : 'Chưa chọn',
-          ),
-
-          _buildTile(Icons.history, 'Lịch sử học tập', () {}),
-          _buildTile(
-            Icons.star,
-            _isGuest
-                ? 'Đăng nhập để sử dụng đầy đủ tính năng'
-                : 'Gói học tập: Miễn phí',
-            () {},
-          ),
-
-          if (!_isGuest) _buildTile(Icons.upgrade, 'Nâng cấp Premium', () {}),
-
-          const Divider(),
-
-          // Nhóm: Cài đặt
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Text(
-              'Cài đặt & trợ giúp',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-          ),
-
-          _buildTile(Icons.settings, 'Cài đặt', () {}),
-          _buildTile(Icons.info, 'Thông tin ứng dụng', () {}),
-
-          // Dark mode toggle
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: SwitchListTile(
-              title: const Text('Chế độ tối'),
-              subtitle: Text(widget.isDarkMode ? 'Đang bật' : 'Đang tắt'),
-              value: widget.isDarkMode,
-              onChanged: (value) {
-                widget.toggleDarkMode();
-              },
-              secondary: Icon(
-                widget.isDarkMode ? Icons.dark_mode : Icons.light_mode,
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 20),
-
-          // Nút đăng xuất
-          Center(
-            child: TextButton.icon(
-              onPressed: () => _showLogoutDialog(),
-              icon: const Icon(Icons.logout, color: Colors.red),
-              label: Text(
-                _isGuest ? 'Đăng nhập' : 'Đăng xuất',
-                style: const TextStyle(color: Colors.red),
-              ),
-            ),
-          ),
-        ],
+        ),
+        maxWidth: 800,
       ),
     );
   }

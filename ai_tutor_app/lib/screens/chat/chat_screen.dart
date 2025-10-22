@@ -1,5 +1,6 @@
 // lib/screens/chat_screen.dart
 import 'package:flutter/material.dart';
+import 'package:ai_tutor_app/utils/responsive_utils.dart';
 
 import '../../services/gemini_service.dart';
 
@@ -55,46 +56,50 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Chat with AI Tutor')),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              itemCount: _messages.length,
-              padding: const EdgeInsets.all(8),
-              itemBuilder: (context, index) {
-                final message = _messages[index];
-                return ChatBubble(message: message);
-              },
+      body: Responsive.constrainedContent(
+        context,
+        Column(
+          children: [
+            Expanded(
+              child: ListView.builder(
+                itemCount: _messages.length,
+                padding: Responsive.getScreenPadding(context),
+                itemBuilder: (context, index) {
+                  final message = _messages[index];
+                  return ChatBubble(message: message);
+                },
+              ),
             ),
-          ),
-          if (_isLoading)
-            const Padding(
-              padding: EdgeInsets.all(8.0),
-              child: CircularProgressIndicator(),
-            ),
-          Container(
-            padding: const EdgeInsets.all(8),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _controller,
-                    decoration: const InputDecoration(
-                      hintText: 'Nhập câu hỏi của bạn...',
-                      border: OutlineInputBorder(),
+            if (_isLoading)
+              const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: CircularProgressIndicator(),
+              ),
+            Container(
+              padding: Responsive.getScreenPadding(context),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _controller,
+                      decoration: const InputDecoration(
+                        hintText: 'Nhập câu hỏi của bạn...',
+                        border: OutlineInputBorder(),
+                      ),
+                      onSubmitted: (_) => _sendMessage(),
                     ),
-                    onSubmitted: (_) => _sendMessage(),
                   ),
-                ),
-                const SizedBox(width: 8),
-                IconButton(
-                  icon: const Icon(Icons.send),
-                  onPressed: _isLoading ? null : _sendMessage,
-                ),
-              ],
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: const Icon(Icons.send),
+                    onPressed: _isLoading ? null : _sendMessage,
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
+        maxWidth: 900,
       ),
     );
   }
