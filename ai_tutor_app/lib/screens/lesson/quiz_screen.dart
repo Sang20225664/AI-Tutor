@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:ai_tutor_app/data/quiz_data.dart'; // Import your quiz data
+import 'package:ai_tutor_app/services/api_service.dart';
+import 'package:ai_tutor_app/models/quiz.dart';
 
 class QuizScreen extends StatefulWidget {
   const QuizScreen({super.key});
@@ -11,6 +12,48 @@ class QuizScreen extends StatefulWidget {
 class _QuizScreenState extends State<QuizScreen> {
   int? selectedQuizIndex;
   Map<int, int> selectedAnswers = {}; // question index -> selected option index
+  List<Quiz> _quizzes = [];
+  List<Quiz> _filteredQuizzes = []; // Thêm danh sách đã lọc
+  bool _isLoading = true;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadQuizzes();
+  }
+
+  Future<void> _loadQuizzes() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final response = await ApiService.getQuizzes();
+
+      if (response['success'] == true && response['data'] != null) {
+        final quizzesData = response['data'] as List;
+        setState(() {
+          _quizzes = quizzesData.map((json) => Quiz.fromJson(json)).toList();
+          // Lọc chỉ lấy quizzes có grade chứa 5
+          _filteredQuizzes =
+              _quizzes.where((quiz) => quiz.grade.contains(5)).toList();
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _errorMessage = response['message'] ?? 'Failed to load quizzes';
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Error loading quizzes: $e';
+        _isLoading = false;
+      });
+    }
+  }
 
   void _onOptionSelected(int questionIdx, int optionIdx) {
     setState(() {
@@ -62,17 +105,106 @@ class _QuizScreenState extends State<QuizScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Bài tập luyện tập')),
+      appBar: AppBar(
+        title: const Text('Bài tập luyện tập'),
+        actions: [
+          if (selectedQuizIndex != null)
+            IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: () {
+                setState(() {
+                  selectedQuizIndex = null;
+                  selectedAnswers.clear();
+                });
+              },
+            ),
+          IconButton(icon: const Icon(Icons.refresh), onPressed: _loadQuizzes),
+        ],
+      ),
       body:
-          selectedQuizIndex == null
+          _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _errorMessage != null
+              ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
+                    const SizedBox(height: 16),
+                    Text(
+                      _errorMessage!,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton.icon(
+                      onPressed: _loadQuizzes,
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Thử lại'),
+                    ),
+                  ],
+                ),
+              )
+              : _filteredQuizzes
+                  .isEmpty // Sử dụng _filteredQuizzes
+              ? const Center(
+                child: Text(
+                  'Không có bài tập nào cho lớp 5',
+                  style: TextStyle(fontSize: 18),
+                ),
+              )
+              : selectedQuizIndex == null
               ? ListView.builder(
-                itemCount: quizList.length,
+                itemCount: _filteredQuizzes.length, // Sử dụng _filteredQuizzes
                 itemBuilder: (context, index) {
-                  final quiz = quizList[index];
+                  final quiz =
+                      _filteredQuizzes[index]; // Sử dụng _filteredQuizzes
                   return Card(
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                     child: ListTile(
-                      title: Text(quiz['title'] ?? ''),
-                      subtitle: Text(quiz['description'] ?? ''),
+                      title: Text(
+                        quiz.title,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(quiz.description),
+                          const SizedBox(height: 4),
+                          Wrap(
+                            spacing: 8,
+                            children: [
+                              Chip(
+                                label: Text(quiz.subjectName),
+                                labelStyle: const TextStyle(fontSize: 12),
+                                materialTapTargetSize:
+                                    MaterialTapTargetSize.shrinkWrap,
+                              ),
+                              Chip(
+                                label: Text('${quiz.questions.length} câu'),
+                                labelStyle: const TextStyle(fontSize: 12),
+                                materialTapTargetSize:
+                                    MaterialTapTargetSize.shrinkWrap,
+                              ),
+                              Chip(
+                                label: Text(
+                                  _getDifficultyText(quiz.difficulty),
+                                ),
+                                labelStyle: const TextStyle(fontSize: 12),
+                                backgroundColor: _getDifficultyColor(
+                                  quiz.difficulty,
+                                ),
+                                materialTapTargetSize:
+                                    MaterialTapTargetSize.shrinkWrap,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                       onTap: () {
                         setState(() {
                           selectedQuizIndex = index;
@@ -83,36 +215,84 @@ class _QuizScreenState extends State<QuizScreen> {
                   );
                 },
               )
-              : _buildQuizDetail(context, quizList[selectedQuizIndex!]),
+              : _buildQuizDetail(
+                context,
+                _filteredQuizzes[selectedQuizIndex!],
+              ), // Sử dụng _filteredQuizzes
     );
   }
 
-  Widget _buildQuizDetail(BuildContext context, Map<String, dynamic> quiz) {
-    int totalQuestions = quiz['questions'].length;
+  String _getDifficultyText(String difficulty) {
+    switch (difficulty) {
+      case 'easy':
+        return 'Dễ';
+      case 'medium':
+        return 'Trung bình';
+      case 'hard':
+        return 'Khó';
+      default:
+        return difficulty;
+    }
+  }
+
+  Color _getDifficultyColor(String difficulty) {
+    switch (difficulty) {
+      case 'easy':
+        return Colors.green.shade100;
+      case 'medium':
+        return Colors.orange.shade100;
+      case 'hard':
+        return Colors.red.shade100;
+      default:
+        return Colors.grey.shade100;
+    }
+  }
+
+  Widget _buildQuizDetail(BuildContext context, Quiz quiz) {
+    int totalQuestions = quiz.questions.length;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Text(
-            quiz['title'] ?? '',
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                quiz.title,
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                quiz.description,
+                style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+              ),
+            ],
           ),
         ),
         Expanded(
           child: ListView.builder(
-            itemCount: quiz['questions'].length,
+            itemCount: quiz.questions.length,
             itemBuilder: (context, idx) {
-              final q = quiz['questions'][idx];
+              final q = quiz.questions[idx];
               final selected = selectedAnswers[idx];
               return Card(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    ListTile(title: Text(q['question'] ?? '')),
-                    ...List.generate(q['options'].length, (optIdx) {
+                    ListTile(
+                      title: Text(
+                        'Câu ${idx + 1}: ${q.question}',
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                    ...List.generate(q.options.length, (optIdx) {
                       return RadioListTile<int>(
-                        title: Text(q['options'][optIdx]),
+                        title: Text(q.options[optIdx]),
                         value: optIdx,
                         groupValue: selected,
                         onChanged: (val) {
@@ -120,6 +300,30 @@ class _QuizScreenState extends State<QuizScreen> {
                         },
                       );
                     }),
+                    if (q.explanation != null && selected != null)
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(Icons.info_outline, color: Colors.blue[700]),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  q.explanation!,
+                                  style: TextStyle(color: Colors.blue[900]),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               );
@@ -136,8 +340,7 @@ class _QuizScreenState extends State<QuizScreen> {
                     int correct = 0;
                     for (int i = 0; i < totalQuestions; i++) {
                       if (selectedAnswers[i] != null &&
-                          selectedAnswers[i] ==
-                              quiz['questions'][i]['answer']) {
+                          selectedAnswers[i] == quiz.questions[i].answer) {
                         correct++;
                       }
                     }

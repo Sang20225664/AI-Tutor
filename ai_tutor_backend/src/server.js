@@ -4,10 +4,12 @@ const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
+const logger = require('./config/logger');
 const mongoose = require("mongoose");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 // Import routes
+const apiRoutes = require("./routes/api");
 const geminiRoutes = require("./routes/geminiRoutes");
 const userRoutes = require("./routes/userRoutes");
 const lessonRoutes = require("./routes/lessonRoutes");
@@ -60,36 +62,64 @@ app.use(cors({
   allowedHeaders: ['*'],
 }));
 
-// Only show important requests in development
-if (process.env.NODE_ENV === "development") {
-  app.use(morgan("tiny"));
+// Morgan -> Winston stream (unify request logs)
+const morganStream = {
+  write: (message) => {
+    // message already contains newline
+    logger.info(message.trim());
+  }
+};
+
+// Choose morgan format depending on environment
+const morganFormat = process.env.MORGAN_FORMAT || (process.env.NODE_ENV === 'production' ? 'combined' : 'dev');
+app.use(morgan(morganFormat, { stream: morganStream }));
+
+// === Auto-seed function ===
+async function autoSeedDatabase() {
+  try {
+    const Subject = require('./models/subject');
+    const count = await Subject.countDocuments();
+
+    if (count === 0) {
+      console.log('📦 Database is empty, running auto-seed...');
+      const seedDatabase = require('./seedData');
+      await seedDatabase();
+      console.log('✅ Auto-seed completed!');
+    } else {
+      console.log(`✅ Database already has ${count} subjects, skipping seed`);
+    }
+  } catch (error) {
+    console.error('⚠️  Auto-seed failed:', error.message);
+  }
 }
 
 // === MongoDB Connection ===
 mongoose.set("strictQuery", false);
 mongoose
   .connect(MONGO_URI, {})
-  .then(() => {
-    console.log(`🚀 AI Tutor Backend Started Successfully`);
-    console.log(`📊 Server: http://${HOST}:${PORT}`);
-    console.log(`💾 Database: Connected to MongoDB`);
-    console.log(
-      `🔑 Gemini API: ${process.env.GEMINI_API_KEY ? "✅ Configured" : "❌ Missing"
-      }`
-    );
-    console.log(`🌍 Environment: ${process.env.NODE_ENV}`);
-    console.log(`📋 Admin Panel: http://${HOST}:${PORT}/admin`);
-    console.log("─".repeat(50));
+  .then(async () => {
+    logger.info('🚀 AI Tutor Backend Started Successfully');
+    logger.info('📊 Server: http://%s:%s', HOST, PORT);
+    logger.info('💾 Database: Connected to MongoDB');
+    logger.info('🔑 Gemini API: %s', process.env.GEMINI_API_KEY ? '✅ Configured' : '❌ Missing');
+    logger.info('🌍 Environment: %s', process.env.NODE_ENV);
+    logger.info('📋 Admin Panel: http://%s:%s/admin', HOST, PORT);
+    logger.info('%s', '─'.repeat(50));
+
+    // Auto-seed if database is empty
+    await autoSeedDatabase();
   })
   .catch((err) => {
-    console.error("❌ MongoDB Connection Error:", err.message);
+    logger.error('❌ MongoDB Connection Error: %s', err.message, { stack: err.stack });
     process.exit(1);
   });
 
 // === Routes ===
-app.use("/api/gemini", geminiRoutes);
+// Use centralized API routes (includes subjects, quizzes, lessons)
+app.use("/api", apiRoutes);
+
+// Keep backward compatibility for existing routes
 app.use("/api/users", userRoutes);
-app.use("/api/lessons", lessonRoutes);
 app.use("/api/chats", chatRoutes);
 app.use("/api/chat-history", chatHistoryRoutes);
 
@@ -144,7 +174,7 @@ app.get("/api/test", async (req, res) => {
 
 // Health check endpoint
 app.get("/api/ping", (req, res) => {
-  console.log(`🏓 Ping received from ${req.get('Origin') || 'unknown'}`);
+  logger.info('🏓 Ping received from %s', req.get('Origin') || 'unknown');
   res.json({
     success: true,
     message: "Backend is running!",
@@ -226,7 +256,15 @@ app.get("/admin", async (req, res) => {
 
 // === Global Error Handler ===
 app.use((err, req, res, next) => {
-  console.error("Server Error:", err.message);
+  // Log error with request context when available
+  const meta = {
+    url: req.originalUrl,
+    method: req.method,
+    params: req.params,
+    query: req.query,
+    body: req.body
+  };
+  logger.error('Server Error: %s', err.message, { stack: err.stack, ...meta });
   res.status(500).json({ success: false, message: "Internal Server Error" });
 });
 

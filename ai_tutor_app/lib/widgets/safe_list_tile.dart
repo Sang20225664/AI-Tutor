@@ -64,8 +64,8 @@ class SafeListTile extends StatelessWidget {
         maxLines: child.maxLines,
         overflow: child.overflow,
         style: style?.copyWith(
-          fontSize: (style?.fontSize ?? 16) * scale,
-          color: color ?? style?.color,
+          fontSize: (style.fontSize ?? 16) * scale,
+          color: color ?? style.color,
         ),
       );
     }

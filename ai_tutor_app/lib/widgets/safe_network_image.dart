@@ -58,7 +58,7 @@ class SafeNetworkImage extends StatelessWidget {
       width: w,
       height: h,
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
+        color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
         borderRadius: borderRadius,
       ),
       child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
@@ -70,7 +70,7 @@ class SafeNetworkImage extends StatelessWidget {
       width: w,
       height: h,
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
+        color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
         borderRadius: borderRadius,
       ),
       child: Icon(

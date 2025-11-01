@@ -40,3 +40,6 @@ flutter_*.png
 
 # Documentation
 doc/api/
+
+# SSL
+ssl/*

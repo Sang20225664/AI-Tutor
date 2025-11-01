@@ -4,31 +4,54 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 exports.chatWithGemini = async (req, res) => {
   try {
-    const { prompt, subject } = req.body;
+    const { message, prompt, subject, greet } = req.body || {};
+    const userMessage = message || prompt;
+    const greetQuery = req.query && (req.query.greet === '1' || req.query.greet === 'true');
 
-    // Khởi tạo model
-    const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-pro-latest",
-      systemInstruction: `Bạn là gia sư AI chuyên về ${subject}. Hãy trả lời chi tiết và dễ hiểu.`
-    });
-
-    // Streaming response
-    const result = await model.generateContentStream(prompt);
-    let text = '';
-
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
-
-    for await (const chunk of result.stream) {
-      const chunkText = chunk.text();
-      text += chunkText;
-      res.write(`data: ${JSON.stringify({ text: chunkText })}\n\n`);
+    // If explicit greet flag provided, immediately respond with greeting
+    if (greet === true || greet === 'true' || greetQuery) {
+      console.log('Sending greeting (explicit greet flag)');
+      return res.json({
+        success: true,
+        response: 'Xin chào, tôi là gia sư AI của bạn, hôm nay bạn muốn học gì?',
+        message: 'Greeting sent'
+      });
     }
 
-    res.end();
+    // If no message/prompt provided, immediately respond with greeting
+    if (!userMessage || (typeof userMessage === 'string' && userMessage.trim() === '')) {
+      console.log('Sending greeting (empty message)');
+      return res.json({
+        success: true,
+        response: 'Xin chào, tôi là gia sư AI của bạn, hôm nay bạn muốn học gì?',
+        message: 'Greeting sent'
+      });
+    }
+
+    // Initialize model
+    const model = genAI.getGenerativeModel({
+      model: "gemini-2.5-flash",
+      systemInstruction: subject
+        ? `Bạn là gia sư AI chuyên về ${subject}. Hãy trả lời chi tiết và dễ hiểu bằng tiếng Việt.`
+        : 'Bạn là gia sư AI thông minh. Hãy trả lời chi tiết và dễ hiểu bằng tiếng Việt.'
+    });
+
+    // Generate content (non-streaming)
+    const result = await model.generateContent(userMessage);
+    const response = result.response;
+    const text = response.text();
+
+    res.json({
+      success: true,
+      response: text,
+      message: 'Response generated successfully'
+    });
   } catch (error) {
-    console.error("Gemini Error:", error);
-    res.status(500).json({ error: "AI đang gặp sự cố" });
+    console.error("Gemini Error:", error.message);
+    res.status(500).json({
+      success: false,
+      message: 'AI đang gặp sự cố',
+      error: error.message
+    });
   }
 };

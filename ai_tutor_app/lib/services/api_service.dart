@@ -150,6 +150,37 @@ class ApiService {
     return post('api/gemini/chat', {'message': message});
   }
 
+  // Modify existing chat method or add optional parameter `greet`
+  static Future<Map<String, dynamic>> chat({
+    String? message,
+    String? prompt,
+    String? subject,
+    bool greet = false, // <-- new optional param
+  }) async {
+    final url = Uri.parse(
+      '$baseUrl/your-chat-endpoint',
+    ); // ...existing endpoint...
+    final body = {
+      if (message != null) 'message': message,
+      if (prompt != null) 'prompt': prompt,
+      if (subject != null) 'subject': subject,
+      if (greet) 'greet': true, // send greet flag when requested
+    };
+
+    // ...existing http client code...
+    final res = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        // ...existing headers...
+      },
+      body: jsonEncode(body),
+    );
+
+    // ...existing response handling...
+    return jsonDecode(res.body) as Map<String, dynamic>;
+  }
+
   // Legacy methods for backward compatibility
   static Future<Map<String, dynamic>> generateGeminiResponse(
     String prompt,
@@ -170,6 +201,98 @@ class ApiService {
 
   static Future<Map<String, dynamic>> deleteChatHistory(String chatId) async {
     return delete('api/chats/$chatId');
+  }
+
+  // Subject APIs
+  static Future<Map<String, dynamic>> getSubjects({int? grade}) async {
+    final endpoint =
+        grade != null ? 'api/subjects?grade=$grade' : 'api/subjects';
+    return get(endpoint);
+  }
+
+  static Future<Map<String, dynamic>> getSubjectById(String id) async {
+    return get('api/subjects/$id');
+  }
+
+  // Quiz APIs
+  static Future<Map<String, dynamic>> getQuizzes({
+    int? grade,
+    String? subjectName,
+    String? difficulty,
+  }) async {
+    final params = <String>[];
+    if (grade != null) params.add('grade=$grade');
+    if (subjectName != null) {
+      params.add('subjectName=${Uri.encodeComponent(subjectName)}');
+    }
+    if (difficulty != null) params.add('difficulty=$difficulty');
+
+    final query = params.isEmpty ? '' : '?${params.join('&')}';
+    return get('api/quizzes$query');
+  }
+
+  static Future<Map<String, dynamic>> getQuizById(String id) async {
+    return get('api/quizzes/$id');
+  }
+
+  // Lesson APIs
+  static Future<Map<String, dynamic>> getLessons({
+    int? grade,
+    String? subjectName,
+    String? difficulty,
+    List<String>? topics,
+  }) async {
+    final params = <String>[];
+    if (grade != null) params.add('grade=$grade');
+    if (subjectName != null) {
+      params.add('subjectName=${Uri.encodeComponent(subjectName)}');
+    }
+    if (difficulty != null) params.add('difficulty=$difficulty');
+    if (topics != null && topics.isNotEmpty) {
+      params.add(
+        'topics=${topics.map((t) => Uri.encodeComponent(t)).join(',')}',
+      );
+    }
+
+    final query = params.isEmpty ? '' : '?${params.join('&')}';
+    return get('api/lessons$query');
+  }
+
+  static Future<Map<String, dynamic>> getLessonById(String id) async {
+    return get('api/lessons/$id');
+  }
+
+  static Future<Map<String, dynamic>> getLessonsBySubject(
+    String subjectId, {
+    int? grade,
+    String? difficulty,
+  }) async {
+    final params = <String>[];
+    if (grade != null) params.add('grade=$grade');
+    if (difficulty != null) params.add('difficulty=$difficulty');
+
+    final query = params.isEmpty ? '' : '?${params.join('&')}';
+    return get('api/lessons/subject/$subjectId$query');
+  }
+
+  // Lesson Suggestion APIs
+  static Future<Map<String, dynamic>> getLessonSuggestions({
+    required int grade,
+    String? subjectName,
+    String? difficulty,
+  }) async {
+    final params = <String>['grade=$grade'];
+    if (subjectName != null) {
+      params.add('subjectName=${Uri.encodeComponent(subjectName)}');
+    }
+    if (difficulty != null) params.add('difficulty=$difficulty');
+
+    final query = params.join('&');
+    return get('api/lesson-suggestions?$query');
+  }
+
+  static Future<Map<String, dynamic>> getLessonSuggestionById(String id) async {
+    return get('api/lesson-suggestions/$id');
   }
 
   // Helper Methods

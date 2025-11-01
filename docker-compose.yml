@@ -20,6 +20,9 @@ services:
     networks:
       - ai_tutor_network
     restart: unless-stopped
+    volumes:
+      # Persist backend logs on host for easy inspection during development
+      - ./logs/backend:/usr/src/app/logs
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:5000/api/ping" ]
       interval: 30s
@@ -36,7 +39,8 @@ services:
         - BUILDKIT_INLINE_CACHE=1
     container_name: ai_tutor_frontend_main
     ports:
-      - "3000:80"
+      - "3000:8080"
+    user: "1001:1001"
     depends_on:
       - backend
     networks:

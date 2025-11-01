@@ -15,11 +15,29 @@ class AIChatScreen extends StatefulWidget {
 class _AIChatScreenState extends State<AIChatScreen> {
   final _controller = TextEditingController();
   final _messages = <ChatMessage>[];
+  final ScrollController _scrollController = ScrollController();
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Add an immediate greeting message when the chat screen opens
+    _messages.add(
+      ChatMessage(
+        text:
+            'Chào bạn! Mình là gia sư môn ${widget.subject.name}. Mình có thể giúp gì hôm nay?',
+        isUser: false,
+        timestamp: DateTime.now(),
+      ),
+    );
+    // scroll to bottom after first frame so greeting is visible
+    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+  }
 
   @override
   void dispose() {
     _controller.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -45,6 +63,7 @@ class _AIChatScreenState extends State<AIChatScreen> {
           ChatMessage(text: response, isUser: false, timestamp: DateTime.now()),
         );
       });
+      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
     } catch (e) {
       setState(() {
         _isLoading = false;
@@ -56,7 +75,18 @@ class _AIChatScreenState extends State<AIChatScreen> {
           ),
         );
       });
+      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
     }
+  }
+
+  void _scrollToBottom() {
+    if (!_scrollController.hasClients) return;
+    final position = _scrollController.position.maxScrollExtent;
+    _scrollController.animateTo(
+      position,
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeOut,
+    );
   }
 
   @override
@@ -72,6 +102,7 @@ class _AIChatScreenState extends State<AIChatScreen> {
                 children: [
                   Expanded(
                     child: SingleChildScrollView(
+                      controller: _scrollController,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 24,
                         vertical: 24,
@@ -79,7 +110,11 @@ class _AIChatScreenState extends State<AIChatScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          // ...existing chat messages / header...
+                          // Render chat messages
+                          for (final msg in _messages) ...[
+                            ChatBubble(message: msg),
+                            const SizedBox(height: 8),
+                          ],
                         ],
                       ),
                     ),
@@ -218,8 +253,11 @@ class ChatBubble extends StatelessWidget {
           color:
               message.isUser
                   ? Theme.of(context).primaryColor
-                  : Colors.grey[200],
+                  : Colors.grey.shade300,
           borderRadius: BorderRadius.circular(20.0),
+          border: Border.all(
+            color: message.isUser ? Colors.transparent : Colors.grey.shade200,
+          ),
         ),
         child: Text(
           message.text,

@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:ai_tutor_app/utils/responsive_utils.dart';
 
 import '../../services/gemini_service.dart';
+import '../../services/api_service.dart';
 
 class ChatScreen extends StatefulWidget {
-  const ChatScreen({super.key});
+  final String? subject; // <-- new optional subject
+  const ChatScreen({super.key, this.subject});
 
   @override
   _ChatScreenState createState() => _ChatScreenState();
@@ -14,7 +16,59 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _controller = TextEditingController();
   final List<ChatMessage> _messages = [];
+  final ScrollController _scrollController = ScrollController();
   bool _isLoading = false;
+  String initialSystemMessage = '';
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _sendGreetingIfNeeded();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Ensure there's an immediate local greeting so the user sees a message
+    // even if the backend greeting call is slow or fails.
+    if (_messages.isEmpty) {
+      _messages.add(
+        ChatMessage(
+          text: 'Chào bạn! Mình là gia sư AI. Mình có thể giúp gì hôm nay?',
+          isUser: false,
+        ),
+      );
+      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+    }
+  }
+
+  Future<void> _sendGreetingIfNeeded() async {
+    try {
+      final resp = await ApiService.chat(
+        greet: true,
+        subject: widget.subject,
+      ); // pass subject
+      if (resp['success'] == true && resp['response'] != null) {
+        final greeting = resp['response'] as String;
+        setState(() {
+          initialSystemMessage = greeting;
+          // add greeting as a bot message so it appears in the chat list immediately
+          _messages.add(ChatMessage(text: greeting, isUser: false));
+        });
+      }
+    } catch (e) {
+      // optional: handle error / fallback
+    } finally {
+      // finished
+    }
+  }
 
   void _sendMessage() async {
     final text = _controller.text.trim();
@@ -27,15 +81,13 @@ class _ChatScreenState extends State<ChatScreen> {
     });
 
     try {
-      print("Sending message: $text"); // Debug log
       final response = await GeminiService.generateContent(prompt: text);
-      print("Received response: $response"); // Debug log
 
       setState(() {
         _messages.add(ChatMessage(text: response, isUser: false));
       });
+      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
     } catch (e) {
-      print("Error in chat: $e"); // Debug log
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
@@ -47,9 +99,20 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
         );
       });
+      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
     } finally {
       setState(() => _isLoading = false);
     }
+  }
+
+  void _scrollToBottom() {
+    if (!_scrollController.hasClients) return;
+    final position = _scrollController.position.maxScrollExtent;
+    _scrollController.animateTo(
+      position,
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeOut,
+    );
   }
 
   @override
@@ -62,6 +125,7 @@ class _ChatScreenState extends State<ChatScreen> {
           children: [
             Expanded(
               child: ListView.builder(
+                controller: _scrollController,
                 itemCount: _messages.length,
                 padding: Responsive.getScreenPadding(context),
                 itemBuilder: (context, index) {
@@ -74,6 +138,14 @@ class _ChatScreenState extends State<ChatScreen> {
               const Padding(
                 padding: EdgeInsets.all(8.0),
                 child: CircularProgressIndicator(),
+              ),
+            if (initialSystemMessage.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Text(
+                  initialSystemMessage,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
               ),
             Container(
               padding: Responsive.getScreenPadding(context),
@@ -125,8 +197,11 @@ class ChatBubble extends StatelessWidget {
         margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: message.isUser ? Colors.blue : Colors.grey[200],
+          color: message.isUser ? Colors.blue : Colors.grey.shade300,
           borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: message.isUser ? Colors.transparent : Colors.grey.shade200,
+          ),
         ),
         child: Text(
           message.text,
