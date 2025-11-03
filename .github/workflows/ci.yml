@@ -13,11 +13,11 @@ jobs:
     
     steps:
       # 1. Checkout source code
-      - name: 📥 Checkout code
+      - name: Checkout code
         uses: actions/checkout@v4
 
       # 2. Setup Node.js for backend
-      - name: 🟢 Setup Node.js 20
+      - name: Setup Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: '20'
@@ -25,11 +25,11 @@ jobs:
           cache-dependency-path: ai_tutor_backend/package-lock.json
 
       # 3. Install and verify backend dependencies
-      - name: 📦 Install backend dependencies
+      - name: Install backend dependencies
         working-directory: ./ai_tutor_backend
         run: npm ci
 
-      - name: 🔍 Verify backend installation
+      - name: Verify backend installation
         working-directory: ./ai_tutor_backend
         run: |
           echo "Node version: $(node --version)"
@@ -38,38 +38,38 @@ jobs:
           ls -la node_modules | head -20
 
       # 4. Setup Flutter for frontend
-      - name: 🔵 Setup Flutter
+      - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.24.0'
           channel: 'stable'
           cache: true
 
-      - name: 📦 Install Flutter dependencies
+      - name: Install Flutter dependencies
         working-directory: ./ai_tutor_app
         run: flutter pub get
 
-      - name: 🏗️ Build Flutter Web
+      - name: Build Flutter Web
         working-directory: ./ai_tutor_app
         run: |
           echo "Building Flutter web application..."
           flutter build web --release
-          echo "✅ Flutter web build completed"
+          echo "Flutter web build completed"
           ls -la build/web
 
       # 5. Set up Docker Buildx
-      - name: 🐳 Set up Docker Buildx
+      - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
       # 6. Login to Docker Hub
-      - name: 🔐 Login to Docker Hub
+      - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       # 7. Build and push backend image
-      - name: 🏗️ Build and push backend image
+      - name: Build and push backend image
         uses: docker/build-push-action@v5
         with:
           context: ./ai_tutor_backend
@@ -83,7 +83,7 @@ jobs:
           platforms: linux/amd64
 
       # 8. Build and push frontend image
-      - name: 🏗️ Build and push frontend image
+      - name: Build and push frontend image
         uses: docker/build-push-action@v5
         with:
           context: ./ai_tutor_app
@@ -97,11 +97,11 @@ jobs:
           platforms: linux/amd64
 
       # 9. Success notification
-      - name: ✅ CI Pipeline Completed
+      - name: CI Pipeline Completed
         if: success()
         run: |
           echo "=================================================="
-          echo "✅ CI Pipeline Completed Successfully"
+          echo "CI Pipeline Completed Successfully"
           echo "=================================================="
           echo "Backend image: sang5664/ai-tutor-backend:latest"
           echo "Frontend image: sang5664/ai-tutor-frontend:latest"
@@ -109,11 +109,11 @@ jobs:
           echo "=================================================="
 
       # 10. Failure notification
-      - name: ❌ CI Pipeline Failed
+      - name: CI Pipeline Failed
         if: failure()
         run: |
           echo "=================================================="
-          echo "❌ CI Pipeline Failed"
+          echo "CI Pipeline Failed"
           echo "=================================================="
           echo "Please check the logs above for details"
           echo "Commit SHA: ${{ github.sha }}"
