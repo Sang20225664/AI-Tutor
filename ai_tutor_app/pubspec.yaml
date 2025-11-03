@@ -13,12 +13,7 @@ dependencies:
   flutter_dotenv: ^5.0.2
   google_generative_ai: ^0.4.0
   intl: ^0.20.0
-
   cupertino_icons: ^1.0.8
-  mongo_dart: ^0.10.4
-  shelf: ^1.4.2
-  shelf_router: ^1.1.4
-  dart_jsonwebtoken: ^3.2.0
   shared_preferences: ^2.2.2
 
 
