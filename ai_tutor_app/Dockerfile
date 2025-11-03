@@ -12,7 +12,8 @@ COPY --from=build-env /app/build/web /usr/share/nginx/html
 RUN chown -R app:app /usr/share/nginx/html || true
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY nginx.main.conf /etc/nginx/nginx.conf
-COPY ssl /etc/nginx/ssl
+# SSL certificates will be added when implementing HTTPS
+# COPY ssl /etc/nginx/ssl
 # Create nginx runtime/cache dirs and give ownership to non-root user `app`
 RUN mkdir -p /var/cache/nginx/client_temp \
     /var/cache/nginx/proxy_temp \
