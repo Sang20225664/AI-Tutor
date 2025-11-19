@@ -8,9 +8,9 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-  - port: 27017
-    targetPort: 27017
-    protocol: TCP
-    name: mongo
+    - port: 27017
+      targetPort: 27017
+      protocol: TCP
+      name: mongo
   selector:
     app: mongodb
