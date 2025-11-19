@@ -183,6 +183,28 @@ app.get("/api/ping", (req, res) => {
   });
 });
 
+// Readiness: check MongoDB connection only 
+app.get('/api/ready', (req, res) => {
+  const state = mongoose.connection.readyState; // 0 disconnected,1 connected,2 connecting,3 disconnecting
+  const ready = state === 1;
+
+  logger.info('🔎 Readiness check: mongoose.readyState=%d', state);
+
+  if (!ready) {
+    return res.status(503).json({
+      ready: false,
+      dbState: state,
+      message: 'MongoDB not connected'
+    });
+  }
+
+  return res.json({
+    ready: true,
+    dbState: state,
+    message: 'OK'
+  });
+});
+
 // --- Admin panel route (simple HTML) ---
 app.get("/admin", async (req, res) => {
   if (process.env.NODE_ENV !== "development") {
