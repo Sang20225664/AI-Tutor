@@ -22,23 +22,16 @@ AI Tutor is a comprehensive educational platform that combines the power of arti
 AI-Tutor/
 ├── ai_tutor_app/              # Flutter mobile/web application
 │   ├── lib/
-│   │   ├── screens/           # UI screens
-│   │   ├── services/          # API and business logic
-│   │   ├── widgets/           # Reusable UI components
-│   │   └── utils/             # Utility functions
-│   ├── android/
 │   ├── web/
-│   └── pubspec.yaml
+│   └── ...
 ├── ai_tutor_backend/          # Node.js/Express backend API
 │   ├── src/
-│   │   ├── controllers/       # Business logic
-│   │   ├── models/            # Database models
-│   │   ├── routes/            # API endpoints
-│   │   └── server.js          # Main server file
-│   ├── docker-compose.yml     # Docker configuration
-│   ├── Dockerfile
-│   ├── .env                   # Environment variables
-│   └── package.json
+│   └── ...
+├── k8s/                       # Kubernetes manifests
+│   ├── namespace/             # Namespace YAML
+│   ├── mongodb/               # MongoDB PVC, Deployment, Service
+│   ├── backend/               # Backend ConfigMap, Secret, Deployment, Service
+│   └── DEBUG_GUIDE.md         # K8s debug & troubleshooting guide
 └── README.md
 ```
 
@@ -50,13 +43,15 @@ AI-Tutor/
 - **HTTP** - API communication
 - **Shared Preferences** - Local storage
 
+
 ### Backend
 - **Node.js** - Runtime environment
 - **Express.js** - Web framework
-- **MongoDB** - Database (Dockerized)
+- **MongoDB** - Database (Dockerized & Kubernetes)
 - **Mongoose** - ODM for MongoDB
 - **JWT** - Authentication
 - **Docker** - Containerization
+- **Kubernetes (K3s)** - Production-grade orchestration
 
 ### AI & ML
 - **Google Gemini API** - Natural language processing and content generation
@@ -71,6 +66,7 @@ Before running this project, make sure you have the following installed:
 - **Docker Compose** (>=2.0.0)
 - **Git**
 
+
 ## 🛠️ Installation & Setup
 
 ### 1. Clone the Repository
@@ -79,17 +75,46 @@ git clone https://github.com/yourusername/AI-Tutor.git
 cd AI-Tutor
 ```
 
-### 2. Backend Setup with Docker
+### 2. Backend Setup (Docker or Kubernetes)
+
+#### Option A: Docker Compose (for local dev)
 ```bash
 cd ai_tutor_backend
-
-# Copy and configure environment variables
 cp .env.example .env
 # Edit .env file with your Gemini API key
-
-# Start the backend with Docker
 docker compose up --build
 ```
+
+
+#### Option B: Kubernetes (K3s)
+1. Install K3s (single node):
+  ```bash
+  curl -sfL https://get.k3s.io | sh -
+  export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+  ```
+2. Create namespace:
+  ```bash
+  kubectl apply -f k8s/namespace/namespace.yaml
+  ```
+3. Deploy MongoDB:
+  ```bash
+  kubectl apply -f k8s/mongodb/
+  # Check PVC, pod, service
+  kubectl get pvc,pod,svc -n ai-dev
+  ```
+4. Deploy Backend:
+  ```bash
+  kubectl apply -f k8s/backend/
+  # Check rollout, pod, service
+  kubectl get deployment,pod,svc -n ai-dev
+  ```
+5. Testing:
+  ```bash
+  # Port-forward to test API
+  kubectl port-forward -n ai-dev service/backend 8080:5000
+  curl http://localhost:8080/api/ping
+  curl http://localhost:8080/api/ready
+  ```
 
 ### 3. Frontend Setup
 ```bash
@@ -101,27 +126,22 @@ flutter run              # For mobile
 
 ### 4. Environment Variables
 
-Backend `.env` configuration:
+
+Backend `.env` (Docker) or ConfigMap/Secret (K8s):
 
 ```env
 # Server
 PORT=5000
-NODE_ENV=development
-HOST=0.0.0.0
+NODE_ENV=production
 
-# Database (Docker)
-MONGO_URI=mongodb://mongo:27017/ai_tutor
+# Database (K8s)
+MONGO_URI=mongodb://mongodb.ai-dev.svc.cluster.local:27017/ai_tutor
 
 # JWT Auth
 JWT_SECRET=your-super-secret-jwt-key
-JWT_EXPIRES_IN=7d
 
 # AI API
 GEMINI_API_KEY=your-gemini-api-key
-
-# Logging
-LOG_LEVEL=info
-MONGODB_LOG_LEVEL=error
 ```
 
 ## 🔧 Configuration
@@ -160,15 +180,34 @@ flutter build apk        # For Android
 # Backend is already containerized for production
 ```
 
-## 🧪 Testing
 
-### Backend Health Check
+## 🧪 Testing & Kubernetes Operations
+
+
+### Backend Health Check (K8s)
 ```bash
-# Test API endpoints
-curl http://localhost:5000/api/ping
-curl -X POST http://localhost:5000/api/gemini/chat \
-  -H "Content-Type: application/json" \
-  -d '{"message": "Hello"}'
+# Test API endpoints (after port-forward)
+curl http://localhost:8080/api/ping
+curl http://localhost:8080/api/ready
+```
+
+### Advanced Testing (Kubernetes)
+```bash
+# List pods, PVC, service
+kubectl get all -n ai-dev
+kubectl get pvc -n ai-dev
+
+# Delete backend pod to test auto-healing
+kubectl delete pod -n ai-dev -l app=backend --force --grace-period=0
+
+# Simulate MongoDB downtime
+kubectl scale deployment mongodb -n ai-dev --replicas=0
+# Check backend readiness, service endpoints
+kubectl get pods -n ai-dev
+kubectl get endpoints backend -n ai-dev
+
+# Restore MongoDB
+kubectl scale deployment mongodb -n ai-dev --replicas=1
 ```
 
 ### Frontend Tests
@@ -177,15 +216,17 @@ cd ai_tutor_app
 flutter test
 ```
 
+
 ## 📚 API Documentation
 
 The backend API provides the following endpoints:
 
-- `GET /api/ping` - Health check
+- `GET /api/ping` - Health check (liveness)
+- `GET /api/ready` - Readiness probe (DB connection)
 - `POST /api/users/login` - User authentication
 - `POST /api/users/register` - User registration
 - `POST /api/gemini/chat` - AI chat interaction
-- `GET /api/users` - User management (dev only)
+- `GET /api/subjects` - List all subjects
 - `GET /admin` - Admin panel (dev only)
 
 ## 🐳 Docker Commands
@@ -223,10 +264,9 @@ docker exec -it mongo_ai_tutor mongosh
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 👥 Team
 
-- **Project Lead**: Nguyễn Đức Tấn Sang
-- **Full Stack Developer**: Nguyễn Đức Tấn Sang
+## 👥 Author
+Nguyen Duc Tan Sang
 
 ## 📞 Support
 
@@ -248,22 +288,30 @@ For support and questions:
 - [ ] Multi-language support
 - [ ] Mobile app optimization
 
-## 🚨 Troubleshooting
+
+
+## 🚨 Troubleshooting & Debugging
+
+- See [`k8s/DEBUG_GUIDE.md`](k8s/DEBUG_GUIDE.md) for Kubernetes debug commands, how to fix CrashLoopBackOff, ImagePullBackOff, PVC Pending, health check, auto-healing, log volume, and more.
 
 ### Common Issues
 
 **CORS Errors (Web)**
 - Backend is configured for web development
-- Ensure Docker containers are running
+- Ensure Docker containers or K8s pods are running
 - Check browser console for specific errors
 
 **Backend Connection Failed**
 ```bash
 # Check if services are running
 docker ps
+# or
+kubectl get pods -n ai-dev
 
 # Restart services
 docker compose down && docker compose up
+# or
+kubectl rollout restart deployment/backend -n ai-dev
 ```
 
 **Flutter Build Issues**
