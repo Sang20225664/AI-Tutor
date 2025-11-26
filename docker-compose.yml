@@ -39,7 +39,7 @@ services:
         - BUILDKIT_INLINE_CACHE=1
     container_name: ai_tutor_frontend_main
     ports:
-      - "3000:8080"
+      - "3000:80"
     user: "1001:1001"
     depends_on:
       - backend

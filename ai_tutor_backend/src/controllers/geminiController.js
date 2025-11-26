@@ -18,16 +18,6 @@ exports.chatWithGemini = async (req, res) => {
       });
     }
 
-    // If no message/prompt provided, immediately respond with greeting
-    if (!userMessage || (typeof userMessage === 'string' && userMessage.trim() === '')) {
-      console.log('Sending greeting (empty message)');
-      return res.json({
-        success: true,
-        response: 'Xin chào, tôi là gia sư AI của bạn, hôm nay bạn muốn học gì?',
-        message: 'Greeting sent'
-      });
-    }
-
     // Initialize model
     const model = genAI.getGenerativeModel({
       model: "gemini-2.5-flash",

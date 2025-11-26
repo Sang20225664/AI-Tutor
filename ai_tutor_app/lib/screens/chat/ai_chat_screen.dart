@@ -19,22 +19,6 @@ class _AIChatScreenState extends State<AIChatScreen> {
   bool _isLoading = false;
 
   @override
-  void initState() {
-    super.initState();
-    // Add an immediate greeting message when the chat screen opens
-    _messages.add(
-      ChatMessage(
-        text:
-            'Chào bạn! Mình là gia sư môn ${widget.subject.name}. Mình có thể giúp gì hôm nay?',
-        isUser: false,
-        timestamp: DateTime.now(),
-      ),
-    );
-    // scroll to bottom after first frame so greeting is visible
-    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
-  }
-
-  @override
   void dispose() {
     _controller.dispose();
     _scrollController.dispose();
@@ -250,10 +234,9 @@ class ChatBubble extends StatelessWidget {
         margin: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
         decoration: BoxDecoration(
-          color:
-              message.isUser
-                  ? Theme.of(context).primaryColor
-                  : Colors.grey.shade300,
+          color: message.isUser
+              ? Theme.of(context).primaryColor
+              : Colors.grey.shade300,
           borderRadius: BorderRadius.circular(20.0),
           border: Border.all(
             color: message.isUser ? Colors.transparent : Colors.grey.shade200,

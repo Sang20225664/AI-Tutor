@@ -33,22 +33,6 @@ class _ChatScreenState extends State<ChatScreen> {
     _sendGreetingIfNeeded();
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Ensure there's an immediate local greeting so the user sees a message
-    // even if the backend greeting call is slow or fails.
-    if (_messages.isEmpty) {
-      _messages.add(
-        ChatMessage(
-          text: 'Chào bạn! Mình là gia sư AI. Mình có thể giúp gì hôm nay?',
-          isUser: false,
-        ),
-      );
-      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
-    }
-  }
-
   Future<void> _sendGreetingIfNeeded() async {
     try {
       final resp = await ApiService.chat(

@@ -150,35 +150,21 @@ class ApiService {
     return post('api/gemini/chat', {'message': message});
   }
 
-  // Modify existing chat method or add optional parameter `greet`
+  // Chat method with optional greeting support
   static Future<Map<String, dynamic>> chat({
     String? message,
     String? prompt,
     String? subject,
-    bool greet = false, // <-- new optional param
+    bool greet = false,
   }) async {
-    final url = Uri.parse(
-      '$baseUrl/your-chat-endpoint',
-    ); // ...existing endpoint...
     final body = {
       if (message != null) 'message': message,
       if (prompt != null) 'prompt': prompt,
       if (subject != null) 'subject': subject,
-      if (greet) 'greet': true, // send greet flag when requested
+      if (greet) 'greet': true,
     };
 
-    // ...existing http client code...
-    final res = await http.post(
-      url,
-      headers: {
-        'Content-Type': 'application/json',
-        // ...existing headers...
-      },
-      body: jsonEncode(body),
-    );
-
-    // ...existing response handling...
-    return jsonDecode(res.body) as Map<String, dynamic>;
+    return post('api/gemini/chat', body);
   }
 
   // Legacy methods for backward compatibility
@@ -312,8 +298,7 @@ class ApiService {
 
       return {
         'success': false,
-        'message':
-            data['message'] ??
+        'message': data['message'] ??
             data['error'] ??
             'Request failed with status ${response.statusCode}',
         'statusCode': response.statusCode,
