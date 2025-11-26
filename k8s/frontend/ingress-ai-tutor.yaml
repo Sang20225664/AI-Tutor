@@ -1,0 +1,38 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ai-tutor-ingress
+  namespace: ai-dev
+  annotations:
+    # Traefik ingress class (K3s default)
+    kubernetes.io/ingress.class: "traefik"
+    # cert-manager sẽ tự động tạo certificate từ ClusterIssuer
+    cert-manager.io/cluster-issuer: "selfsigned-ca"
+    # Traefik specific annotations
+    traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+spec:
+  tls:
+  - hosts:
+    - ai-tutor.local
+    secretName: ai-tutor-tls  # Secret sẽ được cert-manager tạo tự động
+  rules:
+  - host: ai-tutor.local
+    http:
+      paths:
+      # Route /api → backend service (phải match trước để không bị / catch all)
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: backend
+            port:
+              number: 5000
+      
+      # Route / → frontend service (catch-all, phải để sau)
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: frontend
+            port:
+              number: 80

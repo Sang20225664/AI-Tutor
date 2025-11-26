@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: ai-dev
+  labels:
+    app: ai-tutor-frontend
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0  # Đảm bảo luôn có đủ pod phục vụ
+      maxSurge: 1        # Cho phép tạo thêm 1 pod trong quá trình update
+  selector:
+    matchLabels:
+      app: ai-tutor-frontend
+  template:
+    metadata:
+      labels:
+        app: ai-tutor-frontend
+      annotations:
+        # Checksum của nginx.conf - khi thay đổi sẽ trigger rollout
+        # Update bằng: kubectl patch hoặc script update-configmap-and-rollout.sh
+        configmap.frontend-nginx-conf-hash: "UNDEFINED"
+    spec:
+      containers:
+      - name: nginx
+        image: sang5664/ai-tutor-frontend:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+          name: http
+        
+        # Readiness probe - kiểm tra pod sẵn sàng nhận traffic
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 3
+          successThreshold: 1
+        
+        # Liveness probe - kiểm tra pod còn sống
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 20
+          timeoutSeconds: 5
+          failureThreshold: 3
+        
+        # Resource limits
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+        
+        # Mount ConfigMap vào /etc/nginx/conf.d/default.conf
+        volumeMounts:
+        - name: nginx-config
+          mountPath: /etc/nginx/conf.d/default.conf
+          subPath: nginx.conf
+          readOnly: true
+      
+      volumes:
+      - name: nginx-config
+        configMap:
+          name: frontend-nginx-conf
+          items:
+          - key: nginx.conf
+            path: nginx.conf

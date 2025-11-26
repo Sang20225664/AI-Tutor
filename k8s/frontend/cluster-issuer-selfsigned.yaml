@@ -1,0 +1,8 @@
+# ClusterIssuer self-signed cho môi trường development
+# Tạo self-signed certificate cho ai-tutor.local
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: selfsigned-ca
+spec:
+  selfSigned: {}
