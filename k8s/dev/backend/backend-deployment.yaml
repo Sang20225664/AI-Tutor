@@ -43,11 +43,11 @@ spec:
             secretKeyRef:
               name: backend-secret
               key: JWT_SECRET
-        - name: MONGODB_URI
+        - name: MONGO_URI
           valueFrom:
             secretKeyRef:
               name: backend-secret
-              key: MONGODB_URI
+              key: MONGO_URI
         readinessProbe:
           httpGet:
             path: /api/ping

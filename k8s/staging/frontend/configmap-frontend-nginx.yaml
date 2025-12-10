@@ -32,7 +32,7 @@ data:
             server_name localhost;
 
             location /api/ {
-                proxy_pass http://backend.ai-tutor-staging.svc.cluster.local:5000/;
+                proxy_pass http://backend.ai-tutor-staging.svc.cluster.local:5000;
                 proxy_http_version 1.1;
                 proxy_set_header Upgrade $http_upgrade;
                 proxy_set_header Connection 'upgrade';

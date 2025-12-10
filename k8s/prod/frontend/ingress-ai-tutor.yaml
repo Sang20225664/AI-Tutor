@@ -14,10 +14,10 @@ spec:
   ingressClassName: traefik
   tls:
   - hosts:
-    - ai-tutor.example.com  # CHANGE THIS to your domain
+    - ai-tutor.example.com  
     secretName: ai-tutor-prod-tls
   rules:
-  - host: ai-tutor.example.com  # CHANGE THIS to your domain
+  - host: ai-tutor.example.com  
     http:
       paths:
       - path: /
