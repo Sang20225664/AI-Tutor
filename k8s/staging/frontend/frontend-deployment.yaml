@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: ai-tutor-staging
+  labels:
+    app: ai-tutor-frontend
+    environment: staging
+spec:
+  replicas: 2  # Staging: 2 replicas for testing HA
+  selector:
+    matchLabels:
+      app: ai-tutor-frontend
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0  # Zero downtime
+  template:
+    metadata:
+      labels:
+        app: ai-tutor-frontend
+        environment: staging
+    spec:
+      containers:
+      - name: frontend
+        image: sang5664/ai-tutor-frontend:latest
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: nginx-config
+          mountPath: /etc/nginx/nginx.conf
+          subPath: nginx.conf
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 15
+          periodSeconds: 10
+        resources:
+          requests:
+            cpu: 100m      # Staging: Medium resources
+            memory: 128Mi
+          limits:
+            cpu: 300m
+            memory: 256Mi
+      volumes:
+      - name: nginx-config
+        configMap:
+          name: frontend-nginx-conf

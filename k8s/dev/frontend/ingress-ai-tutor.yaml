@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ai-tutor-ingress
+  namespace: ai-tutor-dev
+  annotations:
+    cert-manager.io/cluster-issuer: "selfsigned-cluster-issuer"
+spec:
+  ingressClassName: traefik
+  tls:
+  - hosts:
+    - ai-tutor-dev.local
+    secretName: ai-tutor-dev-tls
+  rules:
+  - host: ai-tutor-dev.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: frontend
+            port:
+              number: 80

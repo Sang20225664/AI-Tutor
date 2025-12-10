@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: ai-tutor-dev
+  labels:
+    app: ai-tutor-frontend
+    environment: dev
+spec:
+  replicas: 1  # Dev: Single replica
+  selector:
+    matchLabels:
+      app: ai-tutor-frontend
+  template:
+    metadata:
+      labels:
+        app: ai-tutor-frontend
+        environment: dev
+    spec:
+      containers:
+      - name: frontend
+        image: sang5664/ai-tutor-frontend:latest
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: nginx-config
+          mountPath: /etc/nginx/nginx.conf
+          subPath: nginx.conf
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 15
+          periodSeconds: 10
+        resources:
+          requests:
+            cpu: 50m       # Dev: Lower resources
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 128Mi
+      volumes:
+      - name: nginx-config
+        configMap:
+          name: frontend-nginx-conf

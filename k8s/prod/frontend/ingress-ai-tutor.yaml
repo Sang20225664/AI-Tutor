@@ -1,0 +1,29 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ai-tutor-ingress
+  namespace: ai-tutor-prod
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"  # Prod: Use Let's Encrypt
+    # Prod: Rate limiting
+    nginx.ingress.kubernetes.io/limit-rps: "10"
+    nginx.ingress.kubernetes.io/limit-connections: "20"
+    # Prod: SSL redirect
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+spec:
+  ingressClassName: traefik
+  tls:
+  - hosts:
+    - ai-tutor.example.com  # CHANGE THIS to your domain
+    secretName: ai-tutor-prod-tls
+  rules:
+  - host: ai-tutor.example.com  # CHANGE THIS to your domain
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: frontend
+            port:
+              number: 80
