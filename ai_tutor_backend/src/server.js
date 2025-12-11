@@ -131,11 +131,13 @@ app.use("/api/chat-history", chatHistoryRoutes);
 app.get("/", (req, res) => {
   res.json({
     message: "AI Tutor Backend API",
-    version: "1.0.0",
+    version: APP_VERSION,
+    buildTime: BUILD_TIME,
     status: "running",
     endpoints: {
       test: "/api/test",
       ping: "/api/ping",
+      health: "/health",
       users: "/api/users",
       lessons: "/api/lessons",
       chats: "/api/chats",
@@ -144,6 +146,23 @@ app.get("/", (req, res) => {
       testGemini: "/api/test-gemini",
     },
   });
+});
+
+// --- Health check for K8s liveness/readiness probes ---
+app.get("/health", (req, res) => {
+  const healthcheck = {
+    status: "healthy",
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+    version: APP_VERSION,
+    mongodb: mongoose.connection.readyState === 1 ? "connected" : "disconnected"
+  };
+
+  if (mongoose.connection.readyState !== 1) {
+    return res.status(503).json({ ...healthcheck, status: "unhealthy" });
+  }
+
+  res.json(healthcheck);
 });
 
 // --- Test route ---
