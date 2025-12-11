@@ -5,6 +5,10 @@ const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
 const logger = require('./config/logger');
+
+// Version info for CD pipeline tracking
+const APP_VERSION = "1.0.0";
+const BUILD_TIME = new Date().toISOString();
 const mongoose = require("mongoose");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
