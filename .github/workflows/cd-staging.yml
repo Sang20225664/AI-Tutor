@@ -89,7 +89,7 @@ jobs:
   # ========================================
   deploy:
     name: 🚀 Deploy to K3s STAGING
-    runs-on: ubuntu-latest
+    runs-on: self-hosted  # Use self-hosted runner on K3s server
     needs: [build-backend, build-frontend]
     environment: staging  # Require approval for staging
     
@@ -97,53 +97,24 @@ jobs:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
 
-      - name: 🔐 Setup SSH Key
+      - name: � Deploy to K3s STAGING (Direct)
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.K3S_SSH_KEY }}" > ~/.ssh/k3s_key
-          chmod 600 ~/.ssh/k3s_key
+          set -e
           
-          # Debug: Kiểm tra secret key có hợp lệ không
-          echo "🔍 Checking SSH key validity..."
-          echo "Key file size: $(wc -c < ~/.ssh/k3s_key) bytes"
-          echo "Key first line: $(head -n1 ~/.ssh/k3s_key)"
-          echo "Key last line: $(tail -n1 ~/.ssh/k3s_key)"
-          echo "Key fingerprint:"
-          ssh-keygen -l -f ~/.ssh/k3s_key || echo "❌ Invalid key format!"
+          echo "📦 Applying K8s manifests..."
+          kubectl apply -f k8s/staging/namespace/
+          kubectl apply -f k8s/staging/mongodb/
+          kubectl apply -f k8s/staging/backend/
+          kubectl apply -f k8s/staging/frontend/
           
-          ssh-keyscan -H ${{ secrets.K3S_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
-
-      - name: 📋 Copy K8s manifests to server
-        run: |
-          scp -i ~/.ssh/k3s_key -r k8s/staging/* ${{ secrets.K3S_USER }}@${{ secrets.K3S_HOST }}:/tmp/k8s-staging/
-
-      - name: 🚀 Deploy to K3s
-        run: |
-          ssh -i ~/.ssh/k3s_key ${{ secrets.K3S_USER }}@${{ secrets.K3S_HOST }} << 'DEPLOY_SCRIPT'
-            set -e
-            
-            echo "📦 Applying K8s manifests..."
-            kubectl apply -f /tmp/k8s-staging/namespace/
-            kubectl apply -f /tmp/k8s-staging/mongodb/
-            kubectl apply -f /tmp/k8s-staging/backend/
-            kubectl apply -f /tmp/k8s-staging/frontend/
-            
-            echo "🔄 Updating images with commit SHA..."
-            IMAGE_TAG="staging-${{ github.sha }}"
-            kubectl set image deployment/backend backend=${{ env.BACKEND_IMAGE }}:${IMAGE_TAG:0:19} -n ${{ env.K8S_NAMESPACE }}
-            kubectl set image deployment/frontend frontend=${{ env.FRONTEND_IMAGE }}:${IMAGE_TAG:0:19} -n ${{ env.K8S_NAMESPACE }}
-            
-            echo "⏳ Waiting for rollout..."
-            kubectl rollout status deployment/backend -n ${{ env.K8S_NAMESPACE }} --timeout=180s
-            kubectl rollout status deployment/frontend -n ${{ env.K8S_NAMESPACE }} --timeout=180s
-            
-            echo "✅ STAGING Deployment complete!"
-            kubectl get pods -n ${{ env.K8S_NAMESPACE }}
-            
-            # Cleanup
-            rm -rf /tmp/k8s-staging/
-          DEPLOY_SCRIPT
-
-      - name: 🧹 Cleanup SSH Key
-        if: always()
-        run: rm -f ~/.ssh/k3s_key
+          echo "🔄 Updating images with commit SHA..."
+          IMAGE_TAG="staging-${{ github.sha }}"
+          kubectl set image deployment/backend backend=${{ env.BACKEND_IMAGE }}:${IMAGE_TAG:0:19} -n ${{ env.K8S_NAMESPACE }}
+          kubectl set image deployment/frontend frontend=${{ env.FRONTEND_IMAGE }}:${IMAGE_TAG:0:19} -n ${{ env.K8S_NAMESPACE }}
+          
+          echo "⏳ Waiting for rollout..."
+          kubectl rollout status deployment/backend -n ${{ env.K8S_NAMESPACE }} --timeout=180s
+          kubectl rollout status deployment/frontend -n ${{ env.K8S_NAMESPACE }} --timeout=180s
+          
+          echo "✅ STAGING Deployment complete!"
+          kubectl get pods -n ${{ env.K8S_NAMESPACE }}
