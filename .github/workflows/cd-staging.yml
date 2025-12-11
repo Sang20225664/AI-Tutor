@@ -10,7 +10,7 @@ on:
   workflow_dispatch:  # Manual trigger
 
 env:
-  DOCKERHUB_USERNAME: sang5664
+  DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
   BACKEND_IMAGE: sang5664/ai-tutor-backend
   FRONTEND_IMAGE: sang5664/ai-tutor-frontend
   K8S_NAMESPACE: ai-tutor-staging
@@ -30,7 +30,7 @@ jobs:
       - name: 🔑 Login to Docker Hub
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          username: ${{ env.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: 🏷️ Extract metadata
@@ -64,7 +64,7 @@ jobs:
       - name: 🔑 Login to Docker Hub
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          username: ${{ env.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: 🏷️ Extract metadata
