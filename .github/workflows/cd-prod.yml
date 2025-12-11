@@ -122,9 +122,9 @@ jobs:
           kubectl apply -f k8s/prod/frontend/
           
           echo "🔄 Updating images with commit SHA..."
-          IMAGE_TAG="prod-${{ github.sha }}"
-          kubectl set image deployment/backend backend=${{ env.BACKEND_IMAGE }}:${IMAGE_TAG:0:17} -n ${{ env.K8S_NAMESPACE }}
-          kubectl set image deployment/frontend frontend=${{ env.FRONTEND_IMAGE }}:${IMAGE_TAG:0:17} -n ${{ env.K8S_NAMESPACE }}
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+          kubectl set image deployment/backend backend=${{ env.BACKEND_IMAGE }}:prod-${SHORT_SHA} -n ${{ env.K8S_NAMESPACE }}
+          kubectl set image deployment/frontend frontend=${{ env.FRONTEND_IMAGE }}:prod-${SHORT_SHA} -n ${{ env.K8S_NAMESPACE }}
           
           echo "⏳ Waiting for rollout..."
           kubectl rollout status deployment/backend -n ${{ env.K8S_NAMESPACE }} --timeout=300s
