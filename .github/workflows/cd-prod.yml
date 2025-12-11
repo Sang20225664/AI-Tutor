@@ -116,6 +116,15 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.K3S_SSH_KEY }}" > ~/.ssh/k3s_key
           chmod 600 ~/.ssh/k3s_key
+          
+          # Debug: Kiểm tra secret key có hợp lệ không
+          echo "🔍 Checking SSH key validity..."
+          echo "Key file size: $(wc -c < ~/.ssh/k3s_key) bytes"
+          echo "Key first line: $(head -n1 ~/.ssh/k3s_key)"
+          echo "Key last line: $(tail -n1 ~/.ssh/k3s_key)"
+          echo "Key fingerprint:"
+          ssh-keygen -l -f ~/.ssh/k3s_key || echo "❌ Invalid key format!"
+          
           ssh-keyscan -H ${{ secrets.K3S_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
 
       - name: 📋 Copy K8s manifests to server
