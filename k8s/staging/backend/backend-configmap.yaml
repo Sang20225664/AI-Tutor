@@ -5,5 +5,8 @@ metadata:
   namespace: ai-tutor-staging
 data:
   NODE_ENV: "staging"
+  MODE: "staging"
   PORT: "5000"
   LOG_LEVEL: "info"  # Staging: Normal logging
+  API_BASE: "/api"
+  CORS_ORIGIN: "*"  # Staging: Allow all for testing

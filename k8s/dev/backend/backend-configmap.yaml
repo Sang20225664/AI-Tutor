@@ -5,5 +5,8 @@ metadata:
   namespace: ai-tutor-dev
 data:
   NODE_ENV: "development"
+  MODE: "dev"
   PORT: "5000"
   LOG_LEVEL: "debug"  # Dev: Verbose logging
+  API_BASE: "/api"
+  CORS_ORIGIN: "*"  # Dev: Allow all origins

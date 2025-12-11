@@ -1,0 +1,164 @@
+name: CD - Deploy to PRODUCTION
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - 'ai_tutor_backend/**'
+      - 'ai_tutor_app/**'
+      - 'k8s/prod/**'
+  release:
+    types: [published]
+  workflow_dispatch:  # Manual trigger
+
+env:
+  DOCKERHUB_USERNAME: sang5664
+  BACKEND_IMAGE: sang5664/ai-tutor-backend
+  FRONTEND_IMAGE: sang5664/ai-tutor-frontend
+  K8S_NAMESPACE: ai-tutor-prod
+
+jobs:
+  # ========================================
+  # JOB 1: Build và Push Backend Image
+  # ========================================
+  build-backend:
+    name: 🔧 Build Backend
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔑 Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: 🏷️ Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.BACKEND_IMAGE }}
+          tags: |
+            type=sha,prefix=prod-
+            type=raw,value=prod-latest
+            type=semver,pattern={{version}},enable=${{ github.event_name == 'release' }}
+
+      - name: 🏗️ Build and Push Backend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./ai_tutor_backend
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  # ========================================
+  # JOB 2: Build và Push Frontend Image
+  # ========================================
+  build-frontend:
+    name: 🎨 Build Frontend
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔑 Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: 🏷️ Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.FRONTEND_IMAGE }}
+          tags: |
+            type=sha,prefix=prod-
+            type=raw,value=prod-latest
+            type=semver,pattern={{version}},enable=${{ github.event_name == 'release' }}
+
+      - name: 🏗️ Build and Push Frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./ai_tutor_app
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  # ========================================
+  # JOB 3: Deploy to K3s PRODUCTION
+  # ========================================
+  deploy:
+    name: 🚀 Deploy to K3s PRODUCTION
+    runs-on: ubuntu-latest
+    needs: [build-backend, build-frontend]
+    environment: production  # REQUIRE MANUAL APPROVAL
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: ⚠️ Production Deployment Notice
+        run: |
+          echo "=============================================="
+          echo "🚨 PRODUCTION DEPLOYMENT"
+          echo "=============================================="
+          echo "Commit: ${{ github.sha }}"
+          echo "Actor: ${{ github.actor }}"
+          echo "Event: ${{ github.event_name }}"
+          echo "=============================================="
+
+      - name: 🔐 Setup SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.K3S_SSH_KEY }}" > ~/.ssh/k3s_key
+          chmod 600 ~/.ssh/k3s_key
+          ssh-keyscan -H ${{ secrets.K3S_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+
+      - name: 📋 Copy K8s manifests to server
+        run: |
+          scp -i ~/.ssh/k3s_key -r k8s/prod/* ${{ secrets.K3S_USER }}@${{ secrets.K3S_HOST }}:/tmp/k8s-prod/
+
+      - name: 🚀 Deploy to K3s PRODUCTION
+        run: |
+          ssh -i ~/.ssh/k3s_key ${{ secrets.K3S_USER }}@${{ secrets.K3S_HOST }} << 'DEPLOY_SCRIPT'
+            set -e
+            
+            echo "📦 Applying K8s manifests..."
+            kubectl apply -f /tmp/k8s-prod/namespace/
+            kubectl apply -f /tmp/k8s-prod/mongodb/
+            kubectl apply -f /tmp/k8s-prod/backend/
+            kubectl apply -f /tmp/k8s-prod/frontend/
+            
+            echo "🔄 Updating images with commit SHA..."
+            IMAGE_TAG="prod-${{ github.sha }}"
+            kubectl set image deployment/backend backend=${{ env.BACKEND_IMAGE }}:${IMAGE_TAG:0:17} -n ${{ env.K8S_NAMESPACE }}
+            kubectl set image deployment/frontend frontend=${{ env.FRONTEND_IMAGE }}:${IMAGE_TAG:0:17} -n ${{ env.K8S_NAMESPACE }}
+            
+            echo "⏳ Waiting for rollout..."
+            kubectl rollout status deployment/backend -n ${{ env.K8S_NAMESPACE }} --timeout=300s
+            kubectl rollout status deployment/frontend -n ${{ env.K8S_NAMESPACE }} --timeout=300s
+            
+            echo "✅ PRODUCTION Deployment complete!"
+            kubectl get pods -n ${{ env.K8S_NAMESPACE }}
+            
+            # Cleanup
+            rm -rf /tmp/k8s-prod/
+          DEPLOY_SCRIPT
+
+      - name: 🧹 Cleanup SSH Key
+        if: always()
+        run: rm -f ~/.ssh/k3s_key
+
+      - name: 📊 Deployment Summary
+        run: |
+          echo "=============================================="
+          echo "✅ PRODUCTION DEPLOYMENT SUCCESSFUL"
+          echo "=============================================="
+          echo "Backend: ${{ env.BACKEND_IMAGE }}:prod-${{ github.sha }}"
+          echo "Frontend: ${{ env.FRONTEND_IMAGE }}:prod-${{ github.sha }}"
+          echo "Namespace: ${{ env.K8S_NAMESPACE }}"
+          echo "=============================================="
