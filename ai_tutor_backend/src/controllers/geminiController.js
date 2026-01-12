@@ -20,7 +20,7 @@ exports.chatWithGemini = async (req, res) => {
 
     // Initialize model
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash",
+      model: "gemini-3.0-flash",
       systemInstruction: subject
         ? `Bạn là gia sư AI chuyên về ${subject}. Hãy trả lời chi tiết và dễ hiểu bằng tiếng Việt.`
         : 'Bạn là gia sư AI thông minh. Hãy trả lời chi tiết và dễ hiểu bằng tiếng Việt.'
