@@ -7,6 +7,7 @@ on:
       - 'ai_tutor_backend/**'
       - 'ai_tutor_app/**'
       - 'k8s/dev/**'
+      - '.github/workflows/cd-dev.yml'
   workflow_dispatch:  # Manual trigger
 
 env:
