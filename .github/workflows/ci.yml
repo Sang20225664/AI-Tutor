@@ -2,9 +2,9 @@ name: CI Pipeline - AI Tutor
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, staging ]  # Validate code khi push trực tiếp
   pull_request:
-    branches: [ main ]
+    branches: [ main, staging ]  # Validate PR dev→staging và staging→main
 
 jobs:
   # ========================================
