@@ -151,7 +151,7 @@ jobs:
           }
           
           # Test database connectivity
-          kubectl exec -n ${{ env.K8S_NAMESPACE }} $BACKEND_POD -- wget -q -O- http://127.0.0.1:5000/api/subjects | grep -q "\[\]" || {
+          kubectl exec -n ${{ env.K8S_NAMESPACE }} $BACKEND_POD -- wget -q -O- http://127.0.0.1:5000/api/subjects | grep -q '"success":true' || {
             echo "❌ Database connectivity test failed!"
             echo "smoke_test_failed=true" >> $GITHUB_OUTPUT
             exit 1
