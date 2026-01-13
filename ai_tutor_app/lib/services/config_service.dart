@@ -5,8 +5,8 @@ class ConfigService {
   static String get backendUrl {
     // In Docker container, backend is accessible via service name
     if (kIsWeb) {
-      // For web, use the same host but different port
-      return 'http://localhost:5000';
+      // For web, use relative path - nginx will proxy to backend
+      return '/api';
     }
     if (!kIsWeb && Platform.isAndroid) {
       // For mobile emulator

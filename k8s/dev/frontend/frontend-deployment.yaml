@@ -19,7 +19,8 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: sang5664/ai-tutor-frontend:latest
+        image: sang5664/ai-tutor-frontend:v5
+        imagePullPolicy: Always
         ports:
         - containerPort: 80
         volumeMounts:

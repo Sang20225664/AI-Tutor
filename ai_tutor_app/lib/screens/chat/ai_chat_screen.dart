@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ai_tutor_app/services/gemini_service.dart';
 import 'package:ai_tutor_app/utils/responsive_utils.dart';
+import 'package:markdown_widget/markdown_widget.dart';
 import '../../models/subject.dart';
 
 class AIChatScreen extends StatefulWidget {
@@ -242,12 +243,20 @@ class ChatBubble extends StatelessWidget {
             color: message.isUser ? Colors.transparent : Colors.grey.shade200,
           ),
         ),
-        child: Text(
-          message.text,
-          style: TextStyle(
-            color: message.isUser ? Colors.white : Colors.black87,
-          ),
-        ),
+        child: message.isUser
+            ? Text(
+                message.text,
+                style: const TextStyle(color: Colors.white),
+              )
+            : MarkdownWidget(
+                data: message.text,
+                shrinkWrap: true,
+                config: MarkdownConfig(
+                  configs: [
+                    const PConfig(textStyle: TextStyle(color: Colors.black87)),
+                  ],
+                ),
+              ),
       ),
     );
   }

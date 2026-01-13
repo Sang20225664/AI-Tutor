@@ -2,7 +2,6 @@
 import 'package:flutter/material.dart';
 import 'package:ai_tutor_app/utils/responsive_utils.dart';
 
-import '../../services/gemini_service.dart';
 import '../../services/api_service.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -65,11 +64,18 @@ class _ChatScreenState extends State<ChatScreen> {
     });
 
     try {
-      final response = await GeminiService.generateContent(prompt: text);
+      final resp =
+          await ApiService.chat(message: text, subject: widget.subject);
 
-      setState(() {
-        _messages.add(ChatMessage(text: response, isUser: false));
-      });
+      if (resp['success'] == true && resp['response'] != null) {
+        final response = resp['response'] as String;
+        setState(() {
+          _messages.add(ChatMessage(text: response, isUser: false));
+        });
+      } else {
+        throw Exception(resp['message'] ?? 'AI đang gặp sự cố');
+      }
+
       WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
     } catch (e) {
       ScaffoldMessenger.of(
@@ -78,7 +84,7 @@ class _ChatScreenState extends State<ChatScreen> {
       setState(() {
         _messages.add(
           ChatMessage(
-            text: "Sorry, I couldn't process that request.",
+            text: "Xin lỗi, AI đang gặp sự cố. Vui lòng thử lại sau.",
             isUser: false,
           ),
         );
@@ -122,14 +128,6 @@ class _ChatScreenState extends State<ChatScreen> {
               const Padding(
                 padding: EdgeInsets.all(8.0),
                 child: CircularProgressIndicator(),
-              ),
-            if (initialSystemMessage.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Text(
-                  initialSystemMessage,
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                ),
               ),
             Container(
               padding: Responsive.getScreenPadding(context),

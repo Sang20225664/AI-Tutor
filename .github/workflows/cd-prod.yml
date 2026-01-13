@@ -93,7 +93,7 @@ jobs:
   # ========================================
   deploy:
     name: 🚀 Deploy to K3s PRODUCTION
-    runs-on: ubuntu-latest
+    runs-on: self-hosted  # Use self-hosted runner on K3s server
     needs: [build-backend, build-frontend]
     environment: production  # REQUIRE MANUAL APPROVAL
     
@@ -111,47 +111,27 @@ jobs:
           echo "Event: ${{ github.event_name }}"
           echo "=============================================="
 
-      - name: 🔐 Setup SSH Key
+      - name:  Deploy to K3s PRODUCTION (Direct)
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.K3S_SSH_KEY }}" > ~/.ssh/k3s_key
-          chmod 600 ~/.ssh/k3s_key
-          ssh-keyscan -H ${{ secrets.K3S_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
-
-      - name: 📋 Copy K8s manifests to server
-        run: |
-          scp -i ~/.ssh/k3s_key -r k8s/prod/* ${{ secrets.K3S_USER }}@${{ secrets.K3S_HOST }}:/tmp/k8s-prod/
-
-      - name: 🚀 Deploy to K3s PRODUCTION
-        run: |
-          ssh -i ~/.ssh/k3s_key ${{ secrets.K3S_USER }}@${{ secrets.K3S_HOST }} << 'DEPLOY_SCRIPT'
-            set -e
-            
-            echo "📦 Applying K8s manifests..."
-            kubectl apply -f /tmp/k8s-prod/namespace/
-            kubectl apply -f /tmp/k8s-prod/mongodb/
-            kubectl apply -f /tmp/k8s-prod/backend/
-            kubectl apply -f /tmp/k8s-prod/frontend/
-            
-            echo "🔄 Updating images with commit SHA..."
-            IMAGE_TAG="prod-${{ github.sha }}"
-            kubectl set image deployment/backend backend=${{ env.BACKEND_IMAGE }}:${IMAGE_TAG:0:17} -n ${{ env.K8S_NAMESPACE }}
-            kubectl set image deployment/frontend frontend=${{ env.FRONTEND_IMAGE }}:${IMAGE_TAG:0:17} -n ${{ env.K8S_NAMESPACE }}
-            
-            echo "⏳ Waiting for rollout..."
-            kubectl rollout status deployment/backend -n ${{ env.K8S_NAMESPACE }} --timeout=300s
-            kubectl rollout status deployment/frontend -n ${{ env.K8S_NAMESPACE }} --timeout=300s
-            
-            echo "✅ PRODUCTION Deployment complete!"
-            kubectl get pods -n ${{ env.K8S_NAMESPACE }}
-            
-            # Cleanup
-            rm -rf /tmp/k8s-prod/
-          DEPLOY_SCRIPT
-
-      - name: 🧹 Cleanup SSH Key
-        if: always()
-        run: rm -f ~/.ssh/k3s_key
+          set -e
+          
+          echo "📦 Applying K8s manifests..."
+          kubectl apply -f k8s/prod/namespace/
+          kubectl apply -f k8s/prod/mongodb/
+          kubectl apply -f k8s/prod/backend/
+          kubectl apply -f k8s/prod/frontend/
+          
+          echo "🔄 Updating images with commit SHA..."
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+          kubectl set image deployment/backend backend=${{ env.BACKEND_IMAGE }}:prod-${SHORT_SHA} -n ${{ env.K8S_NAMESPACE }}
+          kubectl set image deployment/frontend frontend=${{ env.FRONTEND_IMAGE }}:prod-${SHORT_SHA} -n ${{ env.K8S_NAMESPACE }}
+          
+          echo "⏳ Waiting for rollout..."
+          kubectl rollout status deployment/backend -n ${{ env.K8S_NAMESPACE }} --timeout=300s
+          kubectl rollout status deployment/frontend -n ${{ env.K8S_NAMESPACE }} --timeout=300s
+          
+          echo "✅ PRODUCTION Deployment complete!"
+          kubectl get pods -n ${{ env.K8S_NAMESPACE }}
 
       - name: 📊 Deployment Summary
         run: |

@@ -5,6 +5,7 @@
 /build/
 flutter_*.png
 *.lock
+!pubspec.lock  # Keep pubspec.lock for reproducible builds
 
 # Android
 /android/app/debug

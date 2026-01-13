@@ -7,6 +7,7 @@ on:
       - 'ai_tutor_backend/**'
       - 'ai_tutor_app/**'
       - 'k8s/dev/**'
+      - '.github/workflows/cd-dev.yml'
   workflow_dispatch:  # Manual trigger
 
 env:
@@ -93,51 +94,45 @@ jobs:
   # ========================================
   deploy:
     name: 🚀 Deploy to K3s DEV
-    runs-on: ubuntu-latest
+    runs-on: self-hosted  # Use self-hosted runner on K3s server
     needs: [build-backend, build-frontend]
     
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
 
-      - name: 🔐 Setup SSH Key
+      - name: 🔐 Create K8s Secret from GitHub Secrets
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.K3S_SSH_KEY }}" > ~/.ssh/k3s_key
-          chmod 600 ~/.ssh/k3s_key
-          ssh-keyscan -H ${{ secrets.K3S_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+          set -e
+          
+          echo "🔐 Creating backend secret from GitHub Secrets..."
+          kubectl create secret generic backend-secret \
+            --from-literal=GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}" \
+            --from-literal=JWT_SECRET="${{ secrets.JWT_SECRET }}" \
+            --from-literal=MONGO_URI="mongodb://mongodb.ai-tutor-dev.svc.cluster.local:27017/ai_tutor" \
+            --namespace=${{ env.K8S_NAMESPACE }} \
+            --dry-run=client -o yaml | kubectl apply -f -
 
-      - name: 📋 Copy K8s manifests to server
+      - name: 🚀 Deploy to K3s DEV (Direct)
         run: |
-          scp -i ~/.ssh/k3s_key -r k8s/dev/* ${{ secrets.K3S_USER }}@${{ secrets.K3S_HOST }}:/tmp/k8s-dev/
-
-      - name: 🚀 Deploy to K3s
-        run: |
-          ssh -i ~/.ssh/k3s_key ${{ secrets.K3S_USER }}@${{ secrets.K3S_HOST }} << 'DEPLOY_SCRIPT'
-            set -e
-            
-            echo "📦 Applying K8s manifests..."
-            kubectl apply -f /tmp/k8s-dev/namespace/
-            kubectl apply -f /tmp/k8s-dev/mongodb/
-            kubectl apply -f /tmp/k8s-dev/backend/
-            kubectl apply -f /tmp/k8s-dev/frontend/
-            
-            echo "🔄 Updating images with commit SHA..."
-            IMAGE_TAG="dev-${{ github.sha }}"
-            kubectl set image deployment/backend backend=${{ env.BACKEND_IMAGE }}:${IMAGE_TAG:0:15} -n ${{ env.K8S_NAMESPACE }}
-            kubectl set image deployment/frontend frontend=${{ env.FRONTEND_IMAGE }}:${IMAGE_TAG:0:15} -n ${{ env.K8S_NAMESPACE }}
-            
-            echo "⏳ Waiting for rollout..."
-            kubectl rollout status deployment/backend -n ${{ env.K8S_NAMESPACE }} --timeout=120s
-            kubectl rollout status deployment/frontend -n ${{ env.K8S_NAMESPACE }} --timeout=120s
-            
-            echo "✅ Deployment complete!"
-            kubectl get pods -n ${{ env.K8S_NAMESPACE }}
-            
-            # Cleanup
-            rm -rf /tmp/k8s-dev/
-          DEPLOY_SCRIPT
-
-      - name: 🧹 Cleanup SSH Key
-        if: always()
-        run: rm -f ~/.ssh/k3s_key
+          set -e
+          
+          echo "📦 Applying K8s manifests..."
+          kubectl apply -f k8s/dev/namespace/
+          kubectl apply -f k8s/dev/mongodb/
+          kubectl apply -f k8s/dev/backend/backend-deployment.yaml
+          kubectl apply -f k8s/dev/backend/backend-service.yaml
+          kubectl apply -f k8s/dev/backend/backend-configmap.yaml
+          kubectl apply -f k8s/dev/frontend/
+          
+          echo "🔄 Updating images with commit SHA..."
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+          kubectl set image deployment/backend backend=${{ env.BACKEND_IMAGE }}:dev-${SHORT_SHA} -n ${{ env.K8S_NAMESPACE }}
+          kubectl set image deployment/frontend frontend=${{ env.FRONTEND_IMAGE }}:dev-${SHORT_SHA} -n ${{ env.K8S_NAMESPACE }}
+          
+          echo "⏳ Waiting for rollout..."
+          kubectl rollout status deployment/backend -n ${{ env.K8S_NAMESPACE }} --timeout=300s
+          kubectl rollout status deployment/frontend -n ${{ env.K8S_NAMESPACE }} --timeout=300s
+          
+          echo "✅ DEV Deployment complete!"
+          kubectl get pods -n ${{ env.K8S_NAMESPACE }}

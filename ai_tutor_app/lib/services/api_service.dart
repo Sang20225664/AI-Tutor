@@ -129,7 +129,7 @@ class ApiService {
     String username,
     String password,
   ) async {
-    return post('api/users/login', {
+    return post('users/login', {
       'username': username,
       'password': password,
     });
@@ -139,7 +139,7 @@ class ApiService {
     String username,
     String password,
   ) async {
-    return post('api/users/register', {
+    return post('users/register', {
       'username': username,
       'password': password,
     });
@@ -147,7 +147,7 @@ class ApiService {
 
   // Chat APIs
   static Future<Map<String, dynamic>> sendChatMessage(String message) async {
-    return post('api/gemini/chat', {'message': message});
+    return post('gemini/chat', {'message': message});
   }
 
   // Chat method with optional greeting support
@@ -164,7 +164,7 @@ class ApiService {
       if (greet) 'greet': true,
     };
 
-    return post('api/gemini/chat', body);
+    return post('gemini/chat', body);
   }
 
   // Legacy methods for backward compatibility
@@ -175,29 +175,28 @@ class ApiService {
   }
 
   static Future<Map<String, dynamic>> getChatHistories() async {
-    return get('api/chats');
+    return get('chats');
   }
 
   static Future<Map<String, dynamic>> updateChatHistory(
     String chatId,
     List<Map<String, dynamic>> messages,
   ) async {
-    return patch('api/chats/$chatId', {'messages': messages});
+    return patch('chats/$chatId', {'messages': messages});
   }
 
   static Future<Map<String, dynamic>> deleteChatHistory(String chatId) async {
-    return delete('api/chats/$chatId');
+    return delete('chats/$chatId');
   }
 
   // Subject APIs
   static Future<Map<String, dynamic>> getSubjects({int? grade}) async {
-    final endpoint =
-        grade != null ? 'api/subjects?grade=$grade' : 'api/subjects';
+    final endpoint = grade != null ? 'subjects?grade=$grade' : 'subjects';
     return get(endpoint);
   }
 
   static Future<Map<String, dynamic>> getSubjectById(String id) async {
-    return get('api/subjects/$id');
+    return get('subjects/$id');
   }
 
   // Quiz APIs
@@ -214,11 +213,11 @@ class ApiService {
     if (difficulty != null) params.add('difficulty=$difficulty');
 
     final query = params.isEmpty ? '' : '?${params.join('&')}';
-    return get('api/quizzes$query');
+    return get('quizzes$query');
   }
 
   static Future<Map<String, dynamic>> getQuizById(String id) async {
-    return get('api/quizzes/$id');
+    return get('quizzes/$id');
   }
 
   // Lesson APIs
@@ -241,11 +240,11 @@ class ApiService {
     }
 
     final query = params.isEmpty ? '' : '?${params.join('&')}';
-    return get('api/lessons$query');
+    return get('lessons$query');
   }
 
   static Future<Map<String, dynamic>> getLessonById(String id) async {
-    return get('api/lessons/$id');
+    return get('lessons/$id');
   }
 
   static Future<Map<String, dynamic>> getLessonsBySubject(
@@ -258,7 +257,7 @@ class ApiService {
     if (difficulty != null) params.add('difficulty=$difficulty');
 
     final query = params.isEmpty ? '' : '?${params.join('&')}';
-    return get('api/lessons/subject/$subjectId$query');
+    return get('lessons/subject/$subjectId$query');
   }
 
   // Lesson Suggestion APIs
@@ -274,11 +273,11 @@ class ApiService {
     if (difficulty != null) params.add('difficulty=$difficulty');
 
     final query = params.join('&');
-    return get('api/lesson-suggestions?$query');
+    return get('lesson-suggestions?$query');
   }
 
   static Future<Map<String, dynamic>> getLessonSuggestionById(String id) async {
-    return get('api/lesson-suggestions/$id');
+    return get('lesson-suggestions/$id');
   }
 
   // Helper Methods
