@@ -133,7 +133,51 @@ jobs:
           echo "✅ PRODUCTION Deployment complete!"
           kubectl get pods -n ${{ env.K8S_NAMESPACE }}
 
-      - name: 📊 Deployment Summary
+      - name: 🏥 Production Smoke Test
+        id: smoke_test
+        run: |
+          echo "⏳ Waiting 20s for production services to stabilize..."
+          sleep 20
+          
+          # Test backend health endpoint
+          BACKEND_POD=$(kubectl get pods -n ${{ env.K8S_NAMESPACE }} -l app=backend -o jsonpath='{.items[0].metadata.name}')
+          echo "� Testing backend pod: $BACKEND_POD"
+          
+          # Critical health check
+          kubectl exec -n ${{ env.K8S_NAMESPACE }} $BACKEND_POD -- wget -q -O- http://localhost:3000/api/health || {
+            echo "❌ Backend health check failed!"
+            echo "smoke_test_failed=true" >> $GITHUB_OUTPUT
+            exit 1
+          }
+          
+          # Test database connectivity
+          kubectl exec -n ${{ env.K8S_NAMESPACE }} $BACKEND_POD -- wget -q -O- http://localhost:3000/api/subjects | grep -q "subjects" || {
+            echo "❌ Database connectivity test failed!"
+            echo "smoke_test_failed=true" >> $GITHUB_OUTPUT
+            exit 1
+          }
+          
+          echo "✅ All production smoke tests passed!"
+          echo "smoke_test_failed=false" >> $GITHUB_OUTPUT
+
+      - name: � Auto Rollback on Failure
+        if: failure() && steps.smoke_test.outputs.smoke_test_failed == 'true'
+        run: |
+          echo "🚨 Smoke test failed! Rolling back to previous version..."
+          
+          # Rollback backend and frontend deployments
+          kubectl rollout undo deployment/backend -n ${{ env.K8S_NAMESPACE }}
+          kubectl rollout undo deployment/frontend -n ${{ env.K8S_NAMESPACE }}
+          
+          echo "⏳ Waiting for rollback to complete..."
+          kubectl rollout status deployment/backend -n ${{ env.K8S_NAMESPACE }} --timeout=180s
+          kubectl rollout status deployment/frontend -n ${{ env.K8S_NAMESPACE }} --timeout=180s
+          
+          echo "✅ Rollback completed successfully!"
+          kubectl get pods -n ${{ env.K8S_NAMESPACE }}
+
+      - name: �📊 Deployment Summary
+        if: success()
         run: |
           echo "=============================================="
           echo "✅ PRODUCTION DEPLOYMENT SUCCESSFUL"
@@ -141,4 +185,15 @@ jobs:
           echo "Backend: ${{ env.BACKEND_IMAGE }}:prod-${{ github.sha }}"
           echo "Frontend: ${{ env.FRONTEND_IMAGE }}:prod-${{ github.sha }}"
           echo "Namespace: ${{ env.K8S_NAMESPACE }}"
+          echo "=============================================="
+
+      - name: ❌ Rollback Summary
+        if: failure()
+        run: |
+          echo "=============================================="
+          echo "❌ DEPLOYMENT FAILED - ROLLBACK EXECUTED"
+          echo "=============================================="
+          echo "Please check logs and fix issues before redeploying"
+          kubectl get pods -n ${{ env.K8S_NAMESPACE }}
+          kubectl describe pods -n ${{ env.K8S_NAMESPACE }}
           echo "=============================================="
