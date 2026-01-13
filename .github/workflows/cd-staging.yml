@@ -128,13 +128,13 @@ jobs:
           BACKEND_POD=$(kubectl get pods -n ${{ env.K8S_NAMESPACE }} -l app=backend -o jsonpath='{.items[0].metadata.name}')
           echo "🔍 Testing backend pod: $BACKEND_POD"
           
-          kubectl exec -n ${{ env.K8S_NAMESPACE }} $BACKEND_POD -- wget -q -O- http://localhost:3000/api/health || {
+          kubectl exec -n ${{ env.K8S_NAMESPACE }} $BACKEND_POD -- wget -q -O- http://127.0.0.1:5000/health || {
             echo "❌ Backend health check failed!"
             exit 1
           }
           
           # Test a sample API endpoint
-          kubectl exec -n ${{ env.K8S_NAMESPACE }} $BACKEND_POD -- wget -q -O- http://localhost:3000/api/subjects | grep -q "subjects" || {
+          kubectl exec -n ${{ env.K8S_NAMESPACE }} $BACKEND_POD -- wget -q -O- http://127.0.0.1:5000/api/subjects | grep -q "\[\]" || {
             echo "❌ API endpoint test failed!"
             exit 1
           }
