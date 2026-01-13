@@ -119,20 +119,23 @@ jobs:
         uses: azure/setup-kubectl@v3
         with:
           version: 'v1.28.0'
-      
-      - name: 🔧 Install kubeval for offline validation
-        run: |
-          wget https://github.com/instrumenta/kubeval/releases/latest/download/kubeval-linux-amd64.tar.gz
-          tar xf kubeval-linux-amd64.tar.gz
-          sudo mv kubeval /usr/local/bin
 
-      - name: ✅ Validate all manifests (syntax only)
+      - name: ✅ Validate YAML syntax
         run: |
           echo "Validating DEV manifests..."
-          find k8s/dev -name "*.yaml" -not -path "*/backend-secret.yaml" | xargs kubeval --strict
+          find k8s/dev -name "*.yaml" -type f | while read file; do
+            echo "  Checking $file"
+            kubectl apply --dry-run=client --validate=true -f "$file" 2>&1 || exit 1
+          done
           
           echo "Validating STAGING manifests..."
-          find k8s/staging -name "*.yaml" -not -path "*/backend-secret.yaml" | xargs kubeval --strict
+          find k8s/staging -name "*.yaml" -type f | while read file; do
+            echo "  Checking $file"
+            kubectl apply --dry-run=client --validate=true -f "$file" 2>&1 || exit 1
+          done
           
           echo "Validating PROD manifests..."
-          find k8s/prod -name "*.yaml" -not -path "*/backend-secret.yaml" | xargs kubeval --strict
+          find k8s/prod -name "*.yaml" -type f | while read file; do
+            echo "  Checking $file"
+            kubectl apply --dry-run=client --validate=true -f "$file" 2>&1 || exit 1
+          done
