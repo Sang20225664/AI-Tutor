@@ -7,6 +7,7 @@ on:
       - 'ai_tutor_backend/**'
       - 'ai_tutor_app/**'
       - 'k8s/dev/**'
+      - '.github/workflows/cd-dev.yml'
   workflow_dispatch:  # Manual trigger
 
 env:
@@ -100,14 +101,28 @@ jobs:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
 
-      - name: � Deploy to K3s DEV (Direct)
+      - name: 🔐 Create K8s Secret from GitHub Secrets
+        run: |
+          set -e
+          
+          echo "🔐 Creating backend secret from GitHub Secrets..."
+          kubectl create secret generic backend-secret \
+            --from-literal=GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}" \
+            --from-literal=JWT_SECRET="${{ secrets.JWT_SECRET }}" \
+            --from-literal=MONGO_URI="mongodb://mongodb.ai-tutor-dev.svc.cluster.local:27017/ai_tutor" \
+            --namespace=${{ env.K8S_NAMESPACE }} \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: 🚀 Deploy to K3s DEV (Direct)
         run: |
           set -e
           
           echo "📦 Applying K8s manifests..."
           kubectl apply -f k8s/dev/namespace/
           kubectl apply -f k8s/dev/mongodb/
-          kubectl apply -f k8s/dev/backend/
+          kubectl apply -f k8s/dev/backend/backend-deployment.yaml
+          kubectl apply -f k8s/dev/backend/backend-service.yaml
+          kubectl apply -f k8s/dev/backend/backend-configmap.yaml
           kubectl apply -f k8s/dev/frontend/
           
           echo "🔄 Updating images with commit SHA..."
@@ -116,8 +131,8 @@ jobs:
           kubectl set image deployment/frontend frontend=${{ env.FRONTEND_IMAGE }}:dev-${SHORT_SHA} -n ${{ env.K8S_NAMESPACE }}
           
           echo "⏳ Waiting for rollout..."
-          kubectl rollout status deployment/backend -n ${{ env.K8S_NAMESPACE }} --timeout=120s
-          kubectl rollout status deployment/frontend -n ${{ env.K8S_NAMESPACE }} --timeout=120s
+          kubectl rollout status deployment/backend -n ${{ env.K8S_NAMESPACE }} --timeout=300s
+          kubectl rollout status deployment/frontend -n ${{ env.K8S_NAMESPACE }} --timeout=300s
           
           echo "✅ DEV Deployment complete!"
           kubectl get pods -n ${{ env.K8S_NAMESPACE }}
