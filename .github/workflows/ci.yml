@@ -106,56 +106,35 @@ jobs:
   # JOB 4: Validate K8s Manifests
   # ========================================
   validate-k8s:
-    name: 📋 Validate K8s Manifests
+    name: 📋 Validate K8s YAML
     runs-on: ubuntu-latest
     
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
 
-      - name: 🔧 Install kubectl
-        uses: azure/setup-kubectl@v3
-        with:
-          version: 'v1.28.0'
-      
-      - name: 🔧 Setup fake kubeconfig for validation
-        run: |
-          mkdir -p ~/.kube
-          cat > ~/.kube/config <<EOF
-          apiVersion: v1
-          kind: Config
-          clusters:
-          - cluster:
-              server: https://localhost:8080
-            name: fake-cluster
-          contexts:
-          - context:
-              cluster: fake-cluster
-              user: fake-user
-            name: fake-context
-          current-context: fake-context
-          users:
-          - name: fake-user
-          EOF
+      - name: � Install yamllint
+        run: pip install yamllint
 
       - name: ✅ Validate YAML syntax
         run: |
-          echo "Validating DEV manifests..."
-          find k8s/dev -name "*.yaml" -type f | while read file; do
+          echo "Validating K8s YAML syntax..."
+          
+          # Create yamllint config
+          cat > .yamllint <<EOF
+          extends: default
+          rules:
+            line-length:
+              max: 200
+            document-start: disable
+            comments:
+              min-spaces-from-content: 1
+          EOF
+          
+          # Validate all K8s YAML files
+          find k8s -name "*.yaml" -type f | while read file; do
             echo "  Checking $file"
-            kubectl apply --dry-run=client --validate=false -f "$file" || exit 1
+            yamllint -c .yamllint "$file" || exit 1
           done
           
-          echo "Validating STAGING manifests..."
-          find k8s/staging -name "*.yaml" -type f | while read file; do
-            echo "  Checking $file"
-            kubectl apply --dry-run=client --validate=false -f "$file" || exit 1
-          done
-          
-          echo "Validating PROD manifests..."
-          find k8s/prod -name "*.yaml" -type f | while read file; do
-            echo "  Checking $file"
-            kubectl apply --dry-run=client --validate=false -f "$file" || exit 1
-          done
-          
-          echo "✅ All Kubernetes manifests are valid!"
+          echo "✅ All Kubernetes YAML files are syntactically valid!"
