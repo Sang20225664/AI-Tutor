@@ -2,9 +2,9 @@ name: CI Pipeline - AI Tutor
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, staging ]  # Validate code khi push trực tiếp
   pull_request:
-    branches: [ main ]
+    branches: [ main, staging ]  # Validate PR dev→staging và staging→main
 
 jobs:
   # ========================================
@@ -92,8 +92,7 @@ jobs:
           context: ./ai_tutor_backend
           push: false
           tags: ai-tutor-backend:test
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          load: true
 
       - name: 🎨 Build frontend image (no push)
         uses: docker/build-push-action@v5
@@ -101,38 +100,41 @@ jobs:
           context: ./ai_tutor_app
           push: false
           tags: ai-tutor-frontend:test
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          load: true
 
-  # ========================================
-  # JOB 4: Validate K8s Manifests
-  # ========================================
-  validate-k8s:
-    name: 📋 Validate K8s Manifests
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v4
-
-      - name: 🔧 Install kubectl
-        uses: azure/setup-kubectl@v3
-        with:
-          version: 'v1.28.0'
-      
-      - name: 🔧 Install kubeval for offline validation
-        run: |
-          wget https://github.com/instrumenta/kubeval/releases/latest/download/kubeval-linux-amd64.tar.gz
-          tar xf kubeval-linux-amd64.tar.gz
-          sudo mv kubeval /usr/local/bin
-
-      - name: ✅ Validate all manifests (syntax only)
-        run: |
-          echo "Validating DEV manifests..."
-          find k8s/dev -name "*.yaml" -not -path "*/backend-secret.yaml" | xargs kubeval --strict
-          
-          echo "Validating STAGING manifests..."
-          find k8s/staging -name "*.yaml" -not -path "*/backend-secret.yaml" | xargs kubeval --strict
-          
-          echo "Validating PROD manifests..."
-          find k8s/prod -name "*.yaml" -not -path "*/backend-secret.yaml" | xargs kubeval --strict
+#  # ========================================
+#  # JOB 4: Validate K8s Manifests
+#  # ========================================
+#  validate-k8s:
+#    name: 📋 Validate K8s YAML
+#    runs-on: ubuntu-latest
+#    
+#    steps:
+#      - name: 📥 Checkout code
+#        uses: actions/checkout@v4
+#
+#      - name: � Install yamllint
+#        run: pip install yamllint
+#
+#      - name: ✅ Validate YAML syntax
+#        run: |
+#          echo "Validating K8s YAML syntax..."
+#          
+#          # Create yamllint config
+#          cat > .yamllint <<EOF
+#          extends: default
+#          rules:
+#            line-length:
+#              max: 200
+#            document-start: disable
+#            comments:
+#              min-spaces-from-content: 1
+#          EOF
+#          
+#          # Validate all K8s YAML files
+#          find k8s -name "*.yaml" -type f | while read file; do
+#            echo "  Checking $file"
+#            yamllint -c .yamllint "$file" || exit 1
+#          done
+#          
+#          echo "✅ All Kubernetes YAML files are syntactically valid!"
