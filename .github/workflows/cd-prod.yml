@@ -111,14 +111,24 @@ jobs:
           echo "Event: ${{ github.event_name }}"
           echo "=============================================="
 
-      - name:  Deploy to K3s PRODUCTION (Direct)
+      - name: 🔑 Create Backend Secret from GitHub Secrets
+        run: |
+          kubectl delete secret backend-secret -n ai-tutor-prod --ignore-not-found=true
+          kubectl create secret generic backend-secret -n ai-tutor-prod \
+            --from-literal=GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}" \
+            --from-literal=JWT_SECRET="${{ secrets.JWT_SECRET }}" \
+            --from-literal=MONGO_URI="mongodb://mongodb.ai-tutor-prod.svc.cluster.local:27017/ai_tutor"
+
+      - name: 🚀 Deploy to K3s PRODUCTION (Direct)
         run: |
           set -e
           
           echo "📦 Applying K8s manifests..."
           kubectl apply -f k8s/prod/namespace/
           kubectl apply -f k8s/prod/mongodb/
-          kubectl apply -f k8s/prod/backend/
+          kubectl apply -f k8s/prod/backend/backend-deployment.yaml
+          kubectl apply -f k8s/prod/backend/backend-service.yaml
+          kubectl apply -f k8s/prod/backend/backend-configmap.yaml
           kubectl apply -f k8s/prod/frontend/
           
           echo "🔄 Updating images with commit SHA..."

@@ -97,14 +97,24 @@ jobs:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
 
-      - name: � Deploy to K3s STAGING (Direct)
+      - name: 🔑 Create Backend Secret from GitHub Secrets
+        run: |
+          kubectl delete secret backend-secret -n ai-tutor-staging --ignore-not-found=true
+          kubectl create secret generic backend-secret -n ai-tutor-staging \
+            --from-literal=GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}" \
+            --from-literal=JWT_SECRET="${{ secrets.JWT_SECRET }}" \
+            --from-literal=MONGO_URI="mongodb://mongodb.ai-tutor-staging.svc.cluster.local:27017/ai_tutor"
+
+      - name: 🚀 Deploy to K3s STAGING (Direct)
         run: |
           set -e
           
           echo "📦 Applying K8s manifests..."
           kubectl apply -f k8s/staging/namespace/
           kubectl apply -f k8s/staging/mongodb/
-          kubectl apply -f k8s/staging/backend/
+          kubectl apply -f k8s/staging/backend/backend-deployment.yaml
+          kubectl apply -f k8s/staging/backend/backend-service.yaml
+          kubectl apply -f k8s/staging/backend/backend-configmap.yaml
           kubectl apply -f k8s/staging/frontend/
           
           echo "🔄 Updating images with commit SHA..."
