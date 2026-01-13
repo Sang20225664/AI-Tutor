@@ -92,8 +92,7 @@ jobs:
           context: ./ai_tutor_backend
           push: false
           tags: ai-tutor-backend:test
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          load: true
 
       - name: 🎨 Build frontend image (no push)
         uses: docker/build-push-action@v5
@@ -101,8 +100,7 @@ jobs:
           context: ./ai_tutor_app
           push: false
           tags: ai-tutor-frontend:test
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          load: true
 
   # ========================================
   # JOB 4: Validate K8s Manifests
