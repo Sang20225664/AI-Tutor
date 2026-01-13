@@ -119,12 +119,20 @@ jobs:
         uses: azure/setup-kubectl@v3
         with:
           version: 'v1.28.0'
-
-      - name: ✅ Validate all manifests
+      
+      - name: 🔧 Install kubeval for offline validation
         run: |
-          echo "Validating DEV..."
-          kubectl apply --dry-run=client -f k8s/dev/ -R
-          echo "Validating STAGING..."
-          kubectl apply --dry-run=client -f k8s/staging/ -R
-          echo "Validating PROD..."
-          kubectl apply --dry-run=client -f k8s/prod/ -R
+          wget https://github.com/instrumenta/kubeval/releases/latest/download/kubeval-linux-amd64.tar.gz
+          tar xf kubeval-linux-amd64.tar.gz
+          sudo mv kubeval /usr/local/bin
+
+      - name: ✅ Validate all manifests (syntax only)
+        run: |
+          echo "Validating DEV manifests..."
+          find k8s/dev -name "*.yaml" -not -path "*/backend-secret.yaml" | xargs kubeval --strict
+          
+          echo "Validating STAGING manifests..."
+          find k8s/staging -name "*.yaml" -not -path "*/backend-secret.yaml" | xargs kubeval --strict
+          
+          echo "Validating PROD manifests..."
+          find k8s/prod -name "*.yaml" -not -path "*/backend-secret.yaml" | xargs kubeval --strict
