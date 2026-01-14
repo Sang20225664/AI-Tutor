@@ -72,3 +72,6 @@ temp/
 # Kubernetes secrets (DO NOT COMMIT)
 k8s/**/backend-secret.yaml
 k8s/**/*-secret.yaml
+
+# Demo scripts (local testing only)
+demo-scripts/

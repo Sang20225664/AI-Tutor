@@ -129,6 +129,7 @@ jobs:
           kubectl apply -f k8s/prod/backend/backend-deployment.yaml
           kubectl apply -f k8s/prod/backend/backend-service.yaml
           kubectl apply -f k8s/prod/backend/backend-configmap.yaml
+          kubectl apply -f k8s/prod/backend/backend-hpa.yaml
           kubectl apply -f k8s/prod/frontend/
           
           echo "🔄 Updating images with commit SHA..."
