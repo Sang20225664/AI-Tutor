@@ -78,6 +78,22 @@ const morganStream = {
 const morganFormat = process.env.MORGAN_FORMAT || (process.env.NODE_ENV === 'production' ? 'combined' : 'dev');
 app.use(morgan(morganFormat, { stream: morganStream }));
 
+// === Custom request logging for demo/visibility ===
+app.use((req, res, next) => {
+  const hostname = require('os').hostname();
+  const timestamp = new Date().toISOString();
+  console.log(`[${timestamp}] [${hostname}] ${req.method} ${req.path} - Start`);
+  
+  // Log when response is sent
+  const originalSend = res.send;
+  res.send = function(data) {
+    console.log(`[${timestamp}] [${hostname}] ${req.method} ${req.path} - ${res.statusCode}`);
+    return originalSend.call(this, data);
+  };
+  
+  next();
+});
+
 // === Auto-seed function ===
 async function autoSeedDatabase() {
   try {
