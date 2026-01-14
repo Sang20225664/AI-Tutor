@@ -79,18 +79,23 @@ const morganFormat = process.env.MORGAN_FORMAT || (process.env.NODE_ENV === 'pro
 app.use(morgan(morganFormat, { stream: morganStream }));
 
 // === Custom request logging for demo/visibility ===
+const os = require('os');
+const podHostname = os.hostname();
+
 app.use((req, res, next) => {
-  const hostname = require('os').hostname();
   const timestamp = new Date().toISOString();
-  console.log(`[${timestamp}] [${hostname}] ${req.method} ${req.path} - Start`);
-  
-  // Log when response is sent
+  const logMsg = `[${timestamp}] [POD: ${podHostname}] ${req.method} ${req.path}`;
+
+  // Write to stderr (which is captured by kubectl logs)
+  process.stderr.write(logMsg + ' - START\n');
+
+  // Log response
   const originalSend = res.send;
-  res.send = function(data) {
-    console.log(`[${timestamp}] [${hostname}] ${req.method} ${req.path} - ${res.statusCode}`);
+  res.send = function (data) {
+    process.stderr.write(logMsg + ` - ${res.statusCode} - END\n`);
     return originalSend.call(this, data);
   };
-  
+
   next();
 });
 
