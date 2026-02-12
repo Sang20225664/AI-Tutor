@@ -9,9 +9,12 @@ const quizRoutes = require('./quizRoutes');
 const lessonRoutes = require('./lessonRoutes');
 const lessonSuggestionRoutes = require('./lessonSuggestionRoutes');
 
+// Import auth middleware
+const auth = require('../middleware/userMiddleware');
+
 // Chat routes - phù hợp với frontend /api/gemini/chat
-router.post('/gemini/chat', geminiController.chatWithGemini);
-router.post('/chat', geminiController.chatWithGemini); // Keep for backward compatibility
+router.post('/gemini/chat', auth, geminiController.chatWithGemini);
+router.post('/chat', auth, geminiController.chatWithGemini); // Keep for backward compatibility
 
 // Subject routes
 router.use('/subjects', subjectRoutes);

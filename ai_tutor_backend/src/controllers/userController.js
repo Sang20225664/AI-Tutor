@@ -1,4 +1,4 @@
-const User = require("../models/user"); // Đổi từ 'User' thành 'user'
+const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 

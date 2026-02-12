@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Quiz = require('../models/quiz');
+const auth = require('../middleware/userMiddleware');
 
 // GET all quizzes
 router.get('/', async (req, res) => {
@@ -61,7 +62,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // POST create new quiz (admin)
-router.post('/', async (req, res) => {
+router.post('/', auth, async (req, res) => {
     try {
         const quiz = new Quiz(req.body);
         await quiz.save();
@@ -82,7 +83,7 @@ router.post('/', async (req, res) => {
 });
 
 // PUT update quiz (admin)
-router.put('/:id', async (req, res) => {
+router.put('/:id', auth, async (req, res) => {
     try {
         const quiz = await Quiz.findByIdAndUpdate(
             req.params.id,
@@ -113,7 +114,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // DELETE quiz (admin)
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', auth, async (req, res) => {
     try {
         const quiz = await Quiz.findByIdAndDelete(req.params.id);
 

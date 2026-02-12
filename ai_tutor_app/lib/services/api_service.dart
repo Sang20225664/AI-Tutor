@@ -155,12 +155,14 @@ class ApiService {
     String? message,
     String? prompt,
     String? subject,
+    String? sessionId,
     bool greet = false,
   }) async {
     final body = {
       if (message != null) 'message': message,
       if (prompt != null) 'prompt': prompt,
       if (subject != null) 'subject': subject,
+      if (sessionId != null) 'sessionId': sessionId,
       if (greet) 'greet': true,
     };
 

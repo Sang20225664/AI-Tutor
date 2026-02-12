@@ -27,7 +27,12 @@ const getChatDetails = async (req, res) => {
 
 const handleNewMessage = async (req, res) => {
   try {
-    const { message, userId, sessionId, subject } = req.body;
+    let { message, userId, sessionId, subject } = req.body;
+
+    // Use userId from token if available
+    if (req.user) {
+      userId = req.user.userId || req.user.id || userId;
+    }
 
     if (!message || !userId) {
       return res.status(400).json({
@@ -120,7 +125,15 @@ const handleNewMessage = async (req, res) => {
 
 const getUserChatHistoryList = async (req, res) => {
   try {
-    const { userId } = req.params;
+    // Prefer userId from token (supports both 'userId' and 'id' formats), fallback to query param
+    const userId = req.user?.userId || req.user?.id || req.query.userId;
+
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: "UserId is required"
+      });
+    }
     const { page = 1, limit = 10 } = req.query;
 
     const skip = (parseInt(page) - 1) * parseInt(limit);

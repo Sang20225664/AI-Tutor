@@ -86,11 +86,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
     }
   }
 
-  void _navigateToChatDetail(
+  Future<void> _navigateToChatDetail(
     BuildContext context,
     Map<String, dynamic> chatSession,
-  ) {
-    Navigator.push(
+  ) async {
+    await Navigator.push(
       context,
       MaterialPageRoute(
         builder:
@@ -110,6 +110,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
             ),
       ),
     );
+    // Refresh history when returning from chat detail
+    if (mounted) {
+      _fetchChatHistory();
+    }
   }
 
   String _formatTimestamp(String? timestamp) {

@@ -5,14 +5,19 @@ class ConfigService {
   static String get backendUrl {
     // In Docker container, backend is accessible via service name
     if (kIsWeb) {
-      // For web, use relative path - nginx will proxy to backend
+      // Local development on Web: Point to localhost:5000 directly
+      if (kDebugMode) {
+        return 'http://localhost:5000/api';
+      }
+      // Production Web (behind Nginx): Use relative path
       return '/api';
     }
     if (!kIsWeb && Platform.isAndroid) {
       // For mobile emulator
-      return 'http://10.0.2.2:5000';
+      return 'http://10.0.2.2:5000/api';
     }
-    return 'http://localhost:5000';
+    // Default for iOS emulator or local testing
+    return 'http://localhost:5000/api';
   }
 
   static bool get isDebugMode => kDebugMode;

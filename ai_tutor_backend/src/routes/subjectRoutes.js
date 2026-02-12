@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Subject = require('../models/subject');
+const auth = require('../middleware/userMiddleware');
 
 // GET all subjects
 router.get('/', async (req, res) => {
@@ -55,7 +56,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // POST create new subject (admin)
-router.post('/', async (req, res) => {
+router.post('/', auth, async (req, res) => {
     try {
         const subject = new Subject(req.body);
         await subject.save();
@@ -76,7 +77,7 @@ router.post('/', async (req, res) => {
 });
 
 // PUT update subject (admin)
-router.put('/:id', async (req, res) => {
+router.put('/:id', auth, async (req, res) => {
     try {
         const subject = await Subject.findByIdAndUpdate(
             req.params.id,
@@ -107,7 +108,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // DELETE subject (admin)
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', auth, async (req, res) => {
     try {
         const subject = await Subject.findByIdAndDelete(req.params.id);
 

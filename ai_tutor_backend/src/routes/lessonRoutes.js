@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Lesson = require('../models/lesson');
+const auth = require('../middleware/userMiddleware');
 
 // GET all lessons
 // Query params: grade, subjectName, difficulty, topics
@@ -77,7 +78,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // POST create new lesson
-router.post('/', async (req, res) => {
+router.post('/', auth, async (req, res) => {
     try {
         const {
             title,
@@ -127,7 +128,7 @@ router.post('/', async (req, res) => {
 });
 
 // PUT update lesson
-router.put('/:id', async (req, res) => {
+router.put('/:id', auth, async (req, res) => {
     try {
         const {
             title,
@@ -177,7 +178,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // DELETE lesson
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', auth, async (req, res) => {
     try {
         const lesson = await Lesson.findByIdAndDelete(req.params.id);
 
