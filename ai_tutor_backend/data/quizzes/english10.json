@@ -1,0 +1,267 @@
+[
+    {
+        "lessonTitle": "Present Tenses - Các thì hiện tại",
+        "questions": [
+            {
+                "question": "She _____ to school every day.",
+                "options": [
+                    "go",
+                    "goes",
+                    "going",
+                    "is go"
+                ],
+                "correctAnswer": 1,
+                "explanation": "Present Simple với ngôi thứ 3 số ít (she) cần thêm -s/-es vào động từ. 'Go' → 'goes'. Câu diễn tả thói quen hàng ngày.",
+                "difficulty": "easy"
+            },
+            {
+                "question": "Look! The children _____ in the garden.",
+                "options": [
+                    "play",
+                    "plays",
+                    "are playing",
+                    "have played"
+                ],
+                "correctAnswer": 2,
+                "explanation": "Present Continuous (am/is/are + V-ing) dùng để diễn tả hành động đang xảy ra tại thời điểm nói. 'Look!' là dấu hiệu nhận biết.",
+                "difficulty": "easy"
+            },
+            {
+                "question": "I _____ here for 5 years.",
+                "options": [
+                    "live",
+                    "am living",
+                    "have lived",
+                    "lived"
+                ],
+                "correctAnswer": 2,
+                "explanation": "Present Perfect (have/has + V3/ed) dùng với 'for + khoảng thời gian' để diễn tả hành động bắt đầu trong quá khứ và còn liên quan đến hiện tại.",
+                "difficulty": "medium"
+            },
+            {
+                "question": "Which verb is NOT used in continuous tenses?",
+                "options": [
+                    "play",
+                    "work",
+                    "know",
+                    "study"
+                ],
+                "correctAnswer": 2,
+                "explanation": "'Know' là động từ chỉ trạng thái (stative verb), không dùng ở thì tiếp diễn. Các động từ khác (play, work, study) là động từ chỉ hành động nên dùng được ở thì tiếp diễn.",
+                "difficulty": "hard"
+            }
+        ]
+    },
+    {
+        "lessonTitle": "Past Tenses - Các thì quá khứ",
+        "questions": [
+            {
+                "question": "Yesterday, I _____ to the market.",
+                "options": [
+                    "go",
+                    "went",
+                    "have gone",
+                    "was going"
+                ],
+                "correctAnswer": 1,
+                "explanation": "Past Simple dùng cho hành động đã kết thúc trong quá khứ với thời gian cụ thể ('yesterday'). 'Go' → 'went' (động từ bất quy tắc).",
+                "difficulty": "easy"
+            },
+            {
+                "question": "While she _____ dinner, I _____ TV.",
+                "options": [
+                    "cooked / watched",
+                    "was cooking / was watching",
+                    "cooked / was watching",
+                    "has cooked / watched"
+                ],
+                "correctAnswer": 1,
+                "explanation": "Past Continuous dùng với 'while' để diễn tả hai hành động đang xảy ra song song trong quá khứ. Cấu trúc: was/were + V-ing.",
+                "difficulty": "medium"
+            },
+            {
+                "question": "When I arrived, they _____ already _____.",
+                "options": [
+                    "have / left",
+                    "had / left",
+                    "were / leaving",
+                    "are / leaving"
+                ],
+                "correctAnswer": 1,
+                "explanation": "Past Perfect (had + V3/ed) dùng để diễn tả hành động xảy ra trước một hành động khác trong quá khứ. Họ rời đi (trước) khi tôi đến (sau).",
+                "difficulty": "hard"
+            },
+            {
+                "question": "I _____ football when I was young.",
+                "options": [
+                    "use to play",
+                    "used to play",
+                    "am used to play",
+                    "was used to play"
+                ],
+                "correctAnswer": 1,
+                "explanation": "'Used to + V' diễn tả thói quen trong quá khứ nhưng bây giờ không còn. Cấu trúc đúng: 'used to play' (không có 'd' ở 'use').",
+                "difficulty": "medium"
+            }
+        ]
+    },
+    {
+        "lessonTitle": "Future Forms - Các cách diễn đạt tương lai",
+        "questions": [
+            {
+                "question": "A: The phone is ringing. B: I _____ answer it.",
+                "options": [
+                    "will",
+                    "am going to",
+                    "am",
+                    "have"
+                ],
+                "correctAnswer": 0,
+                "explanation": "'Will' dùng cho quyết định tức thời tại thời điểm nói. B quyết định ngay lúc nghe thấy điện thoại reo.",
+                "difficulty": "medium"
+            },
+            {
+                "question": "Look at those dark clouds! It _____.",
+                "options": [
+                    "will rain",
+                    "is going to rain",
+                    "rains",
+                    "is raining"
+                ],
+                "correctAnswer": 1,
+                "explanation": "'Be going to' dùng cho dự đoán có bằng chứng rõ ràng. 'Look at those dark clouds!' là bằng chứng cho thấy trời sắp mưa.",
+                "difficulty": "medium"
+            },
+            {
+                "question": "The train _____ at 9 AM tomorrow.",
+                "options": [
+                    "will leave",
+                    "is going to leave",
+                    "leaves",
+                    "is leaving"
+                ],
+                "correctAnswer": 2,
+                "explanation": "Present Simple dùng cho lịch trình, thời gian biểu cố định. Giờ tàu khởi hành là lịch trình cố định.",
+                "difficulty": "hard"
+            }
+        ]
+    },
+    {
+        "lessonTitle": "Conditional Sentences - Câu điều kiện",
+        "questions": [
+            {
+                "question": "If you _____ ice, it melts.",
+                "options": [
+                    "heat",
+                    "will heat",
+                    "heated",
+                    "would heat"
+                ],
+                "correctAnswer": 0,
+                "explanation": "Conditional Type 0 (chân lý, sự thật hiển nhiên) dùng Present Simple ở cả hai mệnh đề: If + S + V (present), S + V (present).",
+                "difficulty": "easy"
+            },
+            {
+                "question": "If I _____ you, I would study harder.",
+                "options": [
+                    "am",
+                    "was",
+                    "were",
+                    "be"
+                ],
+                "correctAnswer": 2,
+                "explanation": "Conditional Type 2 (điều kiện không có thật ở hiện tại) dùng 'were' cho tất cả các ngôi với động từ 'be'. 'If I were you' là cấu trúc cố định cho lời khuyên.",
+                "difficulty": "medium"
+            },
+            {
+                "question": "If she _____ harder, she _____ the exam.",
+                "options": [
+                    "studied / would pass",
+                    "had studied / would have passed",
+                    "studies / will pass",
+                    "study / pass"
+                ],
+                "correctAnswer": 1,
+                "explanation": "Conditional Type 3 (điều kiện không có thật trong quá khứ): If + S + had + V3/ed, S + would have + V3/ed. Diễn tả sự hối tiếc về quá khứ.",
+                "difficulty": "hard"
+            },
+            {
+                "question": "'Unless you study, you will fail' means:",
+                "options": [
+                    "If you study, you will fail",
+                    "If you don't study, you will fail",
+                    "If you study, you won't fail",
+                    "You will fail because you study"
+                ],
+                "correctAnswer": 1,
+                "explanation": "'Unless' = 'If... not'. 'Unless you study' = 'If you don't study'. Câu có nghĩa: Nếu bạn không học, bạn sẽ trượt.",
+                "difficulty": "medium"
+            }
+        ]
+    },
+    {
+        "lessonTitle": "Passive Voice - Câu bị động",
+        "questions": [
+            {
+                "question": "English _____ all over the world.",
+                "options": [
+                    "speaks",
+                    "is spoken",
+                    "is speaking",
+                    "has spoken"
+                ],
+                "correctAnswer": 1,
+                "explanation": "Passive Voice (Present Simple): S + am/is/are + V3/ed. 'English' là chủ ngữ bị động (được nói), dùng 'is spoken'.",
+                "difficulty": "easy"
+            },
+            {
+                "question": "The house _____ in 1990.",
+                "options": [
+                    "built",
+                    "is built",
+                    "was built",
+                    "has built"
+                ],
+                "correctAnswer": 2,
+                "explanation": "Passive Voice (Past Simple): S + was/were + V3/ed. 'In 1990' là thời gian quá khứ cụ thể, dùng 'was built'.",
+                "difficulty": "easy"
+            },
+            {
+                "question": "Convert to passive: 'They have finished the project.'",
+                "options": [
+                    "The project is finished.",
+                    "The project was finished.",
+                    "The project has been finished.",
+                    "The project will be finished."
+                ],
+                "correctAnswer": 2,
+                "explanation": "Passive Voice (Present Perfect): S + have/has + been + V3/ed. 'They have finished' → 'The project has been finished'.",
+                "difficulty": "medium"
+            },
+            {
+                "question": "She gave me a book. (Passive - focus on 'me')",
+                "options": [
+                    "A book was given me.",
+                    "I was given a book.",
+                    "I am given a book.",
+                    "A book is given to me."
+                ],
+                "correctAnswer": 1,
+                "explanation": "Câu có hai tân ngữ: O1 (me - person) và O2 (a book - thing). Khi tập trung vào 'me': I was given a book (by her). Cấu trúc: O1 + be + V3/ed + O2.",
+                "difficulty": "hard"
+            },
+            {
+                "question": "Which sentence is correct?",
+                "options": [
+                    "The door was opened with a key.",
+                    "The door was opened by a key.",
+                    "The door opened with a key.",
+                    "The door is opening by a key."
+                ],
+                "correctAnswer": 0,
+                "explanation": "Dùng 'with' + công cụ (tool/instrument): 'The door was opened with a key'. Dùng 'by' + người/vật thực hiện hành động: 'The door was opened by John'.",
+                "difficulty": "hard"
+            }
+        ]
+    }
+]

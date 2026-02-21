@@ -1,32 +1,22 @@
 const express = require('express');
 const router = express.Router();
 const Lesson = require('../models/lesson');
+const Progress = require('../models/Progress');
 const auth = require('../middleware/userMiddleware');
+const logger = require('../config/logger');
+const { ok, created, validationError, notFound, serverError } = require('../utils/response');
 
 // GET all lessons
 // Query params: grade, subjectName, difficulty, topics
-router.get('/', async (req, res) => {
+router.get('/', async (req, res, next) => {
     try {
         const { grade, subjectName, difficulty, topics } = req.query;
 
-        // Build query
         const query = {};
-
-        if (grade) {
-            // Filter by grade - lesson.grade is an array, so use $in
-            query.grade = { $in: [parseInt(grade)] };
-        }
-
-        if (subjectName) {
-            query.subjectName = subjectName;
-        }
-
-        if (difficulty) {
-            query.difficulty = difficulty;
-        }
-
+        if (grade) query.grade = { $in: [parseInt(grade)] };
+        if (subjectName) query.subjectName = subjectName;
+        if (difficulty) query.difficulty = difficulty;
         if (topics) {
-            // Support comma-separated topics
             const topicsArray = topics.split(',').map(t => t.trim());
             query.topics = { $in: topicsArray };
         }
@@ -35,75 +25,86 @@ router.get('/', async (req, res) => {
             .populate('subjectId', 'name icon color')
             .sort({ createdAt: -1 });
 
-        res.json({
-            success: true,
-            count: lessons.length,
-            data: lessons
-        });
+        ok(res, { lessons, count: lessons.length });
     } catch (error) {
-        console.error('Error fetching lessons:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to fetch lessons',
-            error: error.message
-        });
+        next(error);
     }
 });
 
 // GET lesson by ID
-router.get('/:id', async (req, res) => {
+// PHASE 2: Auto-create Progress record on first view
+router.get('/:id', async (req, res, next) => {
     try {
         const lesson = await Lesson.findById(req.params.id)
             .populate('subjectId', 'name icon color description');
 
-        if (!lesson) {
-            return res.status(404).json({
-                success: false,
-                message: 'Lesson not found'
-            });
+        if (!lesson) return notFound(res, 'Lesson');
+
+        // PHASE 2: Track progress if user is authenticated
+        let progress = null;
+        const authHeader = req.header('Authorization');
+
+        if (authHeader) {
+            try {
+                const jwt = require('jsonwebtoken');
+                const token = authHeader.replace('Bearer ', '');
+                const decoded = jwt.verify(token, process.env.JWT_SECRET);
+                const userId = decoded.userId;
+
+                progress = await Progress.findOne({ userId, lessonId: lesson._id });
+
+                if (!progress) {
+                    progress = new Progress({
+                        userId,
+                        lessonId: lesson._id,
+                        completionPercent: 0,
+                        attempts: 0,
+                        lastAccessedAt: new Date()
+                    });
+                    await progress.save();
+                    logger.info('Progress started for lesson', {
+                        requestId: req.requestId,
+                        userId,
+                        lessonId: lesson._id
+                    });
+                } else {
+                    progress.lastAccessedAt = new Date();
+                    await progress.save();
+                }
+            } catch (authError) {
+                // Token invalid or expired — continue without tracking
+                logger.warn('Progress tracking skipped — auth failed', {
+                    requestId: req.requestId,
+                    error: authError.message
+                });
+            }
         }
 
-        res.json({
-            success: true,
-            data: lesson
+        ok(res, {
+            ...lesson.toObject(),
+            progress: progress ? {
+                completionPercent: progress.completionPercent,
+                quizScore: progress.quizScore,
+                attempts: progress.attempts,
+                lastAccessedAt: progress.lastAccessedAt
+            } : null
         });
     } catch (error) {
-        console.error('Error fetching lesson:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to fetch lesson',
-            error: error.message
-        });
+        next(error);
     }
 });
 
 // POST create new lesson
-router.post('/', auth, async (req, res) => {
+router.post('/', auth, async (req, res, next) => {
     try {
-        const {
-            title,
-            content,
-            subjectId,
-            subjectName,
-            grade,
-            topics,
-            difficulty,
-            duration
-        } = req.body;
+        const { title, content, subjectId, subjectName, grade, topics, difficulty, duration } = req.body;
 
-        // Validation
         if (!title || !content || !subjectId || !subjectName) {
-            return res.status(400).json({
-                success: false,
-                message: 'Missing required fields: title, content, subjectId, subjectName'
-            });
+            return validationError(res, 'Missing required fields: title, content, subjectId, subjectName');
         }
 
         const lesson = new Lesson({
-            title,
-            content,
-            subjectId,
-            subjectName,
+            title, content, subjectId, subjectName,
             grade: grade || [],
             topics: topics || [],
             difficulty: difficulty || 'beginner',
@@ -111,46 +112,20 @@ router.post('/', auth, async (req, res) => {
         });
 
         await lesson.save();
-
-        res.status(201).json({
-            success: true,
-            message: 'Lesson created successfully',
-            data: lesson
-        });
+        created(res, lesson, 'Lesson created successfully');
     } catch (error) {
-        console.error('Error creating lesson:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to create lesson',
-            error: error.message
-        });
+        next(error);
     }
 });
 
 // PUT update lesson
-router.put('/:id', auth, async (req, res) => {
+router.put('/:id', auth, async (req, res, next) => {
     try {
-        const {
-            title,
-            content,
-            subjectId,
-            subjectName,
-            grade,
-            topics,
-            difficulty,
-            duration
-        } = req.body;
+        const { title, content, subjectId, subjectName, grade, topics, difficulty, duration } = req.body;
 
         const lesson = await Lesson.findById(req.params.id);
+        if (!lesson) return notFound(res, 'Lesson');
 
-        if (!lesson) {
-            return res.status(404).json({
-                success: false,
-                message: 'Lesson not found'
-            });
-        }
-
-        // Update fields
         if (title) lesson.title = title;
         if (content) lesson.content = content;
         if (subjectId) lesson.subjectId = subjectId;
@@ -161,79 +136,38 @@ router.put('/:id', auth, async (req, res) => {
         if (duration !== undefined) lesson.duration = duration;
 
         await lesson.save();
-
-        res.json({
-            success: true,
-            message: 'Lesson updated successfully',
-            data: lesson
-        });
+        ok(res, lesson, 'Lesson updated successfully');
     } catch (error) {
-        console.error('Error updating lesson:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to update lesson',
-            error: error.message
-        });
+        next(error);
     }
 });
 
 // DELETE lesson
-router.delete('/:id', auth, async (req, res) => {
+router.delete('/:id', auth, async (req, res, next) => {
     try {
         const lesson = await Lesson.findByIdAndDelete(req.params.id);
-
-        if (!lesson) {
-            return res.status(404).json({
-                success: false,
-                message: 'Lesson not found'
-            });
-        }
-
-        res.json({
-            success: true,
-            message: 'Lesson deleted successfully'
-        });
+        if (!lesson) return notFound(res, 'Lesson');
+        ok(res, null, 'Lesson deleted successfully');
     } catch (error) {
-        console.error('Error deleting lesson:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to delete lesson',
-            error: error.message
-        });
+        next(error);
     }
 });
 
 // GET lessons by subject ID
-router.get('/subject/:subjectId', async (req, res) => {
+router.get('/subject/:subjectId', async (req, res, next) => {
     try {
         const { grade, difficulty } = req.query;
-
         const query = { subjectId: req.params.subjectId };
-
-        if (grade) {
-            query.grade = parseInt(grade);
-        }
-
-        if (difficulty) {
-            query.difficulty = difficulty;
-        }
+        if (grade) query.grade = parseInt(grade);
+        if (difficulty) query.difficulty = difficulty;
 
         const lessons = await Lesson.find(query)
             .populate('subjectId', 'name icon color')
             .sort({ createdAt: -1 });
 
-        res.json({
-            success: true,
-            count: lessons.length,
-            data: lessons
-        });
+        ok(res, { lessons, count: lessons.length });
     } catch (error) {
-        console.error('Error fetching lessons by subject:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to fetch lessons',
-            error: error.message
-        });
+        next(error);
     }
 });
 

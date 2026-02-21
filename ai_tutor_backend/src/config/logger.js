@@ -24,10 +24,12 @@ const transportList = [
     new transports.Console({
         level: LOG_LEVEL,
         format: isProduction ? jsonFormat : consoleFormat
-    }),
+    })
 
-    // Daily rotated file (keeps 14 days by default)
-    new transports.DailyRotateFile({
+    // File logging temporarily disabled (permission issues in docker)
+    // Uncomment when logs directory permissions are fixed:
+    /*
+    ,new transports.DailyRotateFile({
         filename: 'logs/app-%DATE%.log',
         datePattern: 'YYYY-MM-DD',
         zippedArchive: false,
@@ -36,6 +38,7 @@ const transportList = [
         level: 'info',
         format: jsonFormat
     })
+    */
 ];
 
 const logger = createLogger({

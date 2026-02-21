@@ -204,11 +204,13 @@ class ApiService {
   // Quiz APIs
   static Future<Map<String, dynamic>> getQuizzes({
     int? grade,
+    String? subjectId,
     String? subjectName,
     String? difficulty,
   }) async {
     final params = <String>[];
     if (grade != null) params.add('grade=$grade');
+    if (subjectId != null) params.add('subjectId=$subjectId');
     if (subjectName != null) {
       params.add('subjectName=${Uri.encodeComponent(subjectName)}');
     }
@@ -222,15 +224,29 @@ class ApiService {
     return get('quizzes/$id');
   }
 
+  // Submit quiz answers to backend (tracks progress)
+  static Future<Map<String, dynamic>> submitQuiz(
+    String quizId, {
+    required List<Map<String, dynamic>> answers,
+    int timeSpent = 0,
+  }) async {
+    return post('quizzes/$quizId/submit', {
+      'answers': answers,
+      'timeSpent': timeSpent,
+    });
+  }
+
   // Lesson APIs
   static Future<Map<String, dynamic>> getLessons({
     int? grade,
+    String? subjectId,
     String? subjectName,
     String? difficulty,
     List<String>? topics,
   }) async {
     final params = <String>[];
     if (grade != null) params.add('grade=$grade');
+    if (subjectId != null) params.add('subjectId=$subjectId');
     if (subjectName != null) {
       params.add('subjectName=${Uri.encodeComponent(subjectName)}');
     }

@@ -1,0 +1,219 @@
+[
+    {
+        "lessonTitle": "Hàm số bậc nhất",
+        "questions": [
+            {
+                "question": "Hàm số nào sau đây là hàm số bậc nhất?",
+                "options": [
+                    "y = 2x² + 3",
+                    "y = 3x - 5",
+                    "y = 1/x",
+                    "y = √x"
+                ],
+                "correctAnswer": 1,
+                "explanation": "Hàm số bậc nhất có dạng y = ax + b với a ≠ 0. Đáp án B: y = 3x - 5 thỏa mãn điều kiện này (a = 3, b = -5).",
+                "difficulty": "easy"
+            },
+            {
+                "question": "Cho hàm số y = -2x + 4. Hàm số này đồng biến hay nghịch biến trên R?",
+                "options": [
+                    "Đồng biến",
+                    "Nghịch biến",
+                    "Không đổi",
+                    "Không xác định"
+                ],
+                "correctAnswer": 1,
+                "explanation": "Hàm số bậc nhất y = ax + b nghịch biến khi a < 0. Trong trường hợp này a = -2 < 0 nên hàm số nghịch biến trên R.",
+                "difficulty": "medium"
+            },
+            {
+                "question": "Đồ thị hàm số y = 2x + 3 cắt trục tung tại điểm nào?",
+                "options": [
+                    "(0, 2)",
+                    "(0, 3)",
+                    "(3, 0)",
+                    "(2, 0)"
+                ],
+                "correctAnswer": 1,
+                "explanation": "Đồ thị hàm số y = ax + b cắt trục tung tại điểm (0, b). Với y = 2x + 3, ta có b = 3 nên cắt trục tung tại (0, 3).",
+                "difficulty": "easy"
+            }
+        ]
+    },
+    {
+        "lessonTitle": "Phương trình bậc nhất một ẩn",
+        "questions": [
+            {
+                "question": "Giải phương trình: 2x - 6 = 0",
+                "options": [
+                    "x = 2",
+                    "x = 3",
+                    "x = -3",
+                    "x = 6"
+                ],
+                "correctAnswer": 1,
+                "explanation": "2x - 6 = 0 ⟺ 2x = 6 ⟺ x = 3. Vậy nghiệm của phương trình là x = 3.",
+                "difficulty": "easy"
+            },
+            {
+                "question": "Phương trình 3(x - 2) = 2(x + 1) có nghiệm là:",
+                "options": [
+                    "x = 4",
+                    "x = 6",
+                    "x = 8",
+                    "x = 10"
+                ],
+                "correctAnswer": 2,
+                "explanation": "3(x - 2) = 2(x + 1) ⟺ 3x - 6 = 2x + 2 ⟺ 3x - 2x = 2 + 6 ⟺ x = 8.",
+                "difficulty": "medium"
+            },
+            {
+                "question": "Phương trình (x - 2)(x + 3) = 0 có bao nhiêu nghiệm?",
+                "options": [
+                    "0 nghiệm",
+                    "1 nghiệm",
+                    "2 nghiệm",
+                    "Vô số nghiệm"
+                ],
+                "correctAnswer": 2,
+                "explanation": "Phương trình tích có dạng A·B = 0 ⟺ A = 0 hoặc B = 0. Do đó (x - 2)(x + 3) = 0 ⟺ x - 2 = 0 hoặc x + 3 = 0 ⟺ x = 2 hoặc x = -3. Vậy có 2 nghiệm.",
+                "difficulty": "medium"
+            }
+        ]
+    },
+    {
+        "lessonTitle": "Bất phương trình bậc nhất một ẩn",
+        "questions": [
+            {
+                "question": "Giải bất phương trình: 2x + 3 > 7",
+                "options": [
+                    "x > 2",
+                    "x > 5",
+                    "x < 2",
+                    "x < 5"
+                ],
+                "correctAnswer": 0,
+                "explanation": "2x + 3 > 7 ⟺ 2x > 7 - 3 ⟺ 2x > 4 ⟺ x > 2. Vậy tập nghiệm là (2; +∞).",
+                "difficulty": "easy"
+            },
+            {
+                "question": "Khi nhân hai vế của bất phương trình với -2, dấu bất phương trình sẽ:",
+                "options": [
+                    "Giữ nguyên",
+                    "Đổi chiều",
+                    "Mất đi",
+                    "Không xác định"
+                ],
+                "correctAnswer": 1,
+                "explanation": "Khi nhân hoặc chia hai vế của bất phương trình với một số âm, ta phải đổi chiều bất phương trình. Ví dụ: x < 3 ⟹ -2x > -6.",
+                "difficulty": "medium"
+            },
+            {
+                "question": "Giải bất phương trình: -3x + 6 ≤ 0",
+                "options": [
+                    "x ≥ 2",
+                    "x ≤ 2",
+                    "x ≥ -2",
+                    "x ≤ -2"
+                ],
+                "correctAnswer": 0,
+                "explanation": "-3x + 6 ≤ 0 ⟺ -3x ≤ -6 ⟺ x ≥ 2 (chia cho -3 và đổi chiều). Vậy tập nghiệm là [2; +∞).",
+                "difficulty": "medium"
+            }
+        ]
+    },
+    {
+        "lessonTitle": "Hệ phương trình bậc nhất hai ẩn",
+        "questions": [
+            {
+                "question": "Giải hệ phương trình: {x + y = 5; x - y = 1}",
+                "options": [
+                    "x = 2, y = 3",
+                    "x = 3, y = 2",
+                    "x = 4, y = 1",
+                    "x = 1, y = 4"
+                ],
+                "correctAnswer": 1,
+                "explanation": "Cộng hai phương trình: 2x = 6 ⟹ x = 3. Thay vào phương trình đầu: 3 + y = 5 ⟹ y = 2. Vậy nghiệm là (3, 2).",
+                "difficulty": "medium"
+            },
+            {
+                "question": "Hệ phương trình {2x + y = 7; 4x + 2y = 10} có bao nhiêu nghiệm?",
+                "options": [
+                    "Vô nghiệm",
+                    "Một nghiệm duy nhất",
+                    "Vô số nghiệm",
+                    "Hai nghiệm"
+                ],
+                "correctAnswer": 0,
+                "explanation": "Nhân phương trình đầu với 2: 4x + 2y = 14. So sánh với phương trình thứ hai: 4x + 2y = 10, ta thấy mâu thuẫn (14 ≠ 10). Vậy hệ vô nghiệm.",
+                "difficulty": "hard"
+            },
+            {
+                "question": "Phương pháp nào sau đây KHÔNG phải phương pháp giải hệ phương trình bậc nhất?",
+                "options": [
+                    "Phương pháp thế",
+                    "Phương pháp cộng đại số",
+                    "Phương pháp đồ thị",
+                    "Phương pháp đổi biến"
+                ],
+                "correctAnswer": 3,
+                "explanation": "Ba phương pháp giải hệ phương trình bậc nhất là: phương pháp thế, phương pháp cộng đại số, và phương pháp đồ thị. Phương pháp đổi biến thường dùng cho các phương trình phức tạp hơn.",
+                "difficulty": "easy"
+            }
+        ]
+    },
+    {
+        "lessonTitle": "Hệ thức lượng trong tam giác vuông",
+        "questions": [
+            {
+                "question": "Trong tam giác vuông ABC (vuông tại A), định lí Pythagore được viết như thế nào?",
+                "options": [
+                    "AB² + AC² = BC²",
+                    "BC² + AC² = AB²",
+                    "AB² + BC² = AC²",
+                    "AB² = AC² + BC²"
+                ],
+                "correctAnswer": 0,
+                "explanation": "Trong tam giác vuông, bình phương cạnh huyền bằng tổng bình phương hai cạnh góc vuông. BC là cạnh huyền nên BC² = AB² + AC².",
+                "difficulty": "easy"
+            },
+            {
+                "question": "Cho tam giác vuông ABC (vuông tại A), AB = 3, AC = 4. Độ dài BC bằng:",
+                "options": [
+                    "5",
+                    "6",
+                    "7",
+                    "√7"
+                ],
+                "correctAnswer": 0,
+                "explanation": "Theo định lí Pythagore: BC² = AB² + AC² = 3² + 4² = 9 + 16 = 25. Vậy BC = √25 = 5.",
+                "difficulty": "medium"
+            },
+            {
+                "question": "Trong tam giác vuông ABC (vuông tại A), sin B bằng:",
+                "options": [
+                    "AC/BC",
+                    "AB/BC",
+                    "AC/AB",
+                    "BC/AC"
+                ],
+                "correctAnswer": 0,
+                "explanation": "Trong tam giác vuông, sin của một góc nhọn bằng tỉ số giữa cạnh đối và cạnh huyền. Cạnh đối của góc B là AC, cạnh huyền là BC, nên sin B = AC/BC.",
+                "difficulty": "medium"
+            },
+            {
+                "question": "Nếu cos A = 0.6 trong tam giác vuông ABC (vuông tại C), thì sin A bằng:",
+                "options": [
+                    "0.4",
+                    "0.6",
+                    "0.8",
+                    "1"
+                ],
+                "correctAnswer": 2,
+                "explanation": "Trong tam giác vuông, sin²A + cos²A = 1. Do đó sin²A = 1 - cos²A = 1 - 0.36 = 0.64. Vậy sin A = √0.64 = 0.8.",
+                "difficulty": "hard"
+            }
+        ]
+    }
+]

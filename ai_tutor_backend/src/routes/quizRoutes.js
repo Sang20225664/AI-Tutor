@@ -1,17 +1,22 @@
 const express = require('express');
 const router = express.Router();
 const Quiz = require('../models/quiz');
+const QuizAttempt = require('../models/QuizAttempt');
+const Lesson = require('../models/lesson');
+const { updateProgress } = require('../controllers/progressController');
 const auth = require('../middleware/userMiddleware');
+const logger = require('../config/logger');
+const { ok, created, validationError, notFound, serverError } = require('../utils/response');
+const validateQuizSubmit = require('../middleware/validateQuizSubmit');
 
 // GET all quizzes
-router.get('/', async (req, res) => {
+router.get('/', async (req, res, next) => {
     try {
         const { subjectId, subjectName, grade, difficulty } = req.query;
 
         let query = {};
         if (subjectId) query.subjectId = subjectId;
         if (subjectName) query.subjectName = subjectName;
-        // Filter by grade - quiz.grade is an array, so use $in
         if (grade) query.grade = { $in: [parseInt(grade)] };
         if (difficulty) query.difficulty = difficulty;
 
@@ -19,71 +24,39 @@ router.get('/', async (req, res) => {
             .populate('subjectId', 'name icon color')
             .sort({ createdAt: -1 });
 
-        res.json({
-            success: true,
-            data: quizzes,
-            count: quizzes.length
-        });
+        ok(res, { quizzes, count: quizzes.length });
     } catch (error) {
-        console.error('Error fetching quizzes:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error fetching quizzes',
-            error: error.message
-        });
+        next(error);
     }
 });
 
 // GET quiz by ID
-router.get('/:id', async (req, res) => {
+router.get('/:id', async (req, res, next) => {
     try {
         const quiz = await Quiz.findById(req.params.id)
             .populate('subjectId', 'name icon color description');
 
-        if (!quiz) {
-            return res.status(404).json({
-                success: false,
-                message: 'Quiz not found'
-            });
-        }
+        if (!quiz) return notFound(res, 'Quiz');
 
-        res.json({
-            success: true,
-            data: quiz
-        });
+        ok(res, quiz);
     } catch (error) {
-        console.error('Error fetching quiz:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error fetching quiz',
-            error: error.message
-        });
+        next(error);
     }
 });
 
 // POST create new quiz (admin)
-router.post('/', auth, async (req, res) => {
+router.post('/', auth, async (req, res, next) => {
     try {
         const quiz = new Quiz(req.body);
         await quiz.save();
-
-        res.status(201).json({
-            success: true,
-            data: quiz,
-            message: 'Quiz created successfully'
-        });
+        created(res, quiz, 'Quiz created successfully');
     } catch (error) {
-        console.error('Error creating quiz:', error);
-        res.status(400).json({
-            success: false,
-            message: 'Error creating quiz',
-            error: error.message
-        });
+        next(error);
     }
 });
 
 // PUT update quiz (admin)
-router.put('/:id', auth, async (req, res) => {
+router.put('/:id', auth, async (req, res, next) => {
     try {
         const quiz = await Quiz.findByIdAndUpdate(
             req.params.id,
@@ -91,51 +64,126 @@ router.put('/:id', auth, async (req, res) => {
             { new: true, runValidators: true }
         );
 
-        if (!quiz) {
-            return res.status(404).json({
-                success: false,
-                message: 'Quiz not found'
-            });
-        }
+        if (!quiz) return notFound(res, 'Quiz');
 
-        res.json({
-            success: true,
-            data: quiz,
-            message: 'Quiz updated successfully'
-        });
+        ok(res, quiz, 'Quiz updated successfully');
     } catch (error) {
-        console.error('Error updating quiz:', error);
-        res.status(400).json({
-            success: false,
-            message: 'Error updating quiz',
-            error: error.message
-        });
+        next(error);
     }
 });
 
 // DELETE quiz (admin)
-router.delete('/:id', auth, async (req, res) => {
+router.delete('/:id', auth, async (req, res, next) => {
     try {
         const quiz = await Quiz.findByIdAndDelete(req.params.id);
 
-        if (!quiz) {
-            return res.status(404).json({
-                success: false,
-                message: 'Quiz not found'
+        if (!quiz) return notFound(res, 'Quiz');
+
+        ok(res, null, 'Quiz deleted successfully');
+    } catch (error) {
+        next(error);
+    }
+});
+
+// ========================================
+// PHASE 2: QUIZ SUBMISSION & PROGRESS TRACKING
+// ========================================
+
+/**
+ * POST /api/quizzes/:id/submit
+ * Body: { answers: [{ questionIndex: 0, selectedAnswer: 2 }, ...], timeSpent: 180 }
+ */
+router.post('/:id/submit', auth, validateQuizSubmit, async (req, res, next) => {
+    try {
+        const quizId = req.params.id;
+        const userId = req.user.userId;
+        const { answers, timeSpent = 0 } = req.body;
+
+        // Basic validation already handled by validateQuizSubmit middleware
+
+        // Fetch quiz
+        const quiz = await Quiz.findById(quizId);
+        if (!quiz) return notFound(res, 'Quiz');
+
+        // Calculate score
+        const totalQuestions = quiz.questions.length;
+        let correctCount = 0;
+        const detailedAnswers = [];
+
+        answers.forEach(userAnswer => {
+            const { questionIndex, selectedAnswer } = userAnswer;
+
+            if (questionIndex < 0 || questionIndex >= totalQuestions) return; // skip invalid
+
+            const question = quiz.questions[questionIndex];
+            const isCorrect = question.answer === selectedAnswer;
+
+            if (isCorrect) correctCount++;
+
+            detailedAnswers.push({
+                questionIndex,
+                selectedAnswer,
+                isCorrect,
+                correctAnswer: question.answer
+            });
+        });
+
+        const score = Math.round((correctCount / totalQuestions) * 100);
+
+        // Create QuizAttempt record
+        const quizAttempt = new QuizAttempt({
+            userId,
+            quizId,
+            answers: detailedAnswers.map(a => ({
+                questionIndex: a.questionIndex,
+                selectedAnswer: a.selectedAnswer,
+                isCorrect: a.isCorrect
+            })),
+            score,
+            timeSpent
+        });
+        await quizAttempt.save();
+
+        logger.info('QuizAttempt created', {
+            requestId: req.requestId,
+            userId,
+            quizId,
+            score,
+            attemptId: quizAttempt._id
+        });
+
+        // Find associated lesson (quiz title has "Quiz: " prefix)
+        const lessonTitle = quiz.title.replace(/^Quiz:\s*/, '');
+        const lesson = await Lesson.findOne({ title: lessonTitle, subjectName: quiz.subjectName });
+
+        if (lesson) {
+            await updateProgress(userId, lesson._id, score);
+            logger.info('Progress updated after quiz', {
+                requestId: req.requestId,
+                userId,
+                lessonId: lesson._id,
+                score
+            });
+        } else {
+            logger.warn('No matching lesson found for quiz', {
+                requestId: req.requestId,
+                quizTitle: quiz.title,
+                searchedTitle: lessonTitle
             });
         }
 
-        res.json({
-            success: true,
-            message: 'Quiz deleted successfully'
+        ok(res, {
+            attemptId: quizAttempt._id,
+            score,
+            correctCount,
+            totalQuestions,
+            detailedAnswers,
+            message: score >= 70 ? 'Excellent! You passed!' :
+                score >= 50 ? 'Good effort! Keep practicing.' :
+                    'Keep studying and try again!'
         });
     } catch (error) {
-        console.error('Error deleting quiz:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error deleting quiz',
-            error: error.message
-        });
+        next(error);
     }
 });
 

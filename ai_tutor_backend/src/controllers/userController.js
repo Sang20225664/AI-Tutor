@@ -5,20 +5,24 @@ const jwt = require("jsonwebtoken");
 // Đăng ký người dùng
 const registerUser = async (req, res) => {
     try {
-        const { username, email, password } = req.body;
-        if (!username || !email || !password) {
-            return res.status(400).json({ message: "Vui lòng nhập đầy đủ thông tin!" });
+        const { username, password, email } = req.body;
+        if (!username || !password) {
+            return res.status(400).json({ message: "Vui lòng nhập tên đăng nhập và mật khẩu!" });
         }
-        const userExists = await User.findOne({ email });
+        const userExists = await User.findOne({ username });
         if (userExists) {
-            return res.status(400).json({ message: "Tên đăng nhập đã tồn tại!" });
+            return res.status(409).json({ message: "Tên đăng nhập đã tồn tại!" });
         }
         const hashedPassword = await bcrypt.hash(password, 10);
-        const newUser = new User({ username, email, password: hashedPassword });
+        const newUser = new User({
+            username,
+            password: hashedPassword,
+            ...(email ? { email } : {}) // only set email if provided (future Google login)
+        });
         await newUser.save();
 
         // Tạo token ngay sau khi đăng ký thành công
-        const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+        const token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
 
         res.status(201).json({
             success: true,
@@ -26,7 +30,7 @@ const registerUser = async (req, res) => {
             user: {
                 id: newUser._id,
                 username: newUser.username,
-                email: newUser.email
+                ...(newUser.email ? { email: newUser.email } : {})
             },
             token
         });
@@ -48,7 +52,7 @@ const loginUser = async (req, res) => {
         }
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
-            return res.status(400).json({ message: "Mật khẩu không chính xác!" });
+            return res.status(401).json({ message: "Mật khẩu không chính xác!" }); // 401 Unauthorized for wrong password
         }
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
         res.json({

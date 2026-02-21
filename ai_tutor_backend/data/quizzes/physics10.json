@@ -1,0 +1,255 @@
+[
+    {
+        "lessonTitle": "Chuyển động thẳng đều",
+        "questions": [
+            {
+                "question": "Chuyển động thẳng đều là chuyển động có đặc điểm nào?",
+                "options": [
+                    "Vận tốc không đổi theo thời gian",
+                    "Gia tốc không đổi",
+                    "Quãng đường không đổi",
+                    "Thời gian không đổi"
+                ],
+                "correctAnswer": 0,
+                "explanation": "Chuyển động thẳng đều là chuyển động có quỹ đạo là đường thẳng và vận tốc không đổi theo thời gian (v = const).",
+                "difficulty": "easy"
+            },
+            {
+                "question": "Một vật chuyển động thẳng đều với vận tốc 20 m/s. Quãng đường vật đi được trong 5 giây là:",
+                "options": [
+                    "50 m",
+                    "75 m",
+                    "100 m",
+                    "125 m"
+                ],
+                "correctAnswer": 2,
+                "explanation": "Công thức: s = v·t = 20 × 5 = 100 m. Vậy quãng đường vật đi được là 100 m.",
+                "difficulty": "easy"
+            },
+            {
+                "question": "Đồ thị vận tốc - thời gian của chuyển động thẳng đều có dạng:",
+                "options": [
+                    "Đường thẳng xiên góc",
+                    "Đường thẳng song song với trục thời gian",
+                    "Đường cong parabol",
+                    "Đường thẳng đi qua gốc tọa độ"
+                ],
+                "correctAnswer": 1,
+                "explanation": "Vì vận tốc không đổi theo thời gian (v = const), đồ thị v-t là đường thẳng song song với trục thời gian.",
+                "difficulty": "medium"
+            }
+        ]
+    },
+    {
+        "lessonTitle": "Chuyển động thẳng biến đổi đều",
+        "questions": [
+            {
+                "question": "Gia tốc là đại lượng đo:",
+                "options": [
+                    "Sự nhanh chậm của chuyển động",
+                    "Sự thay đổi vận tốc theo thời gian",
+                    "Quãng đường đi được",
+                    "Độ dịch chuyển của vật"
+                ],
+                "correctAnswer": 1,
+                "explanation": "Gia tốc a = Δv/Δt là đại lượng đặc trưng cho sự biến thiên nhanh hay chậm của vận tốc theo thời gian.",
+                "difficulty": "easy"
+            },
+            {
+                "question": "Một vật có vận tốc ban đầu 10 m/s, chuyển động nhanh dần đều với gia tốc 2 m/s². Vận tốc sau 5 giây là:",
+                "options": [
+                    "15 m/s",
+                    "20 m/s",
+                    "25 m/s",
+                    "30 m/s"
+                ],
+                "correctAnswer": 1,
+                "explanation": "Công thức: v = v₀ + at = 10 + 2×5 = 10 + 10 = 20 m/s. Vậy vận tốc sau 5 giây là 20 m/s.",
+                "difficulty": "medium"
+            },
+            {
+                "question": "Chuyển động chậm dần đều có đặc điểm:",
+                "options": [
+                    "Gia tốc cùng chiều với vận tốc",
+                    "Gia tốc ngược chiều với vận tốc",
+                    "Gia tốc bằng 0",
+                    "Vận tốc không đổi"
+                ],
+                "correctAnswer": 1,
+                "explanation": "Chuyển động chậm dần đều có gia tốc ngược chiều với vận tốc, làm vận tốc giảm dần theo thời gian.",
+                "difficulty": "medium"
+            }
+        ]
+    },
+    {
+        "lessonTitle": "Ba định luật Newton",
+        "questions": [
+            {
+                "question": "Định luật I Newton (Định luật quán tính) phát biểu:",
+                "options": [
+                    "Một vật đứng yên sẽ đứng yên mãi mãi",
+                    "Vật sẽ giữ nguyên trạng thái nghỉ hoặc chuyển động thẳng đều nếu không chịu lực hoặc các lực cân bằng",
+                    "Gia tốc tỉ lệ thuận với lực tác dụng",
+                    "Lực và phản lực luôn bằng nhau"
+                ],
+                "correctAnswer": 1,
+                "explanation": "Định luật I Newton: Nếu một vật không chịu lực tác dụng hoặc chịu các lực cân bằng thì vật đứng yên sẽ tiếp tục đứng yên, vật đang chuyển động sẽ tiếp tục chuyển động thẳng đều.",
+                "difficulty": "easy"
+            },
+            {
+                "question": "Theo định luật II Newton, công thức tính lực là:",
+                "options": [
+                    "F = m·a",
+                    "F = m·v",
+                    "F = m·s",
+                    "F = m/a"
+                ],
+                "correctAnswer": 0,
+                "explanation": "Định luật II Newton: F = m·a, trong đó F là lực tác dụng (N), m là khối lượng (kg), a là gia tốc (m/s²).",
+                "difficulty": "easy"
+            },
+            {
+                "question": "Một lực 20 N tác dụng lên vật có khối lượng 5 kg. Gia tốc của vật là:",
+                "options": [
+                    "2 m/s²",
+                    "4 m/s²",
+                    "10 m/s²",
+                    "100 m/s²"
+                ],
+                "correctAnswer": 1,
+                "explanation": "Theo định luật II Newton: a = F/m = 20/5 = 4 m/s². Vậy gia tốc của vật là 4 m/s².",
+                "difficulty": "medium"
+            },
+            {
+                "question": "Định luật III Newton phát biểu về:",
+                "options": [
+                    "Lực và gia tốc",
+                    "Lực và khối lượng",
+                    "Lực và phản lực",
+                    "Lực và vận tốc"
+                ],
+                "correctAnswer": 2,
+                "explanation": "Định luật III Newton: Trong mọi trường hợp, khi vật A tác dụng lên vật B một lực thì vật B cũng tác dụng lại vật A một lực. Hai lực này có cùng độ lớn, cùng phương nhưng ngược chiều.",
+                "difficulty": "easy"
+            }
+        ]
+    },
+    {
+        "lessonTitle": "Công và công suất",
+        "questions": [
+            {
+                "question": "Công thức tính công trong trường hợp lực F cùng phương với độ dịch chuyển s là:",
+                "options": [
+                    "A = F/s",
+                    "A = F·s",
+                    "A = F + s",
+                    "A = F - s"
+                ],
+                "correctAnswer": 1,
+                "explanation": "Công của lực F khi vật dịch chuyển quãng đường s theo phương của lực: A = F·s (đơn vị: Joule - J).",
+                "difficulty": "easy"
+            },
+            {
+                "question": "Một lực 50 N kéo vật dịch chuyển 10 m theo phương của lực. Công của lực này là:",
+                "options": [
+                    "5 J",
+                    "50 J",
+                    "500 J",
+                    "5000 J"
+                ],
+                "correctAnswer": 2,
+                "explanation": "Công: A = F·s = 50 × 10 = 500 J. Vậy công của lực là 500 Joule.",
+                "difficulty": "easy"
+            },
+            {
+                "question": "Công suất là đại lượng đặc trưng cho:",
+                "options": [
+                    "Công thực hiện được",
+                    "Tốc độ thực hiện công",
+                    "Lực tác dụng",
+                    "Quãng đường dịch chuyển"
+                ],
+                "correctAnswer": 1,
+                "explanation": "Công suất P = A/t là đại lượng đặc trưng cho tốc độ thực hiện công. Đơn vị: Watt (W) = J/s.",
+                "difficulty": "medium"
+            },
+            {
+                "question": "Một động cơ có công suất 2000 W hoạt động trong 5 giây. Công mà động cơ thực hiện là:",
+                "options": [
+                    "400 J",
+                    "2000 J",
+                    "10000 J",
+                    "20000 J"
+                ],
+                "correctAnswer": 2,
+                "explanation": "Công: A = P·t = 2000 × 5 = 10000 J = 10 kJ. Vậy công thực hiện là 10000 Joule.",
+                "difficulty": "medium"
+            }
+        ]
+    },
+    {
+        "lessonTitle": "Động năng và thế năng",
+        "questions": [
+            {
+                "question": "Công thức tính động năng của vật là:",
+                "options": [
+                    "E_đ = m·v",
+                    "E_đ = ½·m·v²",
+                    "E_đ = m·g·h",
+                    "E_đ = F·s"
+                ],
+                "correctAnswer": 1,
+                "explanation": "Động năng (năng lượng do vật chuyển động mà có): E_đ = ½·m·v², với m là khối lượng (kg), v là vận tốc (m/s).",
+                "difficulty": "easy"
+            },
+            {
+                "question": "Một vật có khối lượng 2 kg, chuyển động với vận tốc 10 m/s. Động năng của vật là:",
+                "options": [
+                    "20 J",
+                    "50 J",
+                    "100 J",
+                    "200 J"
+                ],
+                "correctAnswer": 2,
+                "explanation": "Động năng: E_đ = ½·m·v² = ½ × 2 × 10² = ½ × 2 × 100 = 100 J.",
+                "difficulty": "medium"
+            },
+            {
+                "question": "Thế năng trọng trường được tính bởi công thức:",
+                "options": [
+                    "E_t = m·v",
+                    "E_t = ½·m·v²",
+                    "E_t = m·g·h",
+                    "E_t = F·s"
+                ],
+                "correctAnswer": 2,
+                "explanation": "Thế năng trọng trường (năng lượng do vật ở độ cao so với mặt đất): E_t = m·g·h, với h là độ cao (m), g ≈ 10 m/s².",
+                "difficulty": "easy"
+            },
+            {
+                "question": "Định luật bảo toàn cơ năng phát biểu:",
+                "options": [
+                    "Động năng luôn không đổi",
+                    "Thế năng luôn không đổi",
+                    "Tổng động năng và thế năng không đổi (khi không có ma sát)",
+                    "Công luôn bằng không"
+                ],
+                "correctAnswer": 2,
+                "explanation": "Trong trường hợp không có ma sát và lực cản, cơ năng (E = E_đ + E_t) được bảo toàn, tức là không đổi theo thời gian.",
+                "difficulty": "medium"
+            },
+            {
+                "question": "Một vật có khối lượng 1 kg ở độ cao 20 m (lấy g = 10 m/s²). Thế năng của vật là:",
+                "options": [
+                    "20 J",
+                    "100 J",
+                    "200 J",
+                    "400 J"
+                ],
+                "correctAnswer": 2,
+                "explanation": "Thế năng: E_t = m·g·h = 1 × 10 × 20 = 200 J. Vậy thế năng của vật là 200 Joule.",
+                "difficulty": "easy"
+            }
+        ]
+    }
+]

@@ -20,6 +20,10 @@ const lessonRoutes = require("./routes/lessonRoutes");
 const chatRoutes = require("./routes/chatRoutes");
 const chatHistoryRoutes = require("./routes/chatHistoryRoutes");
 
+// Import middleware
+const requestLogger = require("./middleware/requestLogger");
+const errorHandler = require("./middleware/errorHandler");
+
 // === Initialize app ===
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -77,6 +81,9 @@ const morganStream = {
 // Choose morgan format depending on environment
 const morganFormat = process.env.MORGAN_FORMAT || (process.env.NODE_ENV === 'production' ? 'combined' : 'dev');
 app.use(morgan(morganFormat, { stream: morganStream }));
+
+// === Structured request logger (attaches requestId, logs on finish) ===
+app.use(requestLogger);
 
 // === Custom request logging for demo/visibility ===
 const os = require('os');
@@ -320,19 +327,8 @@ app.get("/admin", async (req, res) => {
   }
 });
 
-// === Global Error Handler ===
-app.use((err, req, res, next) => {
-  // Log error with request context when available
-  const meta = {
-    url: req.originalUrl,
-    method: req.method,
-    params: req.params,
-    query: req.query,
-    body: req.body
-  };
-  logger.error('Server Error: %s', err.message, { stack: err.stack, ...meta });
-  res.status(500).json({ success: false, message: "Internal Server Error" });
-});
+// === Global Error Handler (must be LAST) ===
+app.use(errorHandler);
 
 // === Start Server ===
 app.listen(PORT, HOST, () => {

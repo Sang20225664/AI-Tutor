@@ -12,7 +12,8 @@ services:
     depends_on:
       - mongo
     environment:
-      - MONGO_URI=mongodb://mongo:27017/ai_tutor
+      # PHASE 2: Use clean demo database
+      - MONGO_URI=mongodb://mongo:27017/ai_tutor_v2
       - NODE_ENV=production
       - HOST=0.0.0.0
       - GEMINI_API_KEY=${GEMINI_API_KEY}

@@ -1,0 +1,42 @@
+[
+    {
+        "name": "Toán 10",
+        "icon": "calculate",
+        "color": "#1976d2",
+        "gradeLevels": [
+            10
+        ],
+        "description": "Chương trình Toán lớp 10 bao gồm đại số và hình học: hàm số, phương trình, bất phương trình, hệ thức lượng trong tam giác, và phương pháp tọa độ trong mặt phẳng. Môn học giúp học sinh phát triển tư duy logic và kỹ năng giải quyết vấn đề.",
+        "createdAt": "2024-01-15T00:00:00.000Z"
+    },
+    {
+        "name": "Vật lý 10",
+        "icon": "science",
+        "color": "#388e3c",
+        "gradeLevels": [
+            10
+        ],
+        "description": "Vật lý 10 giới thiệu các khái niệm cơ bản về cơ học: động học, động lực học, các định luật Newton, công suất và năng lượng. Học sinh sẽ hiểu về chuyển động của vật thể và các lực tác động trong tự nhiên.",
+        "createdAt": "2024-01-15T00:00:00.000Z"
+    },
+    {
+        "name": "Hóa học 10",
+        "icon": "biotech",
+        "color": "#f57c00",
+        "gradeLevels": [
+            10
+        ],
+        "description": "Hóa học 10 nghiên cứu cấu tạo nguyên tử, bảng tuần hoàn các nguyên tố, liên kết hóa học và các phản ứng hóa học cơ bản. Môn học giúp học sinh hiểu về thành phần và tính chất của chất.",
+        "createdAt": "2024-01-15T00:00:00.000Z"
+    },
+    {
+        "name": "Tiếng Anh 10",
+        "icon": "language",
+        "color": "#d32f2f",
+        "gradeLevels": [
+            10
+        ],
+        "description": "Tiếng Anh 10 tập trung vào phát triển 4 kỹ năng: nghe, nói, đọc, viết. Chương trình bao gồm từ vựng, ngữ pháp, và các chủ đề giao tiếp thường ngày như gia đình, bạn bè, sở thích và môi trường.",
+        "createdAt": "2024-01-15T00:00:00.000Z"
+    }
+]

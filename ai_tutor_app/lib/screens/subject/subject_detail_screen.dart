@@ -2,226 +2,496 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../models/subject.dart';
+import '../../models/lesson.dart';
+import '../../models/quiz.dart';
+import '../../services/api_service.dart';
+import '../lesson/lesson_detail_screen.dart';
+import '../lesson/quiz_screen.dart';
 import '../chat/ai_chat_screen.dart';
 
-
-class SubjectDetailScreen extends StatelessWidget {
+class SubjectDetailScreen extends StatefulWidget {
   final Subject subject;
 
   const SubjectDetailScreen({super.key, required this.subject});
 
   @override
+  State<SubjectDetailScreen> createState() => _SubjectDetailScreenState();
+}
+
+class _SubjectDetailScreenState extends State<SubjectDetailScreen>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  List<Lesson> _lessons = [];
+  List<Quiz> _quizzes = [];
+  bool _isLoadingLessons = true;
+  bool _isLoadingQuizzes = true;
+  String? _lessonError;
+  String? _quizError;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    _loadLessons();
+    _loadQuizzes();
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadLessons() async {
+    setState(() {
+      _isLoadingLessons = true;
+      _lessonError = null;
+    });
+    try {
+      final response =
+          await ApiService.getLessons(subjectId: widget.subject.id);
+      if (response['success'] == true && response['data'] != null) {
+        final data = response['data'];
+        final List raw =
+            data is Map ? (data['lessons'] ?? data) : data as List;
+        setState(() {
+          _lessons = raw
+              .map((j) => Lesson.fromJson(j as Map<String, dynamic>))
+              .toList();
+          _isLoadingLessons = false;
+        });
+      } else {
+        setState(() {
+          _lessonError = response['message'] ?? 'Không tải được bài học';
+          _isLoadingLessons = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _lessonError = 'Lỗi: $e';
+        _isLoadingLessons = false;
+      });
+    }
+  }
+
+  Future<void> _loadQuizzes() async {
+    setState(() {
+      _isLoadingQuizzes = true;
+      _quizError = null;
+    });
+    try {
+      final response =
+          await ApiService.getQuizzes(subjectId: widget.subject.id);
+      if (response['success'] == true && response['data'] != null) {
+        final data = response['data'];
+        final List raw =
+            data is Map ? (data['quizzes'] ?? data) : data as List;
+        setState(() {
+          _quizzes = raw
+              .map((j) => Quiz.fromJson(j as Map<String, dynamic>))
+              .toList();
+          _isLoadingQuizzes = false;
+        });
+      } else {
+        setState(() {
+          _quizError = response['message'] ?? 'Không tải được bài kiểm tra';
+          _isLoadingQuizzes = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _quizError = 'Lỗi: $e';
+        _isLoadingQuizzes = false;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final List<String> topics = _getTopicsForSubject(subject);
-    final String description = _getSubjectDescription(subject);
+    final color = widget.subject.color;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(subject.name),
-        backgroundColor: subject.color,
+        title: Text(widget.subject.name),
+        backgroundColor: color,
         foregroundColor: Colors.white,
         systemOverlayStyle: SystemUiOverlayStyle.light.copyWith(
-          statusBarColor: subject.color,
+          statusBarColor: color,
+        ),
+        bottom: TabBar(
+          controller: _tabController,
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.white70,
+          indicatorColor: Colors.white,
+          tabs: [
+            Tab(
+              icon: const Icon(Icons.menu_book),
+              text: 'Bài học (${_isLoadingLessons ? "..." : _lessons.length})',
+            ),
+            Tab(
+              icon: const Icon(Icons.quiz),
+              text: 'Kiểm tra (${_isLoadingQuizzes ? "..." : _quizzes.length})',
+            ),
+          ],
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.smart_toy_outlined),
+            tooltip: 'Chat với AI',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => AIChatScreen(subject: widget.subject),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          _buildLessonsTab(color),
+          _buildQuizzesTab(color),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLessonsTab(Color color) {
+    if (_isLoadingLessons) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (_lessonError != null) {
+      return _buildError(_lessonError!, _loadLessons, color);
+    }
+    if (_lessons.isEmpty) {
+      return _buildEmpty('Chưa có bài học nào', Icons.menu_book_outlined);
+    }
+
+    return RefreshIndicator(
+      onRefresh: _loadLessons,
+      color: color,
+      child: ListView.builder(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+        itemCount: _lessons.length,
+        itemBuilder: (context, index) {
+          final lesson = _lessons[index];
+          return _LessonCard(
+            lesson: lesson,
+            color: color,
+            index: index + 1,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => LessonDetailScreen(lesson: lesson),
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildQuizzesTab(Color color) {
+    if (_isLoadingQuizzes) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (_quizError != null) {
+      return _buildError(_quizError!, _loadQuizzes, color);
+    }
+    if (_quizzes.isEmpty) {
+      return _buildEmpty('Chưa có bài kiểm tra nào', Icons.quiz_outlined);
+    }
+
+    return RefreshIndicator(
+      onRefresh: _loadQuizzes,
+      color: color,
+      child: ListView.builder(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+        itemCount: _quizzes.length,
+        itemBuilder: (context, index) {
+          final quiz = _quizzes[index];
+          return _QuizCard(
+            quiz: quiz,
+            color: color,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => QuizScreen(quizId: quiz.id!),
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildError(String msg, VoidCallback retry, Color color) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.error_outline, size: 60, color: Colors.red[300]),
+          const SizedBox(height: 12),
+          Text(msg, textAlign: TextAlign.center),
+          const SizedBox(height: 16),
+          ElevatedButton.icon(
+            onPressed: retry,
+            icon: const Icon(Icons.refresh),
+            label: const Text('Thử lại'),
+            style: ElevatedButton.styleFrom(backgroundColor: color),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmpty(String msg, IconData icon) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 60, color: Colors.grey[400]),
+          const SizedBox(height: 12),
+          Text(msg, style: const TextStyle(fontSize: 16, color: Colors.grey)),
+        ],
+      ),
+    );
+  }
+}
+
+class _LessonCard extends StatelessWidget {
+  final Lesson lesson;
+  final Color color;
+  final int index;
+  final VoidCallback onTap;
+
+  const _LessonCard({
+    required this.lesson,
+    required this.color,
+    required this.index,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 5),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: Text(
+                    '$index',
+                    style: TextStyle(
+                      color: color,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      lesson.title,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        _MiniChip(
+                          label: lesson.difficultyText,
+                          color: _difficultyColor(lesson.difficulty),
+                        ),
+                        const SizedBox(width: 6),
+                        _MiniChip(
+                          label: '${lesson.duration} phút',
+                          color: Colors.blueGrey,
+                          icon: Icons.access_time,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right, color: Colors.grey[400]),
+            ],
+          ),
         ),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Header với icon
-                  Center(
-                    child: Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: subject.color.withOpacity(0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        subject.icon,
-                        size: 60,
-                        color: subject.color,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
+    );
+  }
 
-                  // Mô tả môn học
-                  Text(
-                    'Giới thiệu',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: subject.color,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    description,
-                    style: const TextStyle(fontSize: 16, height: 1.5),
-                  ),
-                  const SizedBox(height: 24),
+  Color _difficultyColor(String d) {
+    switch (d) {
+      case 'beginner':
+        return Colors.green;
+      case 'intermediate':
+        return Colors.orange;
+      case 'advanced':
+        return Colors.red;
+      default:
+        return Colors.blueGrey;
+    }
+  }
+}
 
-                  // Các chuyên đề
-                  Text(
-                    'Chuyên đề chính',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: subject.color,
+class _QuizCard extends StatelessWidget {
+  final Quiz quiz;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _QuizCard({
+    required this.quiz,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 5),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(Icons.quiz, color: color, size: 24),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      quiz.title,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: topics.map((topic) {
-                      return Chip(
-                        label: Text(topic),
-                        backgroundColor: subject.color.withOpacity(0.1),
-                        labelStyle: TextStyle(
-                          color: subject.color,
-                          fontWeight: FontWeight.w500,
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        _MiniChip(
+                          label: '${quiz.questions.length} câu',
+                          color: Colors.blueGrey,
+                          icon: Icons.help_outline,
                         ),
-                      );
-                    }).toList(),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Lộ trình học
-                  Text(
-                    'Lộ trình học',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: subject.color,
+                        const SizedBox(width: 6),
+                        _MiniChip(
+                          label: _difficultyText(quiz.difficulty),
+                          color: _difficultyColor(quiz.difficulty),
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  _buildLearningPath(),
-                ],
-              ),
-            ),
-          ),
-
-          // Nút bắt đầu học
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: subject.color,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 4,
-                ),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => AIChatScreen(subject: subject),
-                    ),
-                  );
-                },
-                child: const Text(
-                  'Bắt đầu học với AI',
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  ],
                 ),
               ),
-            ),
+              Icon(Icons.play_circle_outline, color: color, size: 28),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildLearningPath() {
-    return Column(
-      children: [
-        _buildPathStep('1. Kiến thức cơ bản', Icons.school, subject.color),
-        _buildPathStep('2. Bài tập thực hành', Icons.assignment, subject.color),
-        _buildPathStep('3. Kiểm tra đánh giá', Icons.quiz, subject.color),
-        _buildPathStep('4. Nâng cao chuyên sâu', Icons.star, subject.color),
-      ],
-    );
+  String _difficultyText(String d) {
+    switch (d) {
+      case 'easy':
+        return 'Dễ';
+      case 'medium':
+        return 'Trung bình';
+      case 'hard':
+        return 'Khó';
+      default:
+        return d;
+    }
   }
 
-  Widget _buildPathStep(String title, IconData icon, Color color) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+  Color _difficultyColor(String d) {
+    switch (d) {
+      case 'easy':
+        return Colors.green;
+      case 'medium':
+        return Colors.orange;
+      case 'hard':
+        return Colors.red;
+      default:
+        return Colors.blueGrey;
+    }
+  }
+}
+
+class _MiniChip extends StatelessWidget {
+  final String label;
+  final Color color;
+  final IconData? icon;
+
+  const _MiniChip({required this.label, required this.color, this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(20),
+      ),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.2),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: color),
-          ),
-          const SizedBox(width: 12),
+          if (icon != null) ...[
+            Icon(icon, size: 12, color: color),
+            const SizedBox(width: 3),
+          ],
           Text(
-            title,
-            style: const TextStyle(fontSize: 16),
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              color: color,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
       ),
     );
-  }
-
-  List<String> _getTopicsForSubject(Subject subject) {
-    switch (subject.name) {
-      case 'Toán học':
-        return ['Đại số', 'Hình học', 'Giải tích', 'Xác suất thống kê'];
-      case 'Vật lý':
-        return ['Cơ học', 'Điện từ', 'Quang học', 'Vật lý hiện đại'];
-      case 'Hóa học':
-        return ['Hóa vô cơ', 'Hóa hữu cơ', 'Hóa phân tích', 'Hóa lý'];
-      case 'Ngữ văn':
-        return ['Văn học', 'Tiếng Việt', 'Làm văn', 'Phê bình văn học'];
-      case 'Tiếng Anh':
-        return ['Ngữ pháp', 'Từ vựng', 'Giao tiếp', 'Luyện thi'];
-      case 'Sinh học':
-        return ['Di truyền', 'Tiến hóa', 'Sinh thái', 'Tế bào'];
-      case 'Lịch sử':
-        return ['Lịch sử Việt Nam', 'Lịch sử thế giới', 'Cổ đại', 'Hiện đại'];
-      case 'Địa lý':
-        return ['Địa lý tự nhiên', 'Địa lý kinh tế', 'Địa lý Việt Nam'];
-      default:
-        return ['Chuyên đề 1', 'Chuyên đề 2', 'Chuyên đề 3'];
-    }
-  }
-
-  String _getSubjectDescription(Subject subject) {
-    switch (subject.name) {
-      case 'Toán học':
-        return 'Môn Toán phát triển tư duy logic, khả năng giải quyết vấn đề thông qua các khái niệm số học, đại số, hình học và phân tích. Toán học là nền tảng cho nhiều ngành khoa học khác.';
-      case 'Vật lý':
-        return 'Vật lý nghiên cứu về vật chất, năng lượng và sự tương tác giữa chúng. Từ cơ học cổ điển đến vật lý lượng tử, môn học này giúp hiểu bản chất vũ trụ.';
-      case 'Hóa học':
-        return 'Hóa học khám phá thành phần, cấu trúc, tính chất và sự biến đổi của chất. Môn học này có ứng dụng rộng rãi trong đời sống và công nghiệp.';
-      case 'Ngữ văn':
-        return 'Ngữ văn phát triển kỹ năng ngôn ngữ, cảm thụ văn học và tư duy phê phán. Môn học giúp hiểu về văn hóa, lịch sử và con người qua ngôn từ.';
-      case 'Tiếng Anh':
-        return 'Tiếng Anh là ngôn ngữ toàn cầu, công cụ quan trọng trong giao tiếp quốc tế, học thuật và nghề nghiệp. Thành thạo tiếng Anh mở ra nhiều cơ hội mới.';
-      case 'Sinh học':
-        return 'Sinh học nghiên cứu về sự sống từ cấp độ phân tử đến hệ sinh thái. Môn học giúp hiểu về cơ thể sống, môi trường và các quá trình sinh học.';
-      case 'Lịch sử':
-        return 'Lịch sử cung cấp kiến thức về quá khứ, giúp hiểu hiện tại và định hướng tương lai. Môn học rèn luyện tư duy phân tích và bài học kinh nghiệm.';
-      case 'Địa lý':
-        return 'Địa lý nghiên cứu về Trái Đất, môi trường tự nhiên và tác động của con người. Môn học giúp hiểu về không gian sống và các vấn đề toàn cầu.';
-      default:
-        return 'Môn học này cung cấp kiến thức và kỹ năng quan trọng trong nhiều lĩnh vực của đời sống và khoa học.';
-    }
   }
 }

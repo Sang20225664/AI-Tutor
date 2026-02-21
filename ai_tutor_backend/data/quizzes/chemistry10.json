@@ -1,0 +1,255 @@
+[
+    {
+        "lessonTitle": "Cấu tạo nguyên tử",
+        "questions": [
+            {
+                "question": "Hạt nào sau đây mang điện tích dương?",
+                "options": [
+                    "Electron",
+                    "Neutron",
+                    "Proton",
+                    "Ion âm"
+                ],
+                "correctAnswer": 2,
+                "explanation": "Proton (p) là hạt mang điện tích dương (+1), nằm trong hạt nhân. Electron mang điện âm (-1), neutron không mang điện (trung hòa).",
+                "difficulty": "easy"
+            },
+            {
+                "question": "Nguyên tử natri (Na) có 11 proton và 12 neutron. Số khối của Na là:",
+                "options": [
+                    "11",
+                    "12",
+                    "23",
+                    "1"
+                ],
+                "correctAnswer": 2,
+                "explanation": "Số khối A = số proton (Z) + số neutron (N) = 11 + 12 = 23. Kí hiệu: ²³₁₁Na.",
+                "difficulty": "medium"
+            },
+            {
+                "question": "Các đồng vị của một nguyên tố có đặc điểm gì giống nhau?",
+                "options": [
+                    "Cùng số neutron",
+                    "Cùng số khối",
+                    "Cùng số proton",
+                    "Cùng khối lượng nguyên tử"
+                ],
+                "correctAnswer": 2,
+                "explanation": "Các đồng vị là các nguyên tử có cùng số proton (Z) nhưng khác số neutron (N), dẫn đến khác số khối (A). Ví dụ: ¹H, ²H, ³H đều có 1 proton.",
+                "difficulty": "medium"
+            }
+        ]
+    },
+    {
+        "lessonTitle": "Bảng tuần hoàn các nguyên tố hóa học",
+        "questions": [
+            {
+                "question": "Bảng tuần hoàn hiện đại có bao nhiêu chu kì?",
+                "options": [
+                    "5",
+                    "6",
+                    "7",
+                    "8"
+                ],
+                "correctAnswer": 2,
+                "explanation": "Bảng tuần hoàn các nguyên tố hóa học có 7 chu kì (hàng ngang), đánh số từ 1 đến 7.",
+                "difficulty": "easy"
+            },
+            {
+                "question": "Trong một chu kì, khi đi từ trái sang phải, tính chất kim loại của nguyên tố:",
+                "options": [
+                    "Tăng dần",
+                    "Giảm dần",
+                    "Không đổi",
+                    "Tăng rồi giảm"
+                ],
+                "correctAnswer": 1,
+                "explanation": "Trong một chu kì, từ trái sang phải, bán kính nguyên tử giảm, tính kim loại giảm dần và tính phi kim tăng dần. Ví dụ chu kì 3: Na (kim loại mạnh) → Mg → Al → Si → P → S → Cl (phi kim mạnh).",
+                "difficulty": "medium"
+            },
+            {
+                "question": "Nhóm VIIA (halogen) gồm các nguyên tố nào?",
+                "options": [
+                    "Li, Na, K",
+                    "F, Cl, Br, I",
+                    "He, Ne, Ar",
+                    "Be, Mg, Ca"
+                ],
+                "correctAnswer": 1,
+                "explanation": "Nhóm VIIA (halogen - nhóm 17) gồm: F (flo), Cl (clo), Br (brom), I (iot), At (astatin). Đây là các phi kim mạnh, dễ nhận 1 electron.",
+                "difficulty": "easy"
+            }
+        ]
+    },
+    {
+        "lessonTitle": "Liên kết hóa học",
+        "questions": [
+            {
+                "question": "Liên kết ion được hình thành giữa:",
+                "options": [
+                    "Hai nguyên tử phi kim",
+                    "Kim loại và phi kim",
+                    "Hai nguyên tử kim loại",
+                    "Các nguyên tử khí hiếm"
+                ],
+                "correctAnswer": 1,
+                "explanation": "Liên kết ion hình thành khi kim loại (dễ nhường electron) kết hợp với phi kim (dễ nhận electron), tạo thành ion dương và ion âm hút nhau bằng lực hút tĩnh điện. Ví dụ: NaCl, MgO.",
+                "difficulty": "easy"
+            },
+            {
+                "question": "Phân tử HCl có liên kết gì?",
+                "options": [
+                    "Liên kết ion",
+                    "Liên kết cộng hóa trị phân cực",
+                    "Liên kết cộng hóa trị không phân cực",
+                    "Liên kết kim loại"
+                ],
+                "correctAnswer": 1,
+                "explanation": "HCl có liên kết cộng hóa trị phân cực vì H và Cl đều là phi kim nhưng có độ âm điện khác nhau (Cl > H), nên cặp electron chung lệch về phía Cl: H^δ+ — Cl^δ−.",
+                "difficulty": "medium"
+            },
+            {
+                "question": "Phân tử nào sau đây có liên kết cộng hóa trị không phân cực?",
+                "options": [
+                    "H₂O",
+                    "HCl",
+                    "O₂",
+                    "NaCl"
+                ],
+                "correctAnswer": 2,
+                "explanation": "O₂ (O=O) có liên kết cộng hóa trị không phân cực vì được tạo thành giữa 2 nguyên tử cùng loại, có độ âm điện bằng nhau. Cặp electron chung không lệch về phía nào.",
+                "difficulty": "medium"
+            },
+            {
+                "question": "Liên kết kim loại có đặc điểm nào?",
+                "options": [
+                    "Electron di chuyển tự do trong mạng tinh thể",
+                    "Electron bị giam giữ tại nguyên tử",
+                    "Không có electron tự do",
+                    "Chỉ có ở trạng thái lỏng"
+                ],
+                "correctAnswer": 0,
+                "explanation": "Liên kết kim loại: các ion dương kim loại nằm cố định trong mạng tinh thể, được liên kết bởi 'biển' electron tự do (electron hóa trị không gắn với nguyên tử cụ thể nào). Đây là lý do kim loại dẫn điện, dẫn nhiệt tốt.",
+                "difficulty": "medium"
+            }
+        ]
+    },
+    {
+        "lessonTitle": "Phản ứng oxi hóa - khử",
+        "questions": [
+            {
+                "question": "Số oxi hóa của O trong H₂O là:",
+                "options": [
+                    "0",
+                    "+2",
+                    "-2",
+                    "+1"
+                ],
+                "correctAnswer": 2,
+                "explanation": "Trong hợp chất, O thường có số oxi hóa là -2 (trừ peroxit là -1 và OF₂ là +2). Trong H₂O: 2(+1) + 1(-2) = 0 ✓.",
+                "difficulty": "easy"
+            },
+            {
+                "question": "Trong phản ứng: Zn + 2HCl → ZnCl₂ + H₂, chất nào là chất khử?",
+                "options": [
+                    "Zn",
+                    "HCl",
+                    "ZnCl₂",
+                    "H₂"
+                ],
+                "correctAnswer": 0,
+                "explanation": "Zn⁰ → Zn⁺² (nhường 2e, bị oxi hóa) là chất khử. H⁺ → H₂⁰ (nhận 2e, bị khử) là chất oxi hóa.",
+                "difficulty": "medium"
+            },
+            {
+                "question": "Quá trình oxi hóa là:",
+                "options": [
+                    "Nhường electron, số oxi hóa tăng",
+                    "Nhận electron, số oxi hóa giảm",
+                    "Nhường electron, số oxi hóa giảm",
+                    "Không thay đổi số oxi hóa"
+                ],
+                "correctAnswer": 0,
+                "explanation": "Sự oxi hóa là quá trình chất nhường electron, số oxi hóa tăng. Ví dụ: Fe⁰ → Fe⁺² + 2e (số oxi hóa tăng từ 0 lên +2).",
+                "difficulty": "easy"
+            },
+            {
+                "question": "Trong dãy hoạt động hóa học, kim loại nào đứng trước H?",
+                "options": [
+                    "Cu",
+                    "Ag",
+                    "Zn",
+                    "Au"
+                ],
+                "correctAnswer": 2,
+                "explanation": "Dãy hoạt động hóa học: K, Na, Ca, Mg, Al, Zn, Fe, Ni, Sn, Pb, (H), Cu, Ag, Pt, Au. Zn đứng trước H nên tác dụng với axit loãng giải phóng H₂. Cu, Ag, Au đứng sau H nên không tác dụng với axit loãng.",
+                "difficulty": "medium"
+            }
+        ]
+    },
+    {
+        "lessonTitle": "Mol và tính toán hóa học",
+        "questions": [
+            {
+                "question": "1 mol chất có chứa bao nhiêu hạt (nguyên tử/phân tử)?",
+                "options": [
+                    "6,022 × 10²²",
+                    "6,022 × 10²³",
+                    "6,022 × 10²⁴",
+                    "6,022 × 10²⁵"
+                ],
+                "correctAnswer": 1,
+                "explanation": "1 mol chất chứa 6,022 × 10²³ hạt (nguyên tử/phân tử/ion). Đây là hằng số Avogadro (NA).",
+                "difficulty": "easy"
+            },
+            {
+                "question": "Khối lượng mol của NaOH là: (cho Na = 23, O = 16, H = 1)",
+                "options": [
+                    "30 g/mol",
+                    "40 g/mol",
+                    "50 g/mol",
+                    "60 g/mol"
+                ],
+                "correctAnswer": 1,
+                "explanation": "M(NaOH) = 23 + 16 + 1 = 40 g/mol. Vậy 1 mol NaOH có khối lượng 40 gam.",
+                "difficulty": "easy"
+            },
+            {
+                "question": "Ở điều kiện tiêu chuẩn (đktc), 1 mol khí bất kì có thể tích là:",
+                "options": [
+                    "11,2 lít",
+                    "22,4 lít",
+                    "33,6 lít",
+                    "44,8 lít"
+                ],
+                "correctAnswer": 1,
+                "explanation": "Ở đktc (0°C, 1 atm), 1 mol khí bất kì có thể tích 22,4 lít. Công thức: n = V/22,4 (với V tính bằng lít).",
+                "difficulty": "easy"
+            },
+            {
+                "question": "Có 4,48 lít khí CO₂ (đktc). Số mol CO₂ là:",
+                "options": [
+                    "0,1 mol",
+                    "0,2 mol",
+                    "0,3 mol",
+                    "0,4 mol"
+                ],
+                "correctAnswer": 1,
+                "explanation": "Số mol: n = V/22,4 = 4,48/22,4 = 0,2 mol. Vậy có 0,2 mol CO₂.",
+                "difficulty": "medium"
+            },
+            {
+                "question": "Cho phản ứng: 2H₂ + O₂ → 2H₂O. Để tạo ra 2 mol H₂O cần bao nhiêu mol O₂?",
+                "options": [
+                    "0,5 mol",
+                    "1 mol",
+                    "2 mol",
+                    "4 mol"
+                ],
+                "correctAnswer": 1,
+                "explanation": "Theo phương trình: 1 mol O₂ → 2 mol H₂O. Vậy để tạo 2 mol H₂O cần 1 mol O₂. (Tỉ lệ mol: n(O₂) : n(H₂O) = 1 : 2).",
+                "difficulty": "medium"
+            }
+        ]
+    }
+]
