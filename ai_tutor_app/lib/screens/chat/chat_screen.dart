@@ -1,6 +1,7 @@
 // lib/screens/chat_screen.dart
 import 'package:flutter/material.dart';
 import 'package:ai_tutor_app/utils/responsive_utils.dart';
+import 'package:markdown_widget/markdown_widget.dart';
 
 import '../../services/api_service.dart';
 
@@ -173,22 +174,77 @@ class ChatBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isUser = message.isUser;
+
     return Align(
-      alignment: message.isUser ? Alignment.centerRight : Alignment.centerLeft,
+      alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
         padding: const EdgeInsets.all(12),
+        constraints: BoxConstraints(
+          maxWidth: MediaQuery.of(context).size.width * 0.85,
+        ),
         decoration: BoxDecoration(
-          color: message.isUser ? Colors.blue : Colors.grey.shade300,
+          color: isUser ? Colors.blue : Colors.grey.shade200,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: message.isUser ? Colors.transparent : Colors.grey.shade200,
-          ),
         ),
-        child: Text(
-          message.text,
-          style: TextStyle(color: message.isUser ? Colors.white : Colors.black),
-        ),
+        child: isUser
+            // Tin nhắn user: dùng SelectableText đơn giản
+            ? SelectableText(
+                message.text,
+                style: const TextStyle(color: Colors.white, fontSize: 15),
+              )
+            // Tin nhắn AI: render Markdown
+            : SelectionArea(
+                child: MarkdownWidget(
+                  data: message.text,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  config: MarkdownConfig(
+                    configs: [
+                      const PConfig(
+                        textStyle: TextStyle(
+                          fontSize: 15,
+                          height: 1.5,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      H1Config(
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue.shade800,
+                        ),
+                      ),
+                      H2Config(
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.blue.shade700,
+                        ),
+                      ),
+                      H3Config(
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const PreConfig(
+                        textStyle: TextStyle(fontSize: 13),
+                        decoration: BoxDecoration(
+                          color: Color(0xFFF5F5F5),
+                          borderRadius: BorderRadius.all(Radius.circular(6)),
+                        ),
+                      ),
+                      const BlockquoteConfig(
+                        textColor: Colors.black54,
+                        sideColor: Colors.blue,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
       ),
     );
   }

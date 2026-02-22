@@ -244,17 +244,46 @@ class ChatBubble extends StatelessWidget {
           ),
         ),
         child: message.isUser
-            ? Text(
+            ? SelectableText(
                 message.text,
                 style: const TextStyle(color: Colors.white),
               )
-            : MarkdownWidget(
-                data: message.text,
-                shrinkWrap: true,
-                config: MarkdownConfig(
-                  configs: [
-                    const PConfig(textStyle: TextStyle(color: Colors.black87)),
-                  ],
+            : SelectionArea(
+                child: MarkdownWidget(
+                  data: message.text,
+                  shrinkWrap: true,
+                  config: MarkdownConfig(
+                    configs: [
+                      const PConfig(
+                        textStyle: TextStyle(
+                          color: Colors.black87,
+                          fontSize: 15,
+                          height: 1.5,
+                        ),
+                      ),
+                      H1Config(
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue.shade800,
+                        ),
+                      ),
+                      H2Config(
+                        style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.blue.shade700,
+                        ),
+                      ),
+                      const PreConfig(
+                        textStyle: TextStyle(fontSize: 13),
+                        decoration: BoxDecoration(
+                          color: Color(0xFFF0F0F0),
+                          borderRadius: BorderRadius.all(Radius.circular(6)),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
       ),

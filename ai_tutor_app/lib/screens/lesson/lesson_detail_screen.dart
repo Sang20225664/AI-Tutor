@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ai_tutor_app/models/lesson.dart';
+import 'package:markdown_widget/markdown_widget.dart';
 import 'leson_theory_screen.dart';
 
 class LessonDetailScreen extends StatelessWidget {
@@ -83,11 +84,19 @@ class LessonDetailScreen extends StatelessWidget {
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16),
-                child: Text(
-                  lesson.content.length > 300
-                      ? '${lesson.content.substring(0, 300)}...'
-                      : lesson.content,
-                  style: const TextStyle(fontSize: 15, height: 1.5),
+                child: SelectionArea(
+                  child: MarkdownWidget(
+                    data: lesson.content.length > 400
+                        ? '${lesson.content.substring(0, 400)}...'
+                        : lesson.content,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    config: MarkdownConfig(
+                      configs: [
+                        PConfig(textStyle: TextStyle(fontSize: 15, height: 1.5)),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
