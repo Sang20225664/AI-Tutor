@@ -7,12 +7,13 @@ const logger = require('../config/logger');
 const { ok, created, validationError, notFound, serverError } = require('../utils/response');
 
 // GET all lessons
-// Query params: grade, subjectName, difficulty, topics
+// Query params: grade, subjectId, subjectName, difficulty, topics
 router.get('/', async (req, res, next) => {
     try {
-        const { grade, subjectName, difficulty, topics } = req.query;
+        const { grade, subjectId, subjectName, difficulty, topics } = req.query;
 
         const query = {};
+        if (subjectId) query.subjectId = subjectId;
         if (grade) query.grade = { $in: [parseInt(grade)] };
         if (subjectName) query.subjectName = subjectName;
         if (difficulty) query.difficulty = difficulty;
