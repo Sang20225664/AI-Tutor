@@ -96,15 +96,12 @@ class _MyAppState extends State<MyApp> {
       darkTheme: _buildDarkTheme(),
       themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
       initialRoute: widget.initialRoute,
-      // Bọc toàn bộ app trong SelectionArea để user có thể select/copy text
-      builder: (context, child) => SelectionArea(child: child ?? const SizedBox()),
       routes: {
         '/login': (context) => LoginScreen(),
         '/register': (context) => RegisterScreen(),
         '/select-grade': (context) => SelectGradeScreen(),
         '/home': (context) => HomeScreen(),
-        '/profile':
-            (context) => ProfileScreen(
+        '/profile': (context) => ProfileScreen(
               toggleDarkMode: toggleDarkMode,
               isDarkMode: isDarkMode,
             ),

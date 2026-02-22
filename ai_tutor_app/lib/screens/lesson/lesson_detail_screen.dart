@@ -66,13 +66,12 @@ class LessonDetailScreen extends StatelessWidget {
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
-                children:
-                    lesson.topics.map((topic) {
-                      return Chip(
-                        label: Text(topic),
-                        backgroundColor: Colors.blue.shade50,
-                      );
-                    }).toList(),
+                children: lesson.topics.map((topic) {
+                  return Chip(
+                    label: Text(topic),
+                    backgroundColor: Colors.blue.shade50,
+                  );
+                }).toList(),
               ),
               const SizedBox(height: 20),
             ],
@@ -84,8 +83,7 @@ class LessonDetailScreen extends StatelessWidget {
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16),
-                child: SelectionArea(
-                  child: MarkdownWidget(
+                child: MarkdownWidget(
                     data: lesson.content.length > 400
                         ? '${lesson.content.substring(0, 400)}...'
                         : lesson.content,
@@ -93,11 +91,11 @@ class LessonDetailScreen extends StatelessWidget {
                     physics: const NeverScrollableScrollPhysics(),
                     config: MarkdownConfig(
                       configs: [
-                        PConfig(textStyle: TextStyle(fontSize: 15, height: 1.5)),
+                        PConfig(
+                            textStyle: TextStyle(fontSize: 15, height: 1.5)),
                       ],
                     ),
                   ),
-                ),
               ),
             ),
             const SizedBox(height: 20),
