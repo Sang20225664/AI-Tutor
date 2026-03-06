@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const Lesson = require('../models/lesson');
-const Progress = require('../models/Progress');
-const auth = require('../middleware/userMiddleware');
-const logger = require('../config/logger');
-const { ok, created, validationError, notFound, serverError } = require('../utils/response');
+const Progress = require('../../assessment/models/Progress');
+const auth = require('../../shared/middleware/auth');
+const logger = require('../../shared/config/logger');
+const { ok, created, validationError, notFound, serverError } = require('../../shared/utils/response');
 
 // GET all lessons
 // Query params: grade, subjectId, subjectName, difficulty, topics

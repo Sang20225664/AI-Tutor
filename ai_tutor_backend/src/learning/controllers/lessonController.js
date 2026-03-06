@@ -1,5 +1,4 @@
 const Lesson = require('../models/lesson');
-const User = require('../models/User'); // Fixed path - capital U
 
 const getLessons = async (req, res) => {
     try {

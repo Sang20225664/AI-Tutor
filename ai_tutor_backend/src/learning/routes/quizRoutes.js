@@ -1,13 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const Quiz = require('../models/quiz');
-const QuizAttempt = require('../models/QuizAttempt');
+const QuizAttempt = require('../../assessment/models/QuizAttempt');
 const Lesson = require('../models/lesson');
-const { updateProgress } = require('../controllers/progressController');
-const auth = require('../middleware/userMiddleware');
-const logger = require('../config/logger');
-const { ok, created, validationError, notFound, serverError } = require('../utils/response');
-const validateQuizSubmit = require('../middleware/validateQuizSubmit');
+const { updateProgress } = require('../../assessment/controllers/progressController');
+const auth = require('../../shared/middleware/auth');
+const logger = require('../../shared/config/logger');
+const { ok, created, validationError, notFound, serverError } = require('../../shared/utils/response');
+const validateQuizSubmit = require('../../assessment/middleware/validateQuizSubmit');
 
 // GET all quizzes
 router.get('/', async (req, res, next) => {

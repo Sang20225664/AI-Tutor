@@ -9,7 +9,7 @@ const {
 } = require('../controllers/chatController');
 const chatHistoryController = require('../controllers/chatHistoryController');
 
-const auth = require('../middleware/userMiddleware');
+const auth = require('../../shared/middleware/auth');
 
 // Apply auth middleware to all routes
 router.use(auth);

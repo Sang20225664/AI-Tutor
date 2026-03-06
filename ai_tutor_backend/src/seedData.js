@@ -1,5 +1,8 @@
 const mongoose = require('mongoose');
-const { Subject, Quiz, Lesson, LessonSuggestion } = require('./models');
+const Subject = require('./learning/models/subject');
+const Quiz = require('./learning/models/quiz');
+const Lesson = require('./learning/models/lesson');
+const LessonSuggestion = require('./learning/models/lessonSuggestion');
 const { grade5Quizzes, grade5Lessons, grade5Suggestions } = require('./data/grade5Data');
 
 // MongoDB connection string - use MONGO_URI from environment or fallback to mongo hostname

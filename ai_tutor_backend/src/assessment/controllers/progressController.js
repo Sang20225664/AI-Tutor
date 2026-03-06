@@ -1,8 +1,8 @@
 const Progress = require('../models/Progress');
-const Lesson = require('../models/lesson');
+const Lesson = require('../../learning/models/lesson');
 const mongoose = require('mongoose');
-const logger = require('../config/logger');
-const { ok, notFound, serverError } = require('../utils/response');
+const logger = require('../../shared/config/logger');
+const { ok, notFound, serverError } = require('../../shared/utils/response');
 
 /**
  * Progress Controller - Phase 2 Core

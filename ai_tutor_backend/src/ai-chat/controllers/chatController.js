@@ -1,6 +1,5 @@
-const { ChatHistory, Chat } = require('../models');
+const ChatHistory = require('../models/chatHistory');
 const askGemini = require('../services/geminiService');
-const User = require('../models/User'); // Fixed path - capital U
 const ChatModel = require('../models/chatModel');
 
 const getChatDetails = async (req, res) => {

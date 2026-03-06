@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const auth = require('../middleware/userMiddleware');
+const auth = require('../../shared/middleware/auth');
 const {
     getOrCreateProgress,
     getProgressSummary,

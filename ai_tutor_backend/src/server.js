@@ -4,7 +4,7 @@ const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
-const logger = require('./config/logger');
+const logger = require('./shared/config/logger');
 
 // Version info for CD pipeline tracking
 const APP_VERSION = "1.0.0";
@@ -12,17 +12,22 @@ const BUILD_TIME = new Date().toISOString();
 const mongoose = require("mongoose");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-// Import routes
-const apiRoutes = require("./routes/api");
-const geminiRoutes = require("./routes/geminiRoutes");
-const userRoutes = require("./routes/userRoutes");
-const lessonRoutes = require("./routes/lessonRoutes");
-const chatRoutes = require("./routes/chatRoutes");
-const chatHistoryRoutes = require("./routes/chatHistoryRoutes");
+// Import routes from domain folders
+const userRoutes = require("./auth/routes/userRoutes");
+const subjectRoutes = require("./learning/routes/subjectRoutes");
+const quizRoutes = require("./learning/routes/quizRoutes");
+const lessonRoutes = require("./learning/routes/lessonRoutes");
+const lessonSuggestionRoutes = require("./learning/routes/lessonSuggestionRoutes");
+const progressRoutes = require("./assessment/routes/progressRoutes");
+const geminiRoutes = require("./ai-chat/routes/geminiRoutes");
+const chatRoutes = require("./ai-chat/routes/chatRoutes");
+const chatHistoryRoutes = require("./ai-chat/routes/chatHistoryRoutes");
+const geminiController = require("./ai-chat/controllers/geminiController");
 
-// Import middleware
-const requestLogger = require("./middleware/requestLogger");
-const errorHandler = require("./middleware/errorHandler");
+// Import shared middleware
+const auth = require("./shared/middleware/auth");
+const requestLogger = require("./shared/middleware/requestLogger");
+const errorHandler = require("./shared/middleware/errorHandler");
 
 // === Initialize app ===
 const app = express();
@@ -109,7 +114,7 @@ app.use((req, res, next) => {
 // === Auto-seed function ===
 async function autoSeedDatabase() {
   try {
-    const Subject = require('./models/subject');
+    const Subject = require('./learning/models/subject');
     const count = await Subject.countDocuments();
 
     if (count === 0) {
@@ -146,12 +151,24 @@ mongoose
     process.exit(1);
   });
 
-// === Routes ===
-// Use centralized API routes (includes subjects, quizzes, lessons)
-app.use("/api", apiRoutes);
-
-// Keep backward compatibility for existing routes
+// === Routes (domain-organized) ===
+// Auth domain
 app.use("/api/users", userRoutes);
+
+// Learning domain
+app.use("/api/subjects", subjectRoutes);
+app.use("/api/quizzes", quizRoutes);
+app.use("/api/lessons", lessonRoutes);
+app.use("/api/lesson-suggestions", lessonSuggestionRoutes);
+
+// Assessment domain
+app.use("/api/progress", progressRoutes);
+
+// AI/Chat domain
+app.post('/api/gemini/chat', auth, geminiController.chatWithGemini);
+app.post('/api/chat', auth, geminiController.chatWithGemini);
+app.post('/api/gemini/test', geminiController.chatWithGemini);
+app.use("/api/gemini", geminiRoutes);
 app.use("/api/chats", chatRoutes);
 app.use("/api/chat-history", chatHistoryRoutes);
 
@@ -263,7 +280,7 @@ app.get("/admin", async (req, res) => {
   }
 
   try {
-    const User = require("./models/User");
+    const User = require("./auth/models/User");
     const users = await User.find({}, { password: 0 }).sort({ createdAt: -1 });
 
     const html = `

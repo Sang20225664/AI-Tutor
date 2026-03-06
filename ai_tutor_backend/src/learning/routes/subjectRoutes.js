@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Subject = require('../models/subject');
-const auth = require('../middleware/userMiddleware');
+const auth = require('../../shared/middleware/auth');
 
 // GET all subjects
 router.get('/', async (req, res) => {
