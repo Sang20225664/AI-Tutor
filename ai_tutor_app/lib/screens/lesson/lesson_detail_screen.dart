@@ -84,18 +84,17 @@ class LessonDetailScreen extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: MarkdownWidget(
-                    data: lesson.content.length > 400
-                        ? '${lesson.content.substring(0, 400)}...'
-                        : lesson.content,
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    config: MarkdownConfig(
-                      configs: [
-                        PConfig(
-                            textStyle: TextStyle(fontSize: 15, height: 1.5)),
-                      ],
-                    ),
+                  data: lesson.content.length > 400
+                      ? '${lesson.content.substring(0, 400)}...'
+                      : lesson.content,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  config: MarkdownConfig(
+                    configs: [
+                      PConfig(textStyle: TextStyle(fontSize: 15, height: 1.5)),
+                    ],
                   ),
+                ),
               ),
             ),
             const SizedBox(height: 20),
