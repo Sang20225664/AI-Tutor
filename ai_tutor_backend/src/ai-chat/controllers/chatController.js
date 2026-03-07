@@ -1,6 +1,6 @@
 const ChatHistory = require('../models/chatHistory');
 const askGemini = require('../services/geminiService');
-const ChatModel = require('../models/chatModel');
+
 
 const getChatDetails = async (req, res) => {
   try {

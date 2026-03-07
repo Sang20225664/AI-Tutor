@@ -1,9 +1,9 @@
 const mongoose = require('mongoose');
-const Subject = require('./learning/models/subject');
-const Quiz = require('./learning/models/quiz');
-const Lesson = require('./learning/models/lesson');
-const LessonSuggestion = require('./learning/models/lessonSuggestion');
-const { grade5Quizzes, grade5Lessons, grade5Suggestions } = require('./data/grade5Data');
+const Subject = require('../ai_tutor_backend/src/learning/models/subject');
+const Quiz = require('../ai_tutor_backend/src/learning/models/quiz');
+const Lesson = require('../ai_tutor_backend/src/learning/models/lesson');
+const LessonSuggestion = require('../ai_tutor_backend/src/learning/models/lessonSuggestion');
+const { grade5Quizzes, grade5Lessons, grade5Suggestions } = require('../data/grade5Data');
 
 // MongoDB connection string - use MONGO_URI from environment or fallback to mongo hostname
 const MONGODB_URI = process.env.MONGO_URI || process.env.MONGODB_URI || 'mongodb://mongo:27017/ai_tutor';

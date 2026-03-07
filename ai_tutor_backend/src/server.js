@@ -119,7 +119,7 @@ async function autoSeedDatabase() {
 
     if (count === 0) {
       console.log('📦 Database is empty, running auto-seed...');
-      const seedDatabase = require('./seedData');
+      const seedDatabase = require('../../scripts/seedData');
       await seedDatabase();
       console.log('✅ Auto-seed completed!');
     } else {

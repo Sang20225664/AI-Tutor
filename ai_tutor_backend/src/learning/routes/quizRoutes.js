@@ -7,7 +7,7 @@ const { updateProgress } = require('../../assessment/controllers/progressControl
 const auth = require('../../shared/middleware/auth');
 const logger = require('../../shared/config/logger');
 const { ok, created, validationError, notFound, serverError } = require('../../shared/utils/response');
-const validateQuizSubmit = require('../../assessment/middleware/validateQuizSubmit');
+const validateQuizSubmit = require('../../shared/middleware/validateQuizSubmit');
 
 // GET all quizzes
 router.get('/', async (req, res, next) => {

@@ -1,4 +1,4 @@
-const { validationError } = require('../../shared/utils/response');
+const { validationError } = require('../utils/response');
 
 /**
  * Validate quiz submission payload — Phase 2.5 Task 2
