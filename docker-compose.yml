@@ -11,6 +11,7 @@ services:
       - "5000:5000"
     depends_on:
       - mongo
+      - auth
     environment:
       # PHASE 2: Use clean demo database
       - MONGO_URI=mongodb://mongo:27017/ai_tutor_v2
@@ -18,6 +19,7 @@ services:
       - HOST=0.0.0.0
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - JWT_SECRET=${JWT_SECRET}
+      - AUTH_SERVICE_URL=http://auth:3001
     networks:
       - ai_tutor_network
     restart: unless-stopped
