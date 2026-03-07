@@ -10,8 +10,10 @@ services:
     ports:
       - "5000:5000"
     depends_on:
-      - mongo
-      - auth
+      mongo:
+        condition: service_started
+      auth:
+        condition: service_healthy
     environment:
       # PHASE 2: Use clean demo database
       - MONGO_URI=mongodb://mongo:27017/ai_tutor_v2
