@@ -14,6 +14,8 @@ services:
         condition: service_started
       auth:
         condition: service_healthy
+      learning:
+        condition: service_healthy
     environment:
       # PHASE 2: Use clean demo database
       - MONGO_URI=mongodb://mongo:27017/ai_tutor_v2
@@ -22,6 +24,7 @@ services:
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - JWT_SECRET=${JWT_SECRET}
       - AUTH_SERVICE_URL=http://auth:3001
+      - LEARNING_SERVICE_URL=http://learning:3002
     networks:
       - ai_tutor_network
     restart: unless-stopped
@@ -73,6 +76,30 @@ services:
     restart: unless-stopped
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:3001/health" ]
+      interval: 30s
+      timeout: 10s
+      start_period: 15s
+      retries: 3
+
+  # Learning microservice (second extracted service)
+  learning:
+    build:
+      context: ./services/learning
+      dockerfile: Dockerfile
+    container_name: ai_tutor_learning
+    ports:
+      - "3002:3002"
+    depends_on:
+      - mongo
+    environment:
+      - PORT=3002
+      - MONGO_URI=mongodb://mongo:27017/learning_db
+      - NODE_ENV=production
+    networks:
+      - ai_tutor_network
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:3002/health" ]
       interval: 30s
       timeout: 10s
       start_period: 15s

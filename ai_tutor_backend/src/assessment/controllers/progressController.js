@@ -1,8 +1,10 @@
 const Progress = require('../models/Progress');
-const Lesson = require('../../learning/models/lesson');
 const mongoose = require('mongoose');
+const axios = require('axios');
 const logger = require('../../shared/config/logger');
 const { ok, notFound, serverError } = require('../../shared/utils/response');
+
+const LEARNING_URL = process.env.LEARNING_SERVICE_URL || 'http://learning:3002';
 
 /**
  * Progress Controller - Phase 2 Core
@@ -18,8 +20,13 @@ const getOrCreateProgress = async (req, res) => {
         const { lessonId } = req.params;
         const userId = req.user.userId;
 
-        const lesson = await Lesson.findById(lessonId);
-        if (!lesson) return notFound(res, 'Lesson');
+        let lesson;
+        try {
+            const resp = await axios.get(`${LEARNING_URL}/api/v1/lessons/${lessonId}`);
+            lesson = resp.data.data;
+        } catch (err) {
+            return notFound(res, 'Lesson');
+        }
 
         let progress = await Progress.findOne({ userId, lessonId });
 
@@ -80,9 +87,32 @@ const updateProgress = async (userId, lessonId, quizScore) => {
 const getProgressSummary = async (req, res) => {
     try {
         const userId = req.user.userId;
-        const progressRecords = await Progress.find({ userId })
-            .populate('lessonId', 'title subjectName grade difficulty')
-            .sort({ lastAccessedAt: -1 });
+        const rawProgressRecords = await Progress.find({ userId }).sort({ lastAccessedAt: -1 }).lean();
+
+        // API Composition: Fetch lessons from Learning Service
+        let allLessons = [];
+        try {
+            const resLessons = await axios.get(`${LEARNING_URL}/api/v1/lessons`);
+            allLessons = resLessons.data.data || [];
+        } catch (err) {
+            console.error('Failed to fetch lessons for progress summary', err.message);
+        }
+
+        const progressRecords = rawProgressRecords.map(p => {
+            const matchingLesson = allLessons.find(l => l._id.toString() === p.lessonId.toString());
+            if (matchingLesson) {
+                p.lessonId = {
+                    _id: matchingLesson._id,
+                    title: matchingLesson.title,
+                    subjectName: matchingLesson.subjectName,
+                    grade: matchingLesson.grade,
+                    difficulty: matchingLesson.difficulty
+                };
+            } else {
+                p.lessonId = null;
+            }
+            return p;
+        });
 
         // Calculate statistics
         const totalLessons = progressRecords.length;
@@ -90,7 +120,7 @@ const getProgressSummary = async (req, res) => {
         const inProgressLessons = progressRecords.filter(p => p.completionPercent > 0 && p.completionPercent < 100).length;
 
         // Calculate average score (only for completed lessons with quiz scores)
-        const scoresAvailable = progressRecords.filter(p => p.quizScore !== null);
+        const scoresAvailable = progressRecords.filter(p => p.quizScore !== null && p.quizScore !== undefined);
         const averageScore = scoresAvailable.length > 0
             ? Math.round(scoresAvailable.reduce((sum, p) => sum + p.quizScore, 0) / scoresAvailable.length)
             : 0;
@@ -115,7 +145,7 @@ const getProgressSummary = async (req, res) => {
             if (progress.completionPercent === 100) {
                 subjectsProgress[subjectName].completedLessons++;
             }
-            if (progress.quizScore !== null) {
+            if (progress.quizScore !== null && progress.quizScore !== undefined) {
                 subjectsProgress[subjectName].scores.push(progress.quizScore);
             }
         });

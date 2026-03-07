@@ -1,93 +1,16 @@
 const express = require('express');
 const router = express.Router();
-const Quiz = require('../models/quiz');
+const axios = require('axios');
 const QuizAttempt = require('../../assessment/models/QuizAttempt');
-const Lesson = require('../models/lesson');
 const { updateProgress } = require('../../assessment/controllers/progressController');
 const auth = require('../../shared/middleware/auth');
 const logger = require('../../shared/config/logger');
 const { ok, created, validationError, notFound, serverError } = require('../../shared/utils/response');
 const validateQuizSubmit = require('../../shared/middleware/validateQuizSubmit');
 
-// GET all quizzes
-router.get('/', async (req, res, next) => {
-    try {
-        const { subjectId, subjectName, grade, difficulty } = req.query;
+const LEARNING_URL = process.env.LEARNING_SERVICE_URL || 'http://learning:3002';
 
-        let query = {};
-        if (subjectId) query.subjectId = subjectId;
-        if (subjectName) query.subjectName = subjectName;
-        if (grade) query.grade = { $in: [parseInt(grade)] };
-        if (difficulty) query.difficulty = difficulty;
 
-        const quizzes = await Quiz.find(query)
-            .populate('subjectId', 'name icon color')
-            .sort({ createdAt: -1 });
-
-        ok(res, { quizzes, count: quizzes.length });
-    } catch (error) {
-        next(error);
-    }
-});
-
-// GET quiz by ID
-router.get('/:id', async (req, res, next) => {
-    try {
-        const quiz = await Quiz.findById(req.params.id)
-            .populate('subjectId', 'name icon color description');
-
-        if (!quiz) return notFound(res, 'Quiz');
-
-        ok(res, quiz);
-    } catch (error) {
-        next(error);
-    }
-});
-
-// POST create new quiz (admin)
-router.post('/', auth, async (req, res, next) => {
-    try {
-        const quiz = new Quiz(req.body);
-        await quiz.save();
-        created(res, quiz, 'Quiz created successfully');
-    } catch (error) {
-        next(error);
-    }
-});
-
-// PUT update quiz (admin)
-router.put('/:id', auth, async (req, res, next) => {
-    try {
-        const quiz = await Quiz.findByIdAndUpdate(
-            req.params.id,
-            { ...req.body, updatedAt: Date.now() },
-            { new: true, runValidators: true }
-        );
-
-        if (!quiz) return notFound(res, 'Quiz');
-
-        ok(res, quiz, 'Quiz updated successfully');
-    } catch (error) {
-        next(error);
-    }
-});
-
-// DELETE quiz (admin)
-router.delete('/:id', auth, async (req, res, next) => {
-    try {
-        const quiz = await Quiz.findByIdAndDelete(req.params.id);
-
-        if (!quiz) return notFound(res, 'Quiz');
-
-        ok(res, null, 'Quiz deleted successfully');
-    } catch (error) {
-        next(error);
-    }
-});
-
-// ========================================
-// PHASE 2: QUIZ SUBMISSION & PROGRESS TRACKING
-// ========================================
 
 /**
  * POST /api/quizzes/:id/submit
@@ -101,9 +24,16 @@ router.post('/:id/submit', auth, validateQuizSubmit, async (req, res, next) => {
 
         // Basic validation already handled by validateQuizSubmit middleware
 
-        // Fetch quiz
-        const quiz = await Quiz.findById(quizId);
-        if (!quiz) return notFound(res, 'Quiz');
+        // Fetch quiz from Learning Service
+        let quiz;
+        try {
+            const quizResponse = await axios.get(`${LEARNING_URL}/internal/quizzes/${quizId}`);
+            if (!quizResponse.data.found) return notFound(res, 'Quiz');
+            quiz = quizResponse.data.quiz;
+        } catch (err) {
+            console.error('Failed to fetch quiz from learning service:', err.message);
+            return notFound(res, 'Quiz');
+        }
 
         // Calculate score
         const totalQuestions = quiz.questions.length;
@@ -154,7 +84,16 @@ router.post('/:id/submit', auth, validateQuizSubmit, async (req, res, next) => {
 
         // Find associated lesson (quiz title has "Quiz: " prefix)
         const lessonTitle = quiz.title.replace(/^Quiz:\s*/, '');
-        const lesson = await Lesson.findOne({ title: lessonTitle, subjectName: quiz.subjectName });
+        let lesson = null;
+        try {
+            const lessonsResponse = await axios.get(`${LEARNING_URL}/api/v1/lessons`, {
+                params: { subjectName: quiz.subjectName }
+            });
+            const lessons = lessonsResponse.data.data || [];
+            lesson = lessons.find(l => l.title === lessonTitle);
+        } catch (err) {
+            console.error('Failed to fetch lessons from learning service:', err.message);
+        }
 
         if (lesson) {
             await updateProgress(userId, lesson._id, score);

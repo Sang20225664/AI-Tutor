@@ -1,12 +1,12 @@
 const mongoose = require('mongoose');
-const Subject = require('../ai_tutor_backend/src/learning/models/subject');
-const Quiz = require('../ai_tutor_backend/src/learning/models/quiz');
-const Lesson = require('../ai_tutor_backend/src/learning/models/lesson');
-const LessonSuggestion = require('../ai_tutor_backend/src/learning/models/lessonSuggestion');
+const Subject = require('../src/models/Subject');
+const Quiz = require('../src/models/Quiz');
+const Lesson = require('../src/models/Lesson');
+const LessonSuggestion = require('../src/models/LessonSuggestion');
 const { grade5Quizzes, grade5Lessons, grade5Suggestions } = require('../data/grade5Data');
 
-// MongoDB connection string - use MONGO_URI from environment or fallback to mongo hostname
-const MONGODB_URI = process.env.MONGO_URI || process.env.MONGODB_URI || 'mongodb://mongo:27017/ai_tutor';
+// MongoDB connection string - point to learning_db
+const MONGODB_URI = process.env.MONGO_URI || process.env.MONGODB_URI || 'mongodb://localhost:27017/learning_db';
 
 // Subject data with icon names and colors
 const subjectsData = [

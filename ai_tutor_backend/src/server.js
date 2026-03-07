@@ -15,10 +15,8 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 // Import routes from domain folders
 const userRoutes = require("./auth/routes/userRoutes");
-const subjectRoutes = require("./learning/routes/subjectRoutes");
-const quizRoutes = require("./learning/routes/quizRoutes");
-const lessonRoutes = require("./learning/routes/lessonRoutes");
-const lessonSuggestionRoutes = require("./learning/routes/lessonSuggestionRoutes");
+const learningProxy = require("./learning/routes/learningProxy");
+const quizRoutes = require("./learning/routes/quizRoutes"); // POST submission stays in monolith
 const progressRoutes = require("./assessment/routes/progressRoutes");
 const geminiRoutes = require("./ai-chat/routes/geminiRoutes");
 const chatRoutes = require("./ai-chat/routes/chatRoutes");
@@ -112,25 +110,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// === Auto-seed function ===
-async function autoSeedDatabase() {
-  try {
-    const Subject = require('./learning/models/subject');
-    const count = await Subject.countDocuments();
-
-    if (count === 0) {
-      console.log('📦 Database is empty, running auto-seed...');
-      const seedDatabase = require('../../scripts/seedData');
-      await seedDatabase();
-      console.log('✅ Auto-seed completed!');
-    } else {
-      console.log(`✅ Database already has ${count} subjects, skipping seed`);
-    }
-  } catch (error) {
-    console.error('⚠️  Auto-seed failed:', error.message);
-  }
-}
-
 // === MongoDB Connection ===
 connectDB()
   .then(async () => {
@@ -141,9 +120,6 @@ connectDB()
     logger.info('🌍 Environment: %s', process.env.NODE_ENV);
     logger.info('📋 Admin Panel: http://%s:%s/admin', HOST, PORT);
     logger.info('%s', '─'.repeat(50));
-
-    // Auto-seed if database is empty
-    await autoSeedDatabase();
   })
   .catch((err) => {
     logger.error('❌ MongoDB Connection Error: %s', err.message, { stack: err.stack });
@@ -154,11 +130,11 @@ connectDB()
 // Auth domain
 app.use("/api/users", userRoutes);
 
-// Learning domain
-app.use("/api/subjects", subjectRoutes);
+// Learning domain (proxied to Learning Service)
+app.use("/api", learningProxy);
+
+// Learning domain — quiz POST submission stays in monolith (assessment logic)
 app.use("/api/quizzes", quizRoutes);
-app.use("/api/lessons", lessonRoutes);
-app.use("/api/lesson-suggestions", lessonSuggestionRoutes);
 
 // Assessment domain
 app.use("/api/progress", progressRoutes);
