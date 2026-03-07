@@ -10,6 +10,7 @@ const logger = require('./shared/config/logger');
 const APP_VERSION = "1.0.0";
 const BUILD_TIME = new Date().toISOString();
 const mongoose = require("mongoose");
+const connectDB = require('./shared/config/db');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 // Import routes from domain folders
@@ -131,9 +132,7 @@ async function autoSeedDatabase() {
 }
 
 // === MongoDB Connection ===
-mongoose.set("strictQuery", false);
-mongoose
-  .connect(MONGO_URI, {})
+connectDB()
   .then(async () => {
     logger.info('🚀 AI Tutor Backend Started Successfully');
     logger.info('📊 Server: http://%s:%s', HOST, PORT);

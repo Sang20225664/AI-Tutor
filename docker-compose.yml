@@ -48,6 +48,32 @@ services:
       - ai_tutor_network
     restart: unless-stopped
 
+  # Auth microservice (first extracted service)
+  auth:
+    build:
+      context: ./services/auth
+      dockerfile: Dockerfile
+    container_name: ai_tutor_auth
+    ports:
+      - "3001:3001"
+    depends_on:
+      - mongo
+    environment:
+      - PORT=3001
+      - MONGO_URI=mongodb://mongo:27017/ai_tutor_v2
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRES_IN=7d
+      - NODE_ENV=production
+    networks:
+      - ai_tutor_network
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:3001/health" ]
+      interval: 30s
+      timeout: 10s
+      start_period: 15s
+      retries: 3
+
   # Database service
   mongo:
     image: mongo:7
