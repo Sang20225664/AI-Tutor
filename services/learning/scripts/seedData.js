@@ -359,6 +359,79 @@ async function seedDatabase() {
             subjectMap[subject.name] = subject._id;
         });
 
+        // Parse Markdown lessons from data/lessons
+        console.log('📖 Parsing Markdown lessons from data/lessons...');
+        const path = require('path');
+        const fs = require('fs');
+        const lessonsPath = path.join(__dirname, '../data/lessons');
+        if (fs.existsSync(lessonsPath)) {
+            const lessonFolders = fs.readdirSync(lessonsPath);
+            for (const folder of lessonFolders) {
+                let sName = '';
+                let grades = [];
+                if (folder.includes('math10')) { sName = 'Toán học'; grades = [10]; }
+                else if (folder.includes('physics10')) { sName = 'Vật lý'; grades = [10]; }
+                else if (folder.includes('chemistry10')) { sName = 'Hóa học'; grades = [10]; }
+                else if (folder.includes('english10')) { sName = 'Tiếng Anh'; grades = [10]; }
+
+                if (sName) {
+                    const folderPath = path.join(lessonsPath, folder);
+                    const files = fs.readdirSync(folderPath).filter(f => f.endsWith('.md'));
+                    for (const file of files) {
+                        const content = fs.readFileSync(path.join(folderPath, file), 'utf-8');
+                        const lines = content.split(/\r?\n/);
+                        const titleLine = lines.find(l => l.startsWith('# '));
+                        const title = titleLine ? titleLine.replace('# ', '').trim() : file.replace('.md', '');
+                        lessonsData.push({
+                            title: title,
+                            content: content,
+                            subjectName: sName,
+                            grade: grades,
+                            topics: [title],
+                            difficulty: 'intermediate',
+                            duration: 45
+                        });
+                    }
+                }
+            }
+        }
+
+        // Parse JSON quizzes from data/quizzes
+        console.log('📝 Parsing JSON quizzes from data/quizzes...');
+        const quizzesPath = path.join(__dirname, '../data/quizzes');
+        if (fs.existsSync(quizzesPath)) {
+            const quizFiles = fs.readdirSync(quizzesPath).filter(f => f.endsWith('.json'));
+            for (const file of quizFiles) {
+                let sName = '';
+                let grades = [];
+                if (file.includes('math10')) { sName = 'Toán học'; grades = [10]; }
+                else if (file.includes('physics10')) { sName = 'Vật lý'; grades = [10]; }
+                else if (file.includes('chemistry10')) { sName = 'Hóa học'; grades = [10]; }
+                else if (file.includes('english10')) { sName = 'Tiếng Anh'; grades = [10]; }
+
+                if (sName) {
+                    const quizContent = JSON.parse(fs.readFileSync(path.join(quizzesPath, file), 'utf-8'));
+                    // Content is an array of quizzes or just one big quiz ? 
+                    // Let's create a quiz for each array element
+                    for (const q of quizContent) {
+                        quizzesData.push({
+                            title: q.lessonTitle || `Bài kiểm tra ${sName}`,
+                            description: `Kiểm tra kiến thức ${q.lessonTitle || sName}`,
+                            subjectName: sName,
+                            grade: grades,
+                            difficulty: 'medium',
+                            questions: q.questions.map(question => ({
+                                question: question.question,
+                                options: question.options,
+                                answer: question.correctAnswer,
+                                explanation: question.explanation
+                            }))
+                        });
+                    }
+                }
+            }
+        }
+
         // Insert quizzes with subject references
         console.log('📝 Inserting quizzes...');
         const quizzesWithRefs = quizzesData.map(quiz => ({
@@ -366,7 +439,7 @@ async function seedDatabase() {
             subjectId: subjectMap[quiz.subjectName]
         }));
         const quizzes = await Quiz.insertMany(quizzesWithRefs);
-        console.log(`✅ Inserted ${quizzes.length} quizzes`);
+        console.log('✅ Inserted ' + quizzes.length + ' quizzes');
 
         // Insert lessons with subject references
         console.log('📖 Inserting lessons...');
@@ -375,7 +448,7 @@ async function seedDatabase() {
             subjectId: subjectMap[lesson.subjectName]
         }));
         const lessons = await Lesson.insertMany(lessonsWithRefs);
-        console.log(`✅ Inserted ${lessons.length} lessons`);
+        console.log('✅ Inserted ' + lessons.length + ' lessons');
 
         // Insert lesson suggestions for grade 5
         console.log('💡 Inserting lesson suggestions...');
@@ -384,14 +457,14 @@ async function seedDatabase() {
             subjectId: subjectMap[suggestion.subjectName]
         }));
         const suggestions = await LessonSuggestion.insertMany(suggestionsWithRefs);
-        console.log(`✅ Inserted ${suggestions.length} lesson suggestions`);
+        console.log('✅ Inserted ' + suggestions.length + ' lesson suggestions');
 
         // Print summary
-        console.log('\n📊 Seed Data Summary:');
-        console.log(`   - Subjects: ${subjects.length}`);
-        console.log(`   - Quizzes: ${quizzes.length}`);
-        console.log(`   - Lessons: ${lessons.length}`);
-        console.log(`   - Lesson Suggestions: ${suggestions.length}`);
+        console.log('\\n📊 Seed Data Summary:');
+        console.log('   - Subjects: ' + subjects.length);
+        console.log('   - Quizzes: ' + quizzes.length);
+        console.log('   - Lessons: ' + lessons.length);
+        console.log('   - Lesson Suggestions: ' + suggestions.length);
         console.log('\n✨ Database seeding completed successfully!');
 
         return { subjects, quizzes, lessons, suggestions };
