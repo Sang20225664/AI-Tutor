@@ -7,7 +7,7 @@ const logger = require('../config/logger');
  */
 const errorHandler = (err, req, res, next) => {
     // Attach requestId if set by requestLogger middleware
-    const requestId = req.requestId || 'unknown';
+    const requestId = req.headers['x-request-id'] || req.requestId || 'unknown';
 
     // Determine status code
     const statusCode = err.statusCode || err.status || 500;

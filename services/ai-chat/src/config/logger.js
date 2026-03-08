@@ -1,9 +1,17 @@
 const serviceName = 'ai-chat-service';
 
 const log = (level, message, req) => {
-    const timestamp = new Date().toISOString();
-    const reqStr = req?.headers?.['x-request-id'] ? ` req=${req.headers['x-request-id']}` : '';
-    console.log(`${timestamp} ${serviceName} ${level} ${message}${reqStr}`);
+    const logData = {
+        timestamp: new Date().toISOString(),
+        service: serviceName,
+        level: level.toLowerCase(),
+        message: message,
+    };
+    if (req?.method) logData.method = req.method;
+    if (req?.url) logData.path = req.url;
+    if (req?.headers?.['x-request-id']) logData.requestId = req.headers['x-request-id'];
+
+    console.log(JSON.stringify(logData));
 };
 
 module.exports = {

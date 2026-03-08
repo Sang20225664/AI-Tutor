@@ -22,7 +22,9 @@ const aiLimiter = rateLimit({
         }
         return req.ip;
     },
-    message: { success: false, message: 'Too many AI requests from this user, please try again after a minute' }
+    message: { success: false, message: 'Too many AI requests from this user, please try again after a minute' },
+    standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+    legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 });
 
 router.use(aiLimiter);
