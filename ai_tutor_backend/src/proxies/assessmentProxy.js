@@ -1,7 +1,7 @@
 const express = require('express');
 const axios = require('axios');
 const router = express.Router();
-const auth = require('../../shared/middleware/auth');
+const auth = require('../middleware/auth');
 
 const ASSESSMENT_URL = process.env.ASSESSMENT_SERVICE_URL || 'http://assessment:3003';
 

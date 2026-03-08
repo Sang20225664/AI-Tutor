@@ -4,25 +4,22 @@ const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
-const logger = require('./shared/config/logger');
+const logger = require('./config/logger');
 
 // Version info for CD pipeline tracking
 const APP_VERSION = "1.0.0";
 const BUILD_TIME = new Date().toISOString();
-const mongoose = require("mongoose");
-const connectDB = require('./shared/config/db');
-const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 // Import routes from domain folders
-const userRoutes = require("./auth/routes/userRoutes");
-const learningProxy = require("./learning/routes/learningProxy");
-const assessmentProxy = require("./assessment/routes/assessmentProxy");
-const aiChatProxy = require("./ai-chat/routes/aiChatProxy");
+const authProxy = require("./proxies/authProxy");
+const learningProxy = require("./proxies/learningProxy");
+const assessmentProxy = require("./proxies/assessmentProxy");
+const aiChatProxy = require("./proxies/aiChatProxy");
 
 // Import shared middleware
-const auth = require("./shared/middleware/auth");
-const requestLogger = require("./shared/middleware/requestLogger");
-const errorHandler = require("./shared/middleware/errorHandler");
+const auth = require("./middleware/auth");
+const requestLogger = require("./middleware/requestLogger");
+const errorHandler = require("./middleware/errorHandler");
 
 // === Initialize app ===
 const app = express();
@@ -106,25 +103,15 @@ app.use((req, res, next) => {
   next();
 });
 
-// === MongoDB Connection ===
-connectDB()
-  .then(async () => {
-    logger.info('🚀 AI Tutor Backend Started Successfully');
-    logger.info('📊 Server: http://%s:%s', HOST, PORT);
-    logger.info('💾 Database: Connected to MongoDB');
-    logger.info('🔑 Gemini API: %s', process.env.GEMINI_API_KEY ? '✅ Configured' : '❌ Missing');
-    logger.info('🌍 Environment: %s', process.env.NODE_ENV);
-    logger.info('📋 Admin Panel: http://%s:%s/admin', HOST, PORT);
-    logger.info('%s', '─'.repeat(50));
-  })
-  .catch((err) => {
-    logger.error('❌ MongoDB Connection Error: %s', err.message, { stack: err.stack });
-    process.exit(1);
-  });
+// === Start Server immediately (no DB connection needed for Gateway) ===
+logger.info('🚀 API Gateway Started Successfully');
+logger.info('📊 Gateway: http://%s:%s', HOST, PORT);
+logger.info('🌍 Environment: %s', process.env.NODE_ENV);
+logger.info('%s', '─'.repeat(50));
 
 // === Routes (domain-organized) ===
 // Auth domain
-app.use("/api/users", userRoutes);
+app.use("/api/users", authProxy);
 
 // Learning domain (proxied to Learning Service)
 app.use("/api", learningProxy);
@@ -150,169 +137,46 @@ app.get("/", (req, res) => {
       users: "/api/users",
       lessons: "/api/lessons",
       chats: "/api/chats",
-      chatHistory: "/api/chat-history",
-      gemini: "/api/gemini",
-      testGemini: "/api/test-gemini",
+      chatHistory: "/api/chat-history"
     },
   });
 });
 
 // --- Health check for K8s liveness/readiness probes ---
 app.get("/health", (req, res) => {
-  const healthcheck = {
+  res.json({
     status: "healthy",
     uptime: process.uptime(),
     timestamp: new Date().toISOString(),
     version: APP_VERSION,
-    mongodb: mongoose.connection.readyState === 1 ? "connected" : "disconnected"
-  };
-
-  if (mongoose.connection.readyState !== 1) {
-    return res.status(503).json({ ...healthcheck, status: "unhealthy" });
-  }
-
-  res.json(healthcheck);
-});
-
-// --- Test route ---
-app.get("/api/test", async (req, res) => {
-  try {
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-
-    const prompt =
-      req.body.message || "Xin chào! Hãy tự giới thiệu bằng tiếng Việt.";
-    const result = await model.generateContent(prompt);
-    const text = result.response.text();
-
-    res.json({
-      success: true,
-      message: "Gemini API is working!",
-      response: text,
-      apiKey:
-        process.env.GEMINI_API_KEY
-          ? "✅ API Key is set"
-          : "⚠️ Missing API Key",
-    });
-  } catch (error) {
-    console.error("Gemini API Error:", error.message);
-    res.status(500).json({
-      success: false,
-      message: "Gemini API failed",
-      error: error.message,
-    });
-  }
+    service: "api-gateway"
+  });
 });
 
 // Health check endpoint
 app.get("/api/ping", (req, res) => {
-  logger.info('🏓 Ping received from %s', req.get('Origin') || 'unknown');
   res.json({
     success: true,
-    message: "Backend is running!",
-    timestamp: new Date().toISOString(),
-    cors: "enabled"
+    message: "API Gateway is running!",
+    timestamp: new Date().toISOString()
   });
 });
 
-// Readiness: check MongoDB connection only 
+// Readiness: Gateway is always ready if process is running
 app.get('/api/ready', (req, res) => {
-  const state = mongoose.connection.readyState; // 0 disconnected,1 connected,2 connecting,3 disconnecting
-  const ready = state === 1;
-
-  logger.info('🔎 Readiness check: mongoose.readyState=%d', state);
-
-  if (!ready) {
-    return res.status(503).json({
-      ready: false,
-      dbState: state,
-      message: 'MongoDB not connected'
-    });
-  }
-
   return res.json({
     ready: true,
-    dbState: state,
-    message: 'OK'
+    message: 'API Gateway OK'
   });
 });
 
-// --- Admin panel route (simple HTML) ---
-app.get("/admin", async (req, res) => {
-  if (process.env.NODE_ENV !== "development") {
-    return res.status(403).send("Access denied");
-  }
 
-  try {
-    const User = require("./auth/models/User");
-    const users = await User.find({}, { password: 0 }).sort({ createdAt: -1 });
-
-    const html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <title>AI Tutor Admin</title>
-      <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        table { border-collapse: collapse; width: 100%; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background-color: #f2f2f2; }
-        .stats { background: #e7f3ff; padding: 15px; margin-bottom: 20px; border-radius: 5px; }
-      </style>
-    </head>
-    <body>
-      <h1>AI Tutor Admin Panel</h1>
-      
-      <div class="stats">
-        <h3> Thống kê</h3>
-        <p><strong>Tổng số users:</strong> ${users.length}</p>
-        <p><strong>Server:</strong> Running on port ${PORT}</p>
-        <p><strong>Database:</strong> MongoDB connected</p>
-      </div>
-
-      <h3> Danh sách Users</h3>
-      <table>
-        <tr>
-          <th>ID</th>
-          <th>Username</th>
-          <th>Email</th>
-          <th>Ngày tạo</th>
-          <th>Last Login</th>
-        </tr>
-        ${users
-        .map(
-          (user) => `
-          <tr>
-            <td>${user._id}</td>
-            <td>${user.username}</td>
-            <td>${user.email || "N/A"}</td>
-            <td>${new Date(user.createdAt).toLocaleString("vi-VN")}</td>
-            <td>${user.lastLogin
-              ? new Date(user.lastLogin).toLocaleString("vi-VN")
-              : "Never"
-            }</td>
-          </tr>
-        `
-        )
-        .join("")}
-      </table>
-
-      
-    </body>
-    </html>
-    `;
-
-    res.send(html);
-  } catch (error) {
-    res.status(500).send("Error loading admin panel: " + error.message);
-  }
-});
 
 // === Global Error Handler (must be LAST) ===
 app.use(errorHandler);
 
 // === Start Server ===
 app.listen(PORT, HOST, () => {
-  // Startup message moved to MongoDB connection success
+  logger.info(`Server is listening on ${HOST}:${PORT}`);
 });
 
