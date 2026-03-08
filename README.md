@@ -20,19 +20,16 @@ AI Tutor is a comprehensive educational platform that combines the power of arti
 
 ```
 AI-Tutor/
-├── ai_tutor_app/              # Flutter mobile/web application
-│   ├── lib/
-│   ├── web/
-│   └── ...
-├── ai_tutor_backend/          # Node.js/Express backend API
-│   ├── src/
-│   └── ...
+├── ai_tutor_app/              # Flutter mobile/web frontend
+├── ai_tutor_backend/          # API Gateway (Node.js/Express)
+├── services/                  # Microservices
+│   ├── auth/                  # User Management & JWT
+│   ├── learning/              # Subjects, Lessons, Quizzes content
+│   ├── assessment/            # Scoring & Progress tracking
+│   └── ai-chat/               # Gemini AI & Chat History
+├── shared/                    # Shared middleware & utils
 ├── k8s/                       # Kubernetes manifests
-│   ├── namespace/             # Namespace YAML
-│   ├── mongodb/               # MongoDB PVC, Deployment, Service
-│   ├── backend/               # Backend ConfigMap, Secret, Deployment, Service
-│   └── DEBUG_GUIDE.md         # K8s debug & troubleshooting guide
-└── README.md
+└── docker-compose.yml         # Dev environment configuration
 ```
 
 ## 🚀 Technologies Used
@@ -43,14 +40,12 @@ AI-Tutor/
 - **HTTP** - API communication
 - **Shared Preferences** - Local storage
 
-
-### Backend
-- **Node.js** - Runtime environment
-- **Express.js** - Web framework
-- **MongoDB** - Database (Dockerized & Kubernetes)
-- **Mongoose** - ODM for MongoDB
-- **JWT** - Authentication
-- **Docker** - Containerization
+### Backend Architecture
+- **API Gateway** - Central entry point (Express.js)
+- **Microservices** - Auth, Learning, Assessment, AI Chat
+- **MongoDB** - 4 isolated logical databases per service
+- **JWT** - Cross-service stateless authentication
+- **Docker & Docker Compose** - Containerization
 - **Kubernetes (K3s)** - Production-grade orchestration
 
 ### AI & ML
@@ -64,6 +59,7 @@ Before running this project, make sure you have the following installed:
 - **Dart SDK** (>=2.17.0)
 - **Docker** (>=20.0.0)
 - **Docker Compose** (>=2.0.0)
+- **Node.js** (>=20.0.0, optional for local testing)
 - **Git**
 
 
@@ -75,14 +71,20 @@ git clone https://github.com/yourusername/AI-Tutor.git
 cd AI-Tutor
 ```
 
-### 2. Backend Setup (Docker or Kubernetes)
+### 2. Microservices Setup (Docker Compose)
 
-#### Option A: Docker Compose (for local dev)
+The backend is fully dockerized with an API Gateway and 4 internal microservices.
+
 ```bash
-cd ai_tutor_backend
-cp .env.example .env
-# Edit .env file with your Gemini API key
-docker compose up --build
+cp ai_tutor_backend/.env.example ai_tutor_backend/.env
+# Edit .env file with your GEMINI_API_KEY and JWT_SECRET
+docker compose up -d --build
+```
+
+To verify the microservices are running:
+```bash
+docker compose ps
+# Ensure all 6 containers (Mongo, Gateway, Auth, Learning, Assessment, AI Chat) are healthy.
 ```
 
 
@@ -151,19 +153,21 @@ GEMINI_API_KEY=your-gemini-api-key
 2. Create a new API key
 3. Add the key to your `.env` file as `GEMINI_API_KEY`
 
-### Docker Services
+### Docker Microservices
 The backend uses Docker Compose with:
-- **Backend Service**: Node.js Express server
-- **MongoDB Service**: Database with persistent storage
-- **Networking**: Isolated Docker network for services
+- **API Gateway (Port 5000)**: Central proxy routing
+- **Auth Service (Port 3001)**: Registration and Login
+- **Learning Service (Port 3002)**: Curriculum content
+- **Assessment Service (Port 3003)**: Quiz attempts and progress
+- **AI Chat Service (Port 3004)**: Gemini integration
+- **MongoDB**: Shared instance with 4 isolated logical databases
 
 ## 📱 Running the Application
 
 ### Development Mode
 ```bash
-# Start backend services (MongoDB + API)
-cd ai_tutor_backend
-docker compose up
+# Start all microservices in the background
+docker compose up -d
 
 # Start Flutter app in another terminal
 cd ai_tutor_app
@@ -217,17 +221,16 @@ flutter test
 ```
 
 
-## 📚 API Documentation
+## 📚 API Architecture
 
-The backend API provides the following endpoints:
+The application implements a Strangler Fig pattern where the legacy backend acts as an API gateway, routing to distinct microservices:
 
-- `GET /api/ping` - Health check (liveness)
-- `GET /api/ready` - Readiness probe (DB connection)
-- `POST /api/users/login` - User authentication
-- `POST /api/users/register` - User registration
-- `POST /api/gemini/chat` - AI chat interaction
-- `GET /api/subjects` - List all subjects
-- `GET /admin` - Admin panel (dev only)
+- `POST /api/users/*` - Proxied to **Auth Service**
+- `GET /api/subjects`, `GET /api/lessons/*` - Proxied to **Learning Service**
+- `POST /api/quizzes/:id/submit`, `/api/progress/*` - Proxied to **Assessment Service**
+- `POST /api/chats`, `GET /api/chat-history` - Proxied to **AI Chat Service**
+
+For detailed architectural diagrams, please refer to the `MICROSERVICE_ARCHITECTURE.md` file.
 
 ## 🐳 Docker Commands
 

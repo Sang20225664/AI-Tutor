@@ -1,10 +1,10 @@
-# Định hướng triển khai Microservice — AI Tutor
+# Kiến trúc Microservice — AI Tutor
 
 ---
 
-## 1. Hiện trạng: Kiến trúc Monolith
+## 1. Hiện trạng: Kiến trúc Microservice Toàn Diện
 
-Hệ thống hiện tại là **1 backend duy nhất** (Node.js + Express), kết nối 1 MongoDB, phục vụ toàn bộ chức năng.
+Hệ thống đã hoàn tất chuyển đổi từ Monolith sang Microservices theo **Strangler Fig Pattern**. Khối Monolith cũ giờ đây đóng vai trò hoàn toàn là một **API Gateway**, điều phối traffic đến 4 Service độc lập.
 
 ```mermaid
 graph TB
@@ -127,6 +127,43 @@ graph LR
     style D2 fill:#f39c12,color:#fff
     style D3 fill:#f39c12,color:#fff
     style D4 fill:#f39c12,color:#fff
+```
+
+### 2.3 Service Responsibilities
+
+Bảng tóm tắt trách nhiệm cốt lõi của từng Microservice để đảm bảo tính độc lập:
+
+| Service | Trách nhiệm (Responsibility) | Domain Data Sở hữu |
+|---------|-----------------------------|---------------------|
+| **Auth** | Quản lý User, đăng nhập, Sign JWT | User profiles, Credentials |
+| **Learning** | Cung cấp Subject, Lesson, Quiz content | Subjects, Lessons, Quizzes |
+| **Assessment** | Lưu Progress, chấm điểm Quiz | Progress, Quiz Attempts |
+| **AI Chat** | Lâu trữ hội thoại, giao tiếp Gemini | Chat Histories, AI Sessions |
+
+### 2.4 API Contracts
+
+Gateway định tuyến các request từ Frontend vào các service tương ứng dựa trên prefix:
+
+```yaml
+# Public API Routes (Frontend gọi)
+/api/v1/users/login      👉 Auth Service
+/api/v1/users/register   👉 Auth Service
+
+/api/v1/subjects/*       👉 Learning Service
+/api/v1/lessons/*        👉 Learning Service
+/api/v1/quizzes/*        👉 Learning Service
+/api/v1/lesson-suggestions 👉 Learning Service
+
+/api/v1/progress/*       👉 Assessment Service
+/api/v1/attempts/*       👉 Assessment Service
+
+/api/v1/ai/messages      👉 AI Chat Service
+/api/v1/ai/conversations 👉 AI Chat Service
+
+# Internal API Routes (Service-to-Service gọi)
+/internal/verify         👉 Auth Service
+/internal/quizzes/:id    👉 Learning Service
+/internal/lessons/:id    👉 Learning Service
 ```
 
 ---
@@ -522,33 +559,33 @@ Hiện tại dùng **K8s Ingress** làm gateway — chỉ routing, **không veri
 
 ---
 
-## 9. Kế hoạch triển khai (Phasing)
+## 9. Hành trình chuyển đổi (Phasing - ĐÃ HOÀN TẤT)
 
 ```mermaid
 gantt
-    title Lộ trình chuyển đổi Microservice
+    title Lộ trình chuyển đổi Microservice (Đã Hoàn Thành)
     dateFormat  YYYY-MM-DD
     axisFormat  %d/%m
 
     section Phase 1 - Chuẩn bị
-    Thiết kế API contract       :a1, 2026-03-03, 3d
-    Setup project structure     :a2, after a1, 2d
+    Thiết kế API contract       :done, a1, 2026-03-03, 3d
+    Setup project structure     :done, a2, after a1, 2d
 
     section Phase 2 - Tách Service
-    Auth Service               :b1, after a2, 3d
-    Learning Service           :b2, after b1, 4d
-    Assessment Service         :b3, after b2, 3d
-    AI/Chat Service            :b4, after b3, 4d
+    Auth Service               :done, b1, after a2, 3d
+    Learning Service           :done, b2, after b1, 4d
+    Assessment Service         :done, b3, after b2, 3d
+    AI/Chat Service            :done, b4, after b3, 4d
 
     section Phase 3 - Tích hợp
-    API Gateway (Ingress)      :c1, after b4, 2d
-    Inter-service testing      :c2, after c1, 3d
-    Frontend migration         :c3, after c2, 3d
+    API Gateway (Express)      :done, c1, after b4, 2d
+    Inter-service testing      :done, c2, after c1, 3d
+    Frontend migration         :done, c3, after c2, 3d
 
-    section Phase 4 - Deploy
-    K8s manifests              :d1, after c3, 2d
-    CI/CD pipeline             :d2, after d1, 2d
-    Smoke test & fix           :d3, after d2, 3d
+    section Phase 4 - Code Cleanup
+    Gỡ bỏ legacy code          :done, d1, after c3, 2d
+    CI/CD pipeline update      :done, d2, after d1, 2d
+    Hoàn thiện Docker Compose  :done, d3, after d2, 3d
 ```
 
 ---
