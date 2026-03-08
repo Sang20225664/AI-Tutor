@@ -25,7 +25,18 @@ const quizController = {
         try {
             const quiz = await quizService.getById(req.params.id);
             if (!quiz) return res.status(404).json({ found: false });
-            res.json({ found: true, quiz });
+
+            // Return minimal data for Assessment scoring
+            const minimalQuiz = {
+                _id: quiz._id,
+                title: quiz.title,
+                subjectName: quiz.subjectName,
+                questions: quiz.questions.map(q => ({
+                    answer: q.answer
+                }))
+            };
+
+            res.json({ found: true, quiz: minimalQuiz });
         } catch (err) {
             res.status(500).json({ found: false, message: err.message });
         }

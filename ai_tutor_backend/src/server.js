@@ -16,8 +16,7 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 // Import routes from domain folders
 const userRoutes = require("./auth/routes/userRoutes");
 const learningProxy = require("./learning/routes/learningProxy");
-const quizRoutes = require("./learning/routes/quizRoutes"); // POST submission stays in monolith
-const progressRoutes = require("./assessment/routes/progressRoutes");
+const assessmentProxy = require("./assessment/routes/assessmentProxy");
 const geminiRoutes = require("./ai-chat/routes/geminiRoutes");
 const chatRoutes = require("./ai-chat/routes/chatRoutes");
 const chatHistoryRoutes = require("./ai-chat/routes/chatHistoryRoutes");
@@ -134,10 +133,8 @@ app.use("/api/users", userRoutes);
 app.use("/api", learningProxy);
 
 // Learning domain — quiz POST submission stays in monolith (assessment logic)
-app.use("/api/quizzes", quizRoutes);
-
-// Assessment domain
-app.use("/api/progress", progressRoutes);
+// Assessment domain handled by Proxy
+app.use("/api", assessmentProxy);
 
 // AI/Chat domain
 app.post('/api/gemini/chat', auth, geminiController.chatWithGemini);
