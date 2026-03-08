@@ -38,7 +38,7 @@ router.get('/subjects/:id', (req, res) => proxyGet(req, res, `/api/v1/subjects/$
 // === Lessons ===
 router.get('/lessons', (req, res) => proxyGet(req, res, '/api/v1/lessons'));
 
-// Intercept GET /lessons/:id for progress tracking (maintain Flutter contract)
+// Intercept GET /lessons/:id — fetch lesson from Learning + progress from Assessment
 router.get('/lessons/:id', async (req, res) => {
     try {
         const url = `${LEARNING_URL}/api/v1/lessons/${req.params.id}`;
@@ -50,28 +50,21 @@ router.get('/lessons/:id', async (req, res) => {
         const authHeader = req.header('Authorization');
         if (authHeader && lessonData) {
             try {
-                const jwt = require('jsonwebtoken');
-                const token = authHeader.replace('Bearer ', '');
-                const decoded = jwt.verify(token, process.env.JWT_SECRET);
-                const userId = decoded.userId;
-                const Progress = require('../../assessment/models/Progress');
-
-                progress = await Progress.findOne({ userId, lessonId: lessonData._id });
-                if (!progress) {
-                    progress = new Progress({
-                        userId,
-                        lessonId: lessonData._id,
-                        completionPercent: 0,
-                        attempts: 0,
-                        lastAccessedAt: new Date()
-                    });
-                    await progress.save();
-                } else {
-                    progress.lastAccessedAt = new Date();
-                    await progress.save();
+                const ASSESSMENT_URL = process.env.ASSESSMENT_SERVICE_URL || 'http://assessment:3003';
+                // Proxy to Assessment Service to get/create progress
+                const progressRes = await axios.post(
+                    `${ASSESSMENT_URL}/api/v1/progress/lesson/${lessonData._id}`,
+                    {},
+                    {
+                        headers: { 'Authorization': authHeader },
+                        timeout: 3000
+                    }
+                );
+                if (progressRes.data.success) {
+                    progress = progressRes.data.data;
                 }
             } catch (authError) {
-                console.warn('Progress tracking skipped in proxy - auth failed');
+                console.warn('Progress tracking skipped in proxy:', authError.message);
             }
         }
 

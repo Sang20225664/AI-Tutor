@@ -8,7 +8,7 @@ const lessonSchema = new mongoose.Schema({
     grade: [{ type: Number }], // Grades this lesson is for
     topics: [{ type: String }], // Topics covered in this lesson
     difficulty: { type: String, enum: ["beginner", "intermediate", "advanced"], default: "beginner" },
-    duration: { type: Number }, // Estimated duration in minutes
+    duration: { type: Number, default: 0 }, // Estimated duration in minutes
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now }
 });

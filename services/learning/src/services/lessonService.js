@@ -5,6 +5,7 @@ const lessonService = {
     async getAll(query = {}) {
         const filter = {};
         if (query.subjectId) filter.subjectId = query.subjectId;
+        if (query.subjectName) filter.subjectName = query.subjectName;
         if (query.grade) filter.grade = Number(query.grade);
         return Lesson.find(filter).populate('subjectId', 'name icon color').sort({ createdAt: -1 });
     },
