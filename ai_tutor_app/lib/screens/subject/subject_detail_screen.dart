@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../models/subject.dart';
 import '../../models/lesson.dart';
@@ -49,8 +50,10 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen>
       _lessonError = null;
     });
     try {
+      final prefs = await SharedPreferences.getInstance();
+      final grade = prefs.getInt('selectedGrade');
       final response =
-          await ApiService.getLessons(subjectId: widget.subject.id);
+          await ApiService.getLessons(subjectId: widget.subject.id, grade: grade);
       if (response['success'] == true && response['data'] != null) {
         final data = response['data'];
         final List raw =
@@ -81,8 +84,10 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen>
       _quizError = null;
     });
     try {
+      final prefs = await SharedPreferences.getInstance();
+      final grade = prefs.getInt('selectedGrade');
       final response =
-          await ApiService.getQuizzes(subjectId: widget.subject.id);
+          await ApiService.getQuizzes(subjectId: widget.subject.id, grade: grade);
       if (response['success'] == true && response['data'] != null) {
         final data = response['data'];
         final List raw =

@@ -59,9 +59,8 @@ class _QuizScreenState extends State<QuizScreen> {
       final response = await ApiService.getQuizzes();
 
       if (response['success'] == true && response['data'] != null) {
-        // data is now { quizzes: [...], count: N }
-        final dataMap = response['data'] as Map<String, dynamic>;
-        final quizzesData = dataMap['quizzes'] as List;
+        final data = response['data'];
+        final quizzesData = data is Map ? (data['quizzes'] ?? data) as List : data as List;
 
         // Đọc grade đã chọn từ SharedPreferences
         final prefs = await SharedPreferences.getInstance();
