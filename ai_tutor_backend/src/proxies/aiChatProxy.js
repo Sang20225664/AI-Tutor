@@ -1,8 +1,31 @@
 const express = require('express');
 const axios = require('axios');
+const rateLimit = require('express-rate-limit');
+const jwt = require('jsonwebtoken');
 const router = express.Router();
 
 const AICHAT_SERVICE_URL = process.env.AICHAT_SERVICE_URL || 'http://localhost:3004';
+
+// Rate Limiter: 10 requests / minute / user
+const aiLimiter = rateLimit({
+    windowMs: 1 * 60 * 1000, // 1 min
+    max: 10, // 10 requests
+    keyGenerator: (req) => {
+        if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+            try {
+                const token = req.headers.authorization.split(' ')[1];
+                const decoded = jwt.decode(token);
+                if (decoded && (decoded.userId || decoded.id)) {
+                    return decoded.userId || decoded.id;
+                }
+            } catch (e) { }
+        }
+        return req.ip;
+    },
+    message: { success: false, message: 'Too many AI requests from this user, please try again after a minute' }
+});
+
+router.use(aiLimiter);
 
 // Generic proxy function
 async function proxyAiChat(req, res, targetPath) {

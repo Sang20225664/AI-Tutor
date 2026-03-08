@@ -4,6 +4,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
+const logger = require('./src/config/logger');
 
 const userRoutes = require('./src/routes/userRoutes');
 
@@ -13,6 +14,12 @@ const PORT = process.env.PORT || 3001;
 // Middleware
 app.use(express.json());
 app.use(cors());
+
+// Request logging middleware
+app.use((req, res, next) => {
+    logger.info(`${req.method} ${req.url}`, req);
+    next();
+});
 
 // Health check
 app.get('/health', (req, res) => {

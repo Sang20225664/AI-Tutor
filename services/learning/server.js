@@ -3,6 +3,7 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const logger = require('./src/config/logger');
 
 const subjectRoutes = require('./src/routes/subjectRoutes');
 const lessonRoutes = require('./src/routes/lessonRoutes');
@@ -15,6 +16,12 @@ const PORT = process.env.PORT || 3002;
 // Middleware
 app.use(express.json());
 app.use(cors());
+
+// Request logging middleware
+app.use((req, res, next) => {
+    logger.info(`${req.method} ${req.url}`, req);
+    next();
+});
 
 // Health check — process alive
 app.get('/health', (req, res) => {

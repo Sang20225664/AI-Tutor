@@ -7,8 +7,10 @@ const logger = require('../config/logger');
  * Register this BEFORE routes in server.js.
  */
 const requestLogger = (req, res, next) => {
-    req.requestId = randomUUID(); // Unique ID for tracing this request through logs
+    req.requestId = req.headers['x-request-id'] || randomUUID(); // Use provided or generate new
     req.startTime = Date.now();
+    res.setHeader('x-request-id', req.requestId);
+    req.headers['x-request-id'] = req.requestId; // Inject for downstream proxies
 
     res.on('finish', () => {
         const responseTime = Date.now() - req.startTime;

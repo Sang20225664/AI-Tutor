@@ -14,9 +14,10 @@ const jsonFormat = format.combine(
 const consoleFormat = format.combine(
     format.colorize(),
     format.timestamp(),
-    format.printf(({ timestamp, level, message, ...meta }) => {
+    format.printf(({ timestamp, level, message, requestId, ...meta }) => {
         const metaStr = Object.keys(meta).length ? JSON.stringify(meta) : '';
-        return `${timestamp} ${level}: ${message} ${metaStr}`;
+        const reqStr = requestId ? `req=${requestId}` : '';
+        return `${timestamp} api-gateway ${level} ${message} ${reqStr} ${metaStr}`.trim();
     })
 );
 

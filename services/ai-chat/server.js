@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
+const logger = require('./src/config/logger');
 
 // Database Config
 const connectDB = require('./src/config/mongoose');
@@ -10,6 +11,12 @@ const app = express();
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Request logging middleware
+app.use((req, res, next) => {
+    logger.info(`${req.method} ${req.url}`, req);
+    next();
+});
 
 // Routes Placeholder
 const aiRoutes = require('./src/routes/ai.routes');

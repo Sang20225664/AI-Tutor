@@ -14,7 +14,7 @@ async function proxyToAuth(req, res, path) {
             headers: {
                 'Content-Type': 'application/json',
                 ...(req.headers.authorization ? { Authorization: req.headers.authorization } : {}),
-                ...(req.headers['x-request-id'] ? { 'x-request-id': req.headers['x-request-id'] } : {})
+                'x-request-id': req.requestId || req.headers['x-request-id']
             },
             timeout: 5000
         });

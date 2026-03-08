@@ -12,9 +12,7 @@ async function proxyGet(req, res, path) {
         const fullUrl = qs ? `${url}?${qs}` : url;
 
         const response = await axios.get(fullUrl, {
-            headers: {
-                ...(req.headers['x-request-id'] ? { 'x-request-id': req.headers['x-request-id'] } : {})
-            },
+            headers: { ...req.headers },
             timeout: 5000
         });
         res.status(response.status).json(response.data);
@@ -56,7 +54,10 @@ router.get('/lessons/:id', async (req, res) => {
                     `${ASSESSMENT_URL}/api/v1/progress/lesson/${lessonData._id}`,
                     {},
                     {
-                        headers: { 'Authorization': authHeader },
+                        headers: {
+                            'Authorization': authHeader,
+                            'x-request-id': req.headers['x-request-id']
+                        },
                         timeout: 3000
                     }
                 );
