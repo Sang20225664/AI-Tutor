@@ -17,10 +17,7 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 const userRoutes = require("./auth/routes/userRoutes");
 const learningProxy = require("./learning/routes/learningProxy");
 const assessmentProxy = require("./assessment/routes/assessmentProxy");
-const geminiRoutes = require("./ai-chat/routes/geminiRoutes");
-const chatRoutes = require("./ai-chat/routes/chatRoutes");
-const chatHistoryRoutes = require("./ai-chat/routes/chatHistoryRoutes");
-const geminiController = require("./ai-chat/controllers/geminiController");
+const aiChatProxy = require("./ai-chat/routes/aiChatProxy");
 
 // Import shared middleware
 const auth = require("./shared/middleware/auth");
@@ -136,13 +133,8 @@ app.use("/api", learningProxy);
 // Assessment domain handled by Proxy
 app.use("/api", assessmentProxy);
 
-// AI/Chat domain
-app.post('/api/gemini/chat', auth, geminiController.chatWithGemini);
-app.post('/api/chat', auth, geminiController.chatWithGemini);
-app.post('/api/gemini/test', geminiController.chatWithGemini);
-app.use("/api/gemini", geminiRoutes);
-app.use("/api/chats", chatRoutes);
-app.use("/api/chat-history", chatHistoryRoutes);
+// AI/Chat domain (proxied to AI Chat Service)
+app.use("/api", aiChatProxy);
 
 // --- Root route ---
 app.get("/", (req, res) => {
