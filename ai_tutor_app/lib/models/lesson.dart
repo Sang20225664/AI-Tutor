@@ -26,10 +26,9 @@ class Lesson {
       id: json['_id'] as String?,
       title: json['title'] as String,
       content: json['content'] as String,
-      subjectId:
-          json['subjectId'] is Map
-              ? json['subjectId']['_id'] as String?
-              : json['subjectId'] as String?,
+      subjectId: json['subjectId'] is Map
+          ? json['subjectId']['_id'] as String?
+          : json['subjectId'] as String?,
       subjectName: json['subjectName'] as String,
       grade: (json['grade'] as List<dynamic>).map((e) => e as int).toList(),
       topics:

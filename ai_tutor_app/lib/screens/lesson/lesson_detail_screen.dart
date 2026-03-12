@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:ai_tutor_app/models/lesson.dart';
 import 'package:markdown_widget/markdown_widget.dart';
+import 'package:ai_tutor_app/services/api_service.dart';
 import 'leson_theory_screen.dart';
+import 'quiz_screen.dart';
 
 class LessonDetailScreen extends StatelessWidget {
   final Lesson lesson;
@@ -116,6 +118,12 @@ class LessonDetailScreen extends StatelessWidget {
                 ),
               ),
             ),
+            const SizedBox(height: 12),
+            if (lesson.id != null)
+              SizedBox(
+                width: double.infinity,
+                child: _GenerateQuizButton(lessonId: lesson.id!),
+              ),
           ],
         ),
       ),
@@ -151,6 +159,76 @@ class _InfoChip extends StatelessWidget {
       backgroundColor: color ?? Colors.grey.shade100,
       labelStyle: const TextStyle(fontSize: 13),
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    );
+  }
+}
+
+class _GenerateQuizButton extends StatefulWidget {
+  final String lessonId;
+
+  const _GenerateQuizButton({required this.lessonId});
+
+  @override
+  State<_GenerateQuizButton> createState() => _GenerateQuizButtonState();
+}
+
+class _GenerateQuizButtonState extends State<_GenerateQuizButton> {
+  bool _isLoading = false;
+
+  Future<void> _generateQuiz() async {
+    setState(() => _isLoading = true);
+    try {
+      final response = await ApiService.generateQuiz(
+        lessonId: widget.lessonId,
+        difficulty: 'medium',
+        questionCount: 5,
+      );
+
+      if (!mounted) return;
+
+      if (response['success'] == true && response['data'] != null) {
+        final quizId = response['data']['_id'];
+        if (quizId != null) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => QuizScreen(quizId: quizId),
+            ),
+          );
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(response['message'] ?? 'Lỗi khi tạo quiz AI')),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Có lỗi xảy ra: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton.icon(
+      onPressed: _isLoading ? null : _generateQuiz,
+      icon: _isLoading
+          ? const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : const Icon(Icons.auto_awesome),
+      label: Text(
+          _isLoading ? 'Gợi ý: đang tạo bằng Gemini AI...' : 'Tạo Quiz AI'),
+      style: OutlinedButton.styleFrom(
+        padding: const EdgeInsets.all(16),
+        foregroundColor: Colors.purple[700],
+        side: BorderSide(color: Colors.purple[300]!),
+      ),
     );
   }
 }

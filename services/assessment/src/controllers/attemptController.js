@@ -173,22 +173,54 @@ const attemptController = {
 
     /**
      * GET /api/v1/attempts/history
-     * Returns user's quiz attempt history (most recent first)
+     * Returns user's quiz attempt history with quiz metadata (most recent first)
      */
     async getHistory(req, res) {
         try {
             const userId = req.user.userId;
             const limit = Math.min(parseInt(req.query.limit) || 20, 50);
+            const page = Math.max(parseInt(req.query.page) || 1, 1);
+            const skip = (page - 1) * limit;
 
-            const attempts = await QuizAttempt.find({ userId })
-                .sort({ createdAt: -1 })
-                .limit(limit)
-                .lean();
+            const [attempts, total] = await Promise.all([
+                QuizAttempt.find({ userId })
+                    .sort({ createdAt: -1 })
+                    .skip(skip)
+                    .limit(limit)
+                    .lean(),
+                QuizAttempt.countDocuments({ userId })
+            ]);
+
+            // Enrich with quiz metadata from Learning Service
+            const quizIds = [...new Set(attempts.map(a => a.quizId.toString()))];
+            const quizMeta = {};
+            for (const qid of quizIds) {
+                try {
+                    const quiz = await attemptController.getQuizForScoring(qid);
+                    if (quiz) {
+                        quizMeta[qid] = {
+                            title: quiz.title,
+                            subjectName: quiz.subjectName,
+                            lessonId: quiz.lessonId || null
+                        };
+                    }
+                } catch (e) { /* skip if unavailable */ }
+            }
+
+            const enrichedAttempts = attempts.map(a => ({
+                ...a,
+                quizTitle: quizMeta[a.quizId.toString()]?.title || null,
+                subjectName: quizMeta[a.quizId.toString()]?.subjectName || null,
+                lessonId: quizMeta[a.quizId.toString()]?.lessonId || null
+            }));
 
             res.json({
                 success: true,
-                data: attempts,
-                count: attempts.length
+                data: enrichedAttempts,
+                count: enrichedAttempts.length,
+                total,
+                page,
+                totalPages: Math.ceil(total / limit)
             });
         } catch (error) {
             console.error('getHistory failed:', error.message);

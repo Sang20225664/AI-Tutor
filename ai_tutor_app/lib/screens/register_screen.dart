@@ -68,17 +68,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
   void _showErrorDialog(String message) {
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Lỗi'),
-            content: Text(message),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('OK'),
-              ),
-            ],
+      builder: (context) => AlertDialog(
+        title: const Text('Lỗi'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
           ),
+        ],
+      ),
     );
   }
 
@@ -159,10 +158,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               ? Icons.visibility
                               : Icons.visibility_off,
                         ),
-                        onPressed:
-                            () => setState(
-                              () => _obscurePassword = !_obscurePassword,
-                            ),
+                        onPressed: () => setState(
+                          () => _obscurePassword = !_obscurePassword,
+                        ),
                       ),
                       border: const OutlineInputBorder(),
                     ),
@@ -191,12 +189,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               ? Icons.visibility
                               : Icons.visibility_off,
                         ),
-                        onPressed:
-                            () => setState(
-                              () =>
-                                  _obscureConfirmPassword =
-                                      !_obscureConfirmPassword,
-                            ),
+                        onPressed: () => setState(
+                          () => _obscureConfirmPassword =
+                              !_obscureConfirmPassword,
+                        ),
                       ),
                       border: const OutlineInputBorder(),
                     ),
@@ -218,10 +214,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
-                    child:
-                        _isLoading
-                            ? const CircularProgressIndicator()
-                            : const Text('Đăng ký'),
+                    child: _isLoading
+                        ? const CircularProgressIndicator()
+                        : const Text('Đăng ký'),
                   ),
                   const SizedBox(height: 24),
 

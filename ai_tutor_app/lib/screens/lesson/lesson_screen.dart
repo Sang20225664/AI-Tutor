@@ -46,10 +46,9 @@ class _LessonSuggestionScreenState extends State<LessonSuggestionScreen> {
       if (response['success'] == true && response['data'] != null) {
         final suggestionsData = response['data'] as List;
         setState(() {
-          _suggestions =
-              suggestionsData
-                  .map((json) => LessonSuggestion.fromJson(json))
-                  .toList();
+          _suggestions = suggestionsData
+              .map((json) => LessonSuggestion.fromJson(json))
+              .toList();
           _isLoading = false;
         });
       } else {
@@ -78,173 +77,178 @@ class _LessonSuggestionScreenState extends State<LessonSuggestionScreen> {
           ),
         ],
       ),
-      body:
-          _isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : _errorMessage != null
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _errorMessage != null
               ? Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
-                    const SizedBox(height: 16),
-                    Text(
-                      _errorMessage!,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton.icon(
-                      onPressed: _loadSuggestions,
-                      icon: const Icon(Icons.refresh),
-                      label: const Text('Thử lại'),
-                    ),
-                  ],
-                ),
-              )
-              : _suggestions.isEmpty
-              ? Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.lightbulb_outline,
-                      size: 64,
-                      color: Colors.grey,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Chưa có gợi ý bài học cho lớp $_selectedGrade',
-                      style: const TextStyle(fontSize: 18),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              )
-              : Responsive.constrainedContent(
-                context,
-                ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: _suggestions.length,
-                  itemBuilder: (context, index) {
-                    final suggestion = _suggestions[index];
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 16),
-                      elevation: 2,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.error_outline,
+                          size: 64, color: Colors.red[300]),
+                      const SizedBox(height: 16),
+                      Text(
+                        _errorMessage!,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontSize: 16),
                       ),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(16),
-                        onTap: () {
-                          // TODO: Navigate to suggestion detail or lessons
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Chi tiết: ${suggestion.title}'),
-                            ),
-                          );
-                        },
-                        child: Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(16),
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                suggestion.backgroundColor.withOpacity(0.1),
-                                suggestion.backgroundColor.withOpacity(0.05),
-                              ],
-                            ),
+                      const SizedBox(height: 16),
+                      ElevatedButton.icon(
+                        onPressed: _loadSuggestions,
+                        icon: const Icon(Icons.refresh),
+                        label: const Text('Thử lại'),
+                      ),
+                    ],
+                  ),
+                )
+              : _suggestions.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.lightbulb_outline,
+                            size: 64,
+                            color: Colors.grey,
                           ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(20),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.all(12),
-                                      decoration: BoxDecoration(
-                                        color: suggestion.backgroundColor
-                                            .withOpacity(0.2),
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: Icon(
-                                        _getIconData(suggestion.icon),
-                                        size: 28,
-                                        color: suggestion.backgroundColor,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 16),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
+                          const SizedBox(height: 16),
+                          Text(
+                            'Chưa có gợi ý bài học cho lớp $_selectedGrade',
+                            style: const TextStyle(fontSize: 18),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    )
+                  : Responsive.constrainedContent(
+                      context,
+                      ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: _suggestions.length,
+                        itemBuilder: (context, index) {
+                          final suggestion = _suggestions[index];
+                          return Card(
+                            margin: const EdgeInsets.only(bottom: 16),
+                            elevation: 2,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(16),
+                              onTap: () {
+                                // TODO: Navigate to suggestion detail or lessons
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content:
+                                        Text('Chi tiết: ${suggestion.title}'),
+                                  ),
+                                );
+                              },
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(16),
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      suggestion.backgroundColor
+                                          .withOpacity(0.1),
+                                      suggestion.backgroundColor
+                                          .withOpacity(0.05),
+                                    ],
+                                  ),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(20),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
                                         children: [
-                                          Text(
-                                            suggestion.title,
-                                            style: const TextStyle(
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.bold,
+                                          Container(
+                                            padding: const EdgeInsets.all(12),
+                                            decoration: BoxDecoration(
+                                              color: suggestion.backgroundColor
+                                                  .withOpacity(0.2),
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
+                                            child: Icon(
+                                              _getIconData(suggestion.icon),
+                                              size: 28,
+                                              color: suggestion.backgroundColor,
                                             ),
                                           ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            suggestion.subjectName,
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              color: Colors.grey[600],
+                                          const SizedBox(width: 16),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  suggestion.title,
+                                                  style: const TextStyle(
+                                                    fontSize: 18,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 4),
+                                                Text(
+                                                  suggestion.subjectName,
+                                                  style: TextStyle(
+                                                    fontSize: 14,
+                                                    color: Colors.grey[600],
+                                                  ),
+                                                ),
+                                              ],
                                             ),
                                           ),
                                         ],
                                       ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  suggestion.description,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey[700],
-                                    height: 1.5,
+                                      const SizedBox(height: 16),
+                                      Text(
+                                        suggestion.description,
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.grey[700],
+                                          height: 1.5,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      Wrap(
+                                        spacing: 8,
+                                        runSpacing: 8,
+                                        children: [
+                                          _buildChip(
+                                            Icons.signal_cellular_alt,
+                                            suggestion.difficultyText,
+                                            _getDifficultyColor(
+                                              suggestion.difficulty,
+                                            ),
+                                          ),
+                                          _buildChip(
+                                            Icons.access_time,
+                                            '${suggestion.duration} phút',
+                                            Colors.blue.shade100,
+                                          ),
+                                          if (suggestion.topics.isNotEmpty)
+                                            _buildChip(
+                                              Icons.topic,
+                                              '${suggestion.topics.length} chủ đề',
+                                              Colors.purple.shade100,
+                                            ),
+                                        ],
+                                      ),
+                                    ],
                                   ),
                                 ),
-                                const SizedBox(height: 16),
-                                Wrap(
-                                  spacing: 8,
-                                  runSpacing: 8,
-                                  children: [
-                                    _buildChip(
-                                      Icons.signal_cellular_alt,
-                                      suggestion.difficultyText,
-                                      _getDifficultyColor(
-                                        suggestion.difficulty,
-                                      ),
-                                    ),
-                                    _buildChip(
-                                      Icons.access_time,
-                                      '${suggestion.duration} phút',
-                                      Colors.blue.shade100,
-                                    ),
-                                    if (suggestion.topics.isNotEmpty)
-                                      _buildChip(
-                                        Icons.topic,
-                                        '${suggestion.topics.length} chủ đề',
-                                        Colors.purple.shade100,
-                                      ),
-                                  ],
-                                ),
-                              ],
+                              ),
                             ),
-                          ),
-                        ),
+                          );
+                        },
                       ),
-                    );
-                  },
-                ),
-              ),
+                    ),
     );
   }
 

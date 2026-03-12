@@ -36,10 +36,9 @@ class LessonSuggestion {
       id: json['_id']?.toString() ?? '',
       title: json['title']?.toString() ?? '',
       description: json['description']?.toString() ?? '',
-      subjectId:
-          json['subjectId'] is Map
-              ? json['subjectId']['_id']?.toString()
-              : json['subjectId']?.toString(),
+      subjectId: json['subjectId'] is Map
+          ? json['subjectId']['_id']?.toString()
+          : json['subjectId']?.toString(),
       subjectName: json['subjectName']?.toString() ?? '',
       grade: _parseIntSafely(json['grade']),
       topics: _parseListOfStrings(json['topics']),

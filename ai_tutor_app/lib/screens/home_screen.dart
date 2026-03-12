@@ -7,6 +7,7 @@ import 'chat/history_screen.dart';
 import 'lesson/quiz_screen.dart';
 import 'profile_screen.dart';
 import 'subject/subject_screen.dart';
+import 'learning_dashboard_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -145,6 +146,15 @@ class HomeScreen extends StatelessWidget {
                   ),
                   _buildMenuCard(
                     context,
+                    icon: Icons.analytics,
+                    label: 'Bảng điểm học tập',
+                    color: Colors.blue,
+                    onTap: () {
+                      _navigate(context, const LearningDashboardScreen());
+                    },
+                  ),
+                  _buildMenuCard(
+                    context,
                     icon: Icons.menu_book,
                     label: 'Chọn Môn Học',
                     color: Colors.brown,
@@ -166,11 +176,10 @@ class HomeScreen extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder:
-                              (_) => ProfileScreen(
-                                toggleDarkMode: () {},
-                                isDarkMode: false,
-                              ),
+                          builder: (_) => ProfileScreen(
+                            toggleDarkMode: () {},
+                            isDarkMode: false,
+                          ),
                         ),
                       );
                     },

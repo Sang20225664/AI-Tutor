@@ -101,10 +101,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                   final bool isUserMessage = message['role'] == 'user';
 
                   return Align(
-                    alignment:
-                        isUserMessage
-                            ? Alignment.centerRight
-                            : Alignment.centerLeft,
+                    alignment: isUserMessage
+                        ? Alignment.centerRight
+                        : Alignment.centerLeft,
                     child: Container(
                       constraints: BoxConstraints(
                         maxWidth: MediaQuery.of(context).size.width * 0.75,
@@ -112,10 +111,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                       padding: const EdgeInsets.all(12.0),
                       margin: const EdgeInsets.symmetric(vertical: 4.0),
                       decoration: BoxDecoration(
-                        color:
-                            isUserMessage
-                                ? Theme.of(context).primaryColor
-                                : Colors.grey[200],
+                        color: isUserMessage
+                            ? Theme.of(context).primaryColor
+                            : Colors.grey[200],
                         borderRadius: BorderRadius.circular(12.0),
                       ),
                       child: Column(
@@ -133,10 +131,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                           Text(
                             _formatTime(message['timestamp']),
                             style: TextStyle(
-                              color:
-                                  isUserMessage
-                                      ? Colors.white70
-                                      : Colors.black54,
+                              color: isUserMessage
+                                  ? Colors.white70
+                                  : Colors.black54,
                               fontSize: 12.0,
                             ),
                           ),

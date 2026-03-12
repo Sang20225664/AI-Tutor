@@ -63,15 +63,14 @@ class _SelectGradeScreenState extends State<SelectGradeScreen> {
                 decoration: InputDecoration(
                   hintText: 'Tìm kiếm nhanh lớp...',
                   prefixIcon: Icon(Icons.search),
-                  suffixIcon:
-                      searchController.text.isNotEmpty
-                          ? IconButton(
-                            icon: Icon(Icons.clear),
-                            onPressed: () {
-                              searchController.clear();
-                            },
-                          )
-                          : null,
+                  suffixIcon: searchController.text.isNotEmpty
+                      ? IconButton(
+                          icon: Icon(Icons.clear),
+                          onPressed: () {
+                            searchController.clear();
+                          },
+                        )
+                      : null,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -95,32 +94,28 @@ class _SelectGradeScreenState extends State<SelectGradeScreen> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      color:
-                          _selectedGrade == grade
-                              ? Colors.blue[50]
-                              : Colors.white,
+                      color: _selectedGrade == grade
+                          ? Colors.blue[50]
+                          : Colors.white,
                       child: ListTile(
                         leading: Icon(
                           Icons.school,
-                          color:
-                              _selectedGrade == grade
-                                  ? Colors.blue[700]
-                                  : Colors.grey,
+                          color: _selectedGrade == grade
+                              ? Colors.blue[700]
+                              : Colors.grey,
                         ),
                         title: Text(
                           'Lớp $grade',
                           style: TextStyle(
                             fontSize: Responsive.getScaledFontSize(context, 16),
-                            fontWeight:
-                                _selectedGrade == grade
-                                    ? FontWeight.bold
-                                    : FontWeight.normal,
+                            fontWeight: _selectedGrade == grade
+                                ? FontWeight.bold
+                                : FontWeight.normal,
                           ),
                         ),
-                        trailing:
-                            _selectedGrade == grade
-                                ? Icon(Icons.check_circle, color: Colors.green)
-                                : null,
+                        trailing: _selectedGrade == grade
+                            ? Icon(Icons.check_circle, color: Colors.green)
+                            : null,
                         onTap: () {
                           setState(() {
                             _selectedGrade = grade;

@@ -52,12 +52,11 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen>
     try {
       final prefs = await SharedPreferences.getInstance();
       final grade = prefs.getInt('selectedGrade');
-      final response =
-          await ApiService.getLessons(subjectId: widget.subject.id, grade: grade);
+      final response = await ApiService.getLessons(
+          subjectId: widget.subject.id, grade: grade);
       if (response['success'] == true && response['data'] != null) {
         final data = response['data'];
-        final List raw =
-            data is Map ? (data['lessons'] ?? data) : data as List;
+        final List raw = data is Map ? (data['lessons'] ?? data) : data as List;
         setState(() {
           _lessons = raw
               .map((j) => Lesson.fromJson(j as Map<String, dynamic>))
@@ -86,16 +85,14 @@ class _SubjectDetailScreenState extends State<SubjectDetailScreen>
     try {
       final prefs = await SharedPreferences.getInstance();
       final grade = prefs.getInt('selectedGrade');
-      final response =
-          await ApiService.getQuizzes(subjectId: widget.subject.id, grade: grade);
+      final response = await ApiService.getQuizzes(
+          subjectId: widget.subject.id, grade: grade);
       if (response['success'] == true && response['data'] != null) {
         final data = response['data'];
-        final List raw =
-            data is Map ? (data['quizzes'] ?? data) : data as List;
+        final List raw = data is Map ? (data['quizzes'] ?? data) : data as List;
         setState(() {
-          _quizzes = raw
-              .map((j) => Quiz.fromJson(j as Map<String, dynamic>))
-              .toList();
+          _quizzes =
+              raw.map((j) => Quiz.fromJson(j as Map<String, dynamic>)).toList();
           _isLoadingQuizzes = false;
         });
       } else {

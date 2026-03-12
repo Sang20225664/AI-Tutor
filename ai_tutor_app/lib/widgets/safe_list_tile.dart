@@ -26,14 +26,13 @@ class SafeListTile extends StatelessWidget {
     final vertical = isDesktop ? 16.0 : 8.0;
 
     return ListTile(
-      leading:
-          leading != null
-              ? SizedBox(
-                width: isDesktop ? 56 : 40,
-                height: isDesktop ? 56 : 40,
-                child: Center(child: leading),
-              )
-              : null,
+      leading: leading != null
+          ? SizedBox(
+              width: isDesktop ? 56 : 40,
+              height: isDesktop ? 56 : 40,
+              child: Center(child: leading),
+            )
+          : null,
       title: _wrapWithResponsiveText(context, title),
       subtitle: _wrapWithResponsiveText(
         context,
@@ -43,8 +42,7 @@ class SafeListTile extends StatelessWidget {
       ),
       trailing: trailing,
       onTap: onTap,
-      contentPadding:
-          contentPadding ??
+      contentPadding: contentPadding ??
           EdgeInsets.symmetric(horizontal: horizontal, vertical: vertical),
       dense: !isDesktop,
     );

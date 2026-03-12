@@ -236,6 +236,32 @@ class ApiService {
     });
   }
 
+  // AI Quiz Generation
+  static Future<Map<String, dynamic>> generateQuiz({
+    required String lessonId,
+    String difficulty = 'medium',
+    int questionCount = 5,
+  }) async {
+    return post('generate-quiz', {
+      'lessonId': lessonId,
+      'difficulty': difficulty,
+      'questionCount': questionCount,
+    });
+  }
+
+  // Quiz History
+  static Future<Map<String, dynamic>> getQuizHistory({
+    int page = 1,
+    int limit = 20,
+  }) async {
+    return get('quiz-history?page=$page&limit=$limit');
+  }
+
+  // Progress Dashboard
+  static Future<Map<String, dynamic>> getProgressSummary() async {
+    return get('progress/summary');
+  }
+
   // Lesson APIs
   static Future<Map<String, dynamic>> getLessons({
     int? grade,

@@ -60,7 +60,8 @@ class _QuizScreenState extends State<QuizScreen> {
 
       if (response['success'] == true && response['data'] != null) {
         final data = response['data'];
-        final quizzesData = data is Map ? (data['quizzes'] ?? data) as List : data as List;
+        final quizzesData =
+            data is Map ? (data['quizzes'] ?? data) as List : data as List;
 
         // Đọc grade đã chọn từ SharedPreferences
         final prefs = await SharedPreferences.getInstance();

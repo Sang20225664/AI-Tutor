@@ -93,21 +93,19 @@ class _HistoryScreenState extends State<HistoryScreen> {
     await Navigator.push(
       context,
       MaterialPageRoute(
-        builder:
-            (context) => ChatDetailScreen(
-              chatId: chatSession['_id'],
-              initialMessages:
-                  (chatSession['messages'] as List)
-                      .map(
-                        (msg) => {
-                          'role': msg['role'],
-                          'content': msg['content'],
-                          'timestamp': msg['timestamp'],
-                        },
-                      )
-                      .toList(),
-              chatTitle: chatSession['title'] ?? 'Chat',
-            ),
+        builder: (context) => ChatDetailScreen(
+          chatId: chatSession['_id'],
+          initialMessages: (chatSession['messages'] as List)
+              .map(
+                (msg) => {
+                  'role': msg['role'],
+                  'content': msg['content'],
+                  'timestamp': msg['timestamp'],
+                },
+              )
+              .toList(),
+          chatTitle: chatSession['title'] ?? 'Chat',
+        ),
       ),
     );
     // Refresh history when returning from chat detail
@@ -218,26 +216,25 @@ class _HistoryScreenState extends State<HistoryScreen> {
             confirmDismiss: (direction) async {
               return await showDialog(
                 context: context,
-                builder:
-                    (context) => AlertDialog(
-                      title: const Text('Delete Chat'),
-                      content: const Text(
-                        'Are you sure you want to delete this chat?',
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.of(context).pop(false),
-                          child: const Text('Cancel'),
-                        ),
-                        TextButton(
-                          onPressed: () => Navigator.of(context).pop(true),
-                          child: const Text(
-                            'Delete',
-                            style: TextStyle(color: Colors.red),
-                          ),
-                        ),
-                      ],
+                builder: (context) => AlertDialog(
+                  title: const Text('Delete Chat'),
+                  content: const Text(
+                    'Are you sure you want to delete this chat?',
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(false),
+                      child: const Text('Cancel'),
                     ),
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(true),
+                      child: const Text(
+                        'Delete',
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    ),
+                  ],
+                ),
               );
             },
             onDismissed: (direction) => _deleteChat(chatId),

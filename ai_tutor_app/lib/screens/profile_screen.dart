@@ -101,19 +101,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     backgroundColor: Colors.grey[300],
                     backgroundImage:
                         _avatarUrl.isNotEmpty ? NetworkImage(_avatarUrl) : null,
-                    child:
-                        _avatarUrl.isEmpty
-                            ? Icon(
-                              _isGuest ? Icons.person_outline : Icons.person,
-                              size: Responsive.getValue(
-                                context,
-                                mobile: 35,
-                                tablet: 45,
-                                desktop: 55,
-                              ),
-                              color: Colors.grey[600],
-                            )
-                            : null,
+                    child: _avatarUrl.isEmpty
+                        ? Icon(
+                            _isGuest ? Icons.person_outline : Icons.person,
+                            size: Responsive.getValue(
+                              context,
+                              mobile: 35,
+                              tablet: 45,
+                              desktop: 55,
+                            ),
+                            color: Colors.grey[600],
+                          )
+                        : null,
                   ),
                   const SizedBox(width: 16),
                   Expanded(
@@ -309,87 +308,85 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Chỉnh sửa thông tin'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: usernameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Tên người dùng',
-                    prefixIcon: Icon(Icons.person),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: emailController,
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
-                    prefixIcon: Icon(Icons.email),
-                  ),
-                ),
-              ],
+      builder: (context) => AlertDialog(
+        title: const Text('Chỉnh sửa thông tin'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: usernameController,
+              decoration: const InputDecoration(
+                labelText: 'Tên người dùng',
+                prefixIcon: Icon(Icons.person),
+              ),
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Hủy'),
+            const SizedBox(height: 16),
+            TextField(
+              controller: emailController,
+              decoration: const InputDecoration(
+                labelText: 'Email',
+                prefixIcon: Icon(Icons.email),
               ),
-              TextButton(
-                onPressed: () async {
-                  final prefs = await SharedPreferences.getInstance();
-                  await prefs.setString('username', usernameController.text);
-                  await prefs.setString('email', emailController.text);
-
-                  setState(() {
-                    _username = usernameController.text;
-                    _email = emailController.text;
-                  });
-
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Cập nhật thông tin thành công'),
-                    ),
-                  );
-                },
-                child: const Text('Lưu'),
-              ),
-            ],
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Hủy'),
           ),
+          TextButton(
+            onPressed: () async {
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.setString('username', usernameController.text);
+              await prefs.setString('email', emailController.text);
+
+              setState(() {
+                _username = usernameController.text;
+                _email = emailController.text;
+              });
+
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Cập nhật thông tin thành công'),
+                ),
+              );
+            },
+            child: const Text('Lưu'),
+          ),
+        ],
+      ),
     );
   }
 
   void _showLogoutDialog() {
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: Text(_isGuest ? 'Đăng nhập' : 'Xác nhận đăng xuất'),
-            content: Text(
-              _isGuest
-                  ? 'Bạn có muốn đăng nhập để sử dụng đầy đủ tính năng?'
-                  : 'Bạn có chắc chắn muốn đăng xuất?',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Hủy'),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  _logout();
-                },
-                child: Text(
-                  _isGuest ? 'Đăng nhập' : 'Đăng xuất',
-                  style: const TextStyle(color: Colors.red),
-                ),
-              ),
-            ],
+      builder: (context) => AlertDialog(
+        title: Text(_isGuest ? 'Đăng nhập' : 'Xác nhận đăng xuất'),
+        content: Text(
+          _isGuest
+              ? 'Bạn có muốn đăng nhập để sử dụng đầy đủ tính năng?'
+              : 'Bạn có chắc chắn muốn đăng xuất?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Hủy'),
           ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _logout();
+            },
+            child: Text(
+              _isGuest ? 'Đăng nhập' : 'Đăng xuất',
+              style: const TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -103,45 +103,43 @@ class _LoginScreenState extends State<LoginScreen> {
   void _showErrorDialog(String message) {
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Lỗi'),
-            content: Text(message),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('OK'),
-              ),
-            ],
+      builder: (context) => AlertDialog(
+        title: const Text('Lỗi'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
           ),
+        ],
+      ),
     );
   }
 
   void _showFeatureNotAvailableDialog(String feature, String message) {
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: Text(feature),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.info_outline,
-                  size: 48,
-                  color: Theme.of(context).primaryColor,
-                ),
-                const SizedBox(height: 16),
-                Text(message),
-              ],
+      builder: (context) => AlertDialog(
+        title: Text(feature),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.info_outline,
+              size: 48,
+              color: Theme.of(context).primaryColor,
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Đã hiểu'),
-              ),
-            ],
+            const SizedBox(height: 16),
+            Text(message),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Đã hiểu'),
           ),
+        ],
+      ),
     );
   }
 
@@ -227,10 +225,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ? Icons.visibility
                                 : Icons.visibility_off,
                           ),
-                          onPressed:
-                              () => setState(
-                                () => _obscurePassword = !_obscurePassword,
-                              ),
+                          onPressed: () => setState(
+                            () => _obscurePassword = !_obscurePassword,
+                          ),
                         ),
                         border: const OutlineInputBorder(),
                       ),
@@ -249,10 +246,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
-                      child:
-                          _isLoading
-                              ? const CircularProgressIndicator()
-                              : const Text('Đăng nhập'),
+                      child: _isLoading
+                          ? const CircularProgressIndicator()
+                          : const Text('Đăng nhập'),
                     ),
                     const SizedBox(height: 16),
 
@@ -303,8 +299,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
                     // Register link
                     TextButton(
-                      onPressed:
-                          () => Navigator.of(context).pushNamed('/register'),
+                      onPressed: () =>
+                          Navigator.of(context).pushNamed('/register'),
                       child: const Text('Chưa có tài khoản? Đăng ký ngay'),
                     ),
                   ],
