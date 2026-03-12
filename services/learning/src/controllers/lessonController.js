@@ -27,6 +27,18 @@ const lessonController = {
         } catch (err) {
             res.status(500).json({ success: false, message: err.message });
         }
+    },
+
+    // Internal endpoint — AI service calls this to get full lesson content
+    async getLessonInternal(req, res) {
+        try {
+            const Lesson = require('../models/Lesson');
+            const lesson = await Lesson.findById(req.params.id);
+            if (!lesson) return res.status(404).json({ success: false, message: 'Lesson not found' });
+            res.json({ success: true, data: lesson });
+        } catch (err) {
+            res.status(500).json({ success: false, message: err.message });
+        }
     }
 };
 

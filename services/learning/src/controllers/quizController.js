@@ -40,6 +40,18 @@ const quizController = {
         } catch (err) {
             res.status(500).json({ found: false, message: err.message });
         }
+    },
+
+    // Internal endpoint — AI service calls this to save generated quizzes
+    async createQuiz(req, res) {
+        try {
+            const Quiz = require('../models/Quiz');
+            const quiz = new Quiz(req.body);
+            await quiz.save();
+            res.status(201).json({ success: true, data: quiz });
+        } catch (err) {
+            res.status(500).json({ success: false, message: err.message });
+        }
     }
 };
 

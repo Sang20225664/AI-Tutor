@@ -32,6 +32,27 @@ const generateChatResponse = async (messages, systemPromptContext = '') => {
     }
 };
 
+/**
+ * Generate structured quiz content from a prompt.
+ * Uses lower temperature for more consistent, parseable JSON output.
+ */
+const generateQuizContent = async (prompt) => {
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: [{ role: 'user', parts: [{ text: prompt }] }],
+            config: {
+                temperature: 0.3, // Lower temperature for consistent JSON
+            }
+        });
+        return response.text;
+    } catch (error) {
+        console.error('❌ Gemini Quiz Generation Error:', error);
+        throw new Error('Failed to generate quiz from AI');
+    }
+};
+
 module.exports = {
-    generateChatResponse
+    generateChatResponse,
+    generateQuizContent
 };

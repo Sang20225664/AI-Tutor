@@ -19,7 +19,43 @@ const getContextForAi = async (lessonId) => {
         return '';
     }
 };
+/**
+ * Fetch full lesson data by ID (for quiz generation)
+ */
+const getLessonById = async (lessonId, requestId) => {
+    try {
+        const response = await axios.get(`${LEARNING_SERVICE_URL}/internal/lessons/${lessonId}`, {
+            headers: requestId ? { 'x-request-id': requestId } : {},
+            timeout: 5000
+        });
+        return response.data.data;
+    } catch (error) {
+        console.error(`❌ Failed to fetch lesson ${lessonId}:`, error.message);
+        throw new Error(`Lesson not found or Learning Service unavailable`);
+    }
+};
+
+/**
+ * Save AI-generated quiz to Learning Service
+ */
+const saveQuiz = async (quizData, requestId) => {
+    try {
+        const response = await axios.post(`${LEARNING_SERVICE_URL}/internal/quizzes`, quizData, {
+            headers: {
+                'Content-Type': 'application/json',
+                ...(requestId ? { 'x-request-id': requestId } : {})
+            },
+            timeout: 5000
+        });
+        return response.data.data;
+    } catch (error) {
+        console.error('❌ Failed to save quiz:', error.message);
+        throw new Error('Failed to save generated quiz');
+    }
+};
 
 module.exports = {
-    getContextForAi
+    getContextForAi,
+    getLessonById,
+    saveQuiz
 };

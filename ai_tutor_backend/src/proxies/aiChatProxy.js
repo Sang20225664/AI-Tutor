@@ -59,6 +59,9 @@ async function proxyAiChat(req, res, targetPath) {
 router.post('/chat', (req, res) => proxyAiChat(req, res, '/api/v1/ai/messages'));
 router.post('/gemini/chat', (req, res) => proxyAiChat(req, res, '/api/v1/ai/messages'));
 
+// Proxy /api/generate-quiz POST -> AI Chat Service /api/v1/ai/generate-quiz
+router.post('/generate-quiz', (req, res) => proxyAiChat(req, res, '/api/v1/ai/generate-quiz'));
+
 // Proxy /api/chat-history GET -> AI Chat Service /api/v1/ai/conversations
 router.get('/chat-history', (req, res) => proxyAiChat(req, res, '/api/v1/ai/conversations'));
 router.get('/chats', (req, res) => proxyAiChat(req, res, '/api/v1/ai/conversations'));

@@ -47,8 +47,11 @@ app.use('/api/v1/subjects', subjectRoutes);
 app.use('/api/v1/lessons', lessonRoutes);
 app.use('/api/v1/quizzes', quizRoutes);
 
-// Internal API — service-to-service (Assessment calls this)
+// Internal API — service-to-service
+const lessonController = require('./src/controllers/lessonController');
 app.get('/internal/quizzes/:id', quizController.getByIdInternal);
+app.post('/internal/quizzes', quizController.createQuiz);          // AI Service saves quiz
+app.get('/internal/lessons/:id', lessonController.getLessonInternal); // AI Service fetches lesson
 
 // Connect to MongoDB and start server
 mongoose.set('strictQuery', false);
