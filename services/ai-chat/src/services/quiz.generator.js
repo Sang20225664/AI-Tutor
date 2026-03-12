@@ -7,9 +7,20 @@ const logger = require('../config/logger');
  * Flow: Fetch Lesson → Prompt Gemini → Parse JSON → Save Quiz to Learning DB
  */
 const generateQuiz = async ({ lessonId, difficulty = 'medium', questionCount = 5 }, requestId) => {
-    // 1️⃣ Fetch lesson content from Learning Service
+    // 1️⃣ Fetch lesson content from Learning Service (with 1 retry)
     logger.info(`Fetching lesson ${lessonId} for quiz generation`, { headers: { 'x-request-id': requestId } });
-    const lesson = await learningClient.getLessonById(lessonId, requestId);
+    let lesson;
+    try {
+        lesson = await learningClient.getLessonById(lessonId, requestId);
+    } catch (firstErr) {
+        logger.warn(`Retry fetching lesson ${lessonId}...`, { headers: { 'x-request-id': requestId } });
+        lesson = await learningClient.getLessonById(lessonId, requestId); // 1 retry
+    }
+
+    // Validate lesson has content
+    if (!lesson || !lesson.content || lesson.content.trim().length === 0) {
+        throw new Error('Lesson content is empty — cannot generate quiz');
+    }
 
     // 2️⃣ Build prompt — limit content to 5000 chars to avoid token overflow
     const lessonContent = (lesson.content || '').slice(0, 5000);

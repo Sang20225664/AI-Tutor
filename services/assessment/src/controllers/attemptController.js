@@ -124,20 +124,26 @@ const attemptController = {
             console.log(`Quiz scored for user ${userId}: ${score}%`);
 
             // 4. Update Progress associated with the lesson
-            // We need to look up the lesson using the quiz title prefix
-            const lessonTitle = quiz.title.replace(/^Quiz:\s*/, '');
             try {
-                // Assessment service doesn't have Lesson DB. It must call Learning Service to find lesson by title and subjectName.
-                // Or wait, progress update requires `lessonId`!
-                const lessonsResponse = await axios.get(`${LEARNING_SERVICE_URL}/api/v1/lessons`, {
-                    params: { subjectName: quiz.subjectName },
-                    timeout: 3000
-                });
-                const lessons = lessonsResponse.data.data || [];
-                const lesson = lessons.find(l => l.title === lessonTitle);
+                let lessonId = null;
 
-                if (lesson) {
-                    await progressController.internalUpdateProgress(userId, lesson._id, score);
+                // AI-generated quizzes have lessonId directly on the quiz
+                if (quiz.lessonId) {
+                    lessonId = quiz.lessonId;
+                } else {
+                    // Seed quizzes: try to find lesson by title matching (legacy)
+                    const lessonTitle = quiz.title.replace(/^Quiz:\s*/, '');
+                    const lessonsResponse = await axios.get(`${LEARNING_SERVICE_URL}/api/v1/lessons`, {
+                        params: { subjectName: quiz.subjectName },
+                        timeout: 3000
+                    });
+                    const lessons = lessonsResponse.data.data || [];
+                    const lesson = lessons.find(l => l.title === lessonTitle);
+                    if (lesson) lessonId = lesson._id;
+                }
+
+                if (lessonId) {
+                    await progressController.internalUpdateProgress(userId, lessonId, score);
                 } else {
                     console.warn(`No matching lesson found for quiz "${quiz.title}" to update progress`);
                 }
@@ -162,6 +168,31 @@ const attemptController = {
         } catch (error) {
             console.error("Quiz submission error:", error);
             res.status(500).json({ success: false, message: "Server error" });
+        }
+    },
+
+    /**
+     * GET /api/v1/attempts/history
+     * Returns user's quiz attempt history (most recent first)
+     */
+    async getHistory(req, res) {
+        try {
+            const userId = req.user.userId;
+            const limit = Math.min(parseInt(req.query.limit) || 20, 50);
+
+            const attempts = await QuizAttempt.find({ userId })
+                .sort({ createdAt: -1 })
+                .limit(limit)
+                .lean();
+
+            res.json({
+                success: true,
+                data: attempts,
+                count: attempts.length
+            });
+        } catch (error) {
+            console.error('getHistory failed:', error.message);
+            res.status(500).json({ success: false, message: 'Failed to fetch attempt history' });
         }
     }
 };

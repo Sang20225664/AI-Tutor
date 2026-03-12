@@ -6,6 +6,7 @@ const auth = require('../middleware/auth');
 
 // === Quiz Attempts ===
 router.post('/attempts/quiz/:id/submit', auth, attemptController.submitQuiz);
+router.get('/attempts/history', auth, attemptController.getHistory);
 
 // === Progress Tracking ===
 router.get('/progress/summary', auth, progressController.getProgressSummary);

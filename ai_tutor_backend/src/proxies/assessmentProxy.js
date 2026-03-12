@@ -55,4 +55,9 @@ router.post('/quizzes/:id/submit', auth, (req, res) => {
     proxyRequest(req, res, `/api/v1/attempts/quiz/${req.params.id}/submit`);
 });
 
+// Quiz Attempt History
+router.get('/quiz-history', auth, (req, res) => {
+    proxyRequest(req, res, '/api/v1/attempts/history');
+});
+
 module.exports = router;

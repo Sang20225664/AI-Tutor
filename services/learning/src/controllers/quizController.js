@@ -31,6 +31,7 @@ const quizController = {
                 _id: quiz._id,
                 title: quiz.title,
                 subjectName: quiz.subjectName,
+                lessonId: quiz.lessonId || null, // AI quizzes have lessonId
                 questions: quiz.questions.map(q => ({
                     answer: q.answer
                 }))
