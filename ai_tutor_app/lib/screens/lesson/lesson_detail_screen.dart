@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ai_tutor_app/models/lesson.dart';
 import 'package:markdown_widget/markdown_widget.dart';
 import 'package:ai_tutor_app/services/api_service.dart';
+import '../flashcard/flashcard_screen.dart';
 import 'leson_theory_screen.dart';
 import 'quiz_screen.dart';
 
@@ -119,11 +120,21 @@ class LessonDetailScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
-            if (lesson.id != null)
-              SizedBox(
-                width: double.infinity,
-                child: _GenerateQuizButton(lessonId: lesson.id!),
+            if (lesson.id != null) ...[
+              const SizedBox(height: 24),
+              const Row(
+                children: [
+                  Icon(Icons.auto_awesome, color: Colors.purple, size: 20),
+                  SizedBox(width: 8),
+                  Text(
+                    'AI Personalization',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.purple),
+                  ),
+                ],
               ),
+              const SizedBox(height: 16),
+              _AiActionButtons(lesson: lesson),
+            ]
           ],
         ),
       ),
@@ -163,72 +174,259 @@ class _InfoChip extends StatelessWidget {
   }
 }
 
-class _GenerateQuizButton extends StatefulWidget {
-  final String lessonId;
+class _AiActionButtons extends StatefulWidget {
+  final Lesson lesson;
 
-  const _GenerateQuizButton({required this.lessonId});
+  const _AiActionButtons({required this.lesson});
 
   @override
-  State<_GenerateQuizButton> createState() => _GenerateQuizButtonState();
+  State<_AiActionButtons> createState() => _AiActionButtonsState();
 }
 
-class _GenerateQuizButtonState extends State<_GenerateQuizButton> {
-  bool _isLoading = false;
+class _AiActionButtonsState extends State<_AiActionButtons> {
+  bool _isLoadingQuiz = false;
+  bool _isLoadingAdaptive = false;
+  bool _isLoadingFlashcards = false;
+  bool _isLoadingSummary = false;
+
+  void _showError(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
 
   Future<void> _generateQuiz() async {
-    setState(() => _isLoading = true);
+    setState(() => _isLoadingQuiz = true);
     try {
-      final response = await ApiService.generateQuiz(
-        lessonId: widget.lessonId,
-        difficulty: 'medium',
-        questionCount: 5,
-      );
-
+      final response = await ApiService.generateQuiz(lessonId: widget.lesson.id!);
       if (!mounted) return;
-
       if (response['success'] == true && response['data'] != null) {
         final quizId = response['data']['_id'];
         if (quizId != null) {
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) => QuizScreen(quizId: quizId),
-            ),
+            MaterialPageRoute(builder: (_) => QuizScreen(quizId: quizId)),
           );
         }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(response['message'] ?? 'Lỗi khi tạo quiz AI')),
-        );
+        _showError(response['message'] ?? 'Lỗi khi tạo quiz AI');
       }
     } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Có lỗi xảy ra: $e')),
-      );
+      _showError('Có lỗi xảy ra: $e');
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoadingQuiz = false);
     }
+  }
+
+  Future<void> _generateAdaptiveQuiz() async {
+    setState(() => _isLoadingAdaptive = true);
+    try {
+      final response = await ApiService.generateAdaptiveQuiz();
+      if (!mounted) return;
+      
+      if (response['success'] == true && response['data'] != null) {
+        // If data is empty list, it means no weak topics
+        if (response['data'] is List && (response['data'] as List).isEmpty) {
+          _showError(response['message'] ?? 'Bạn đang rất tốt, không có chủ đề yếu nào!');
+          return;
+        }
+
+        final quizId = response['data']['_id'];
+        if (quizId != null) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => QuizScreen(quizId: quizId)),
+          );
+        }
+      } else {
+        _showError(response['message'] ?? 'Lỗi khi tạo adaptive quiz AI');
+      }
+    } catch (e) {
+      _showError('Có lỗi xảy ra: $e');
+    } finally {
+      if (mounted) setState(() => _isLoadingAdaptive = false);
+    }
+  }
+
+  Future<void> _generateFlashcards() async {
+    setState(() => _isLoadingFlashcards = true);
+    try {
+      final response = await ApiService.generateFlashcards(lessonId: widget.lesson.id!);
+      if (!mounted) return;
+      
+      if (response['success'] == true && response['data'] != null) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => FlashcardScreen(
+              lesson: widget.lesson,
+              flashcardsData: response['data'],
+            ),
+          ),
+        );
+      } else {
+        _showError(response['message'] ?? 'Lỗi khi tạo flashcards');
+      }
+    } catch (e) {
+      _showError('Có lỗi xảy ra: $e');
+    } finally {
+      if (mounted) setState(() => _isLoadingFlashcards = false);
+    }
+  }
+
+  Future<void> _generateSummary() async {
+    setState(() => _isLoadingSummary = true);
+    try {
+      final response = await ApiService.summarizeLesson(lessonId: widget.lesson.id!);
+      if (!mounted) return;
+      
+      if (response['success'] == true && response['data'] != null) {
+        final summaryList = List<String>.from(response['data']['summary'] ?? []);
+        _showSummaryBottomSheet(summaryList);
+      } else {
+        _showError(response['message'] ?? 'Lỗi khi tóm tắt');
+      }
+    } catch (e) {
+      _showError('Có lỗi xảy ra: $e');
+    } finally {
+      if (mounted) setState(() => _isLoadingSummary = false);
+    }
+  }
+
+  void _showSummaryBottomSheet(List<String> summaryPoints) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.6,
+        minChildSize: 0.4,
+        maxChildSize: 0.9,
+        builder: (context, scrollController) => Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            children: [
+              Container(
+                margin: const EdgeInsets.symmetric(vertical: 12),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Row(
+                  children: [
+                    const Icon(Icons.auto_awesome, color: Colors.purple),
+                    const SizedBox(width: 8),
+                    const Text('AI Summary', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    const Spacer(),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(height: 1),
+              Expanded(
+                child: ListView.separated(
+                  controller: scrollController,
+                  padding: const EdgeInsets.all(16),
+                  itemCount: summaryPoints.length,
+                  separatorBuilder: (context, index) => const SizedBox(height: 12),
+                  itemBuilder: (context, index) {
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('•', style: TextStyle(fontSize: 18, color: Colors.purple, fontWeight: FontWeight.bold)),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            summaryPoints[index],
+                            style: const TextStyle(fontSize: 15, height: 1.5),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionButton({
+    required String title,
+    required IconData icon,
+    required VoidCallback onPressed,
+    required bool isLoading,
+    required Color color,
+  }) {
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        onPressed: isLoading ? null : onPressed,
+        icon: isLoading
+            ? SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: color))
+            : Icon(icon, color: color),
+        label: Text(
+          isLoading ? 'Đang xử lý...' : title,
+          style: TextStyle(color: color, fontWeight: FontWeight.bold),
+        ),
+        style: OutlinedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          side: BorderSide(color: color.withOpacity(0.5)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          backgroundColor: color.withOpacity(0.05),
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return OutlinedButton.icon(
-      onPressed: _isLoading ? null : _generateQuiz,
-      icon: _isLoading
-          ? const SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            )
-          : const Icon(Icons.auto_awesome),
-      label: Text(
-          _isLoading ? 'Gợi ý: đang tạo bằng Gemini AI...' : 'Tạo Quiz AI'),
-      style: OutlinedButton.styleFrom(
-        padding: const EdgeInsets.all(16),
-        foregroundColor: Colors.purple[700],
-        side: BorderSide(color: Colors.purple[300]!),
-      ),
+    return Column(
+      children: [
+        _buildActionButton(
+          title: 'Tạo Quiz AI',
+          icon: Icons.quiz,
+          isLoading: _isLoadingQuiz,
+          color: Colors.blue[700]!,
+          onPressed: _generateQuiz,
+        ),
+        const SizedBox(height: 12),
+        _buildActionButton(
+          title: 'Luyện tập phần yếu',
+          icon: Icons.fitness_center,
+          isLoading: _isLoadingAdaptive,
+          color: Colors.orange[700]!,
+          onPressed: _generateAdaptiveQuiz,
+        ),
+        const SizedBox(height: 12),
+        _buildActionButton(
+          title: 'Flashcards',
+          icon: Icons.style,
+          isLoading: _isLoadingFlashcards,
+          color: Colors.green[700]!,
+          onPressed: _generateFlashcards,
+        ),
+        const SizedBox(height: 12),
+        _buildActionButton(
+          title: 'Tóm tắt bài học',
+          icon: Icons.summarize,
+          isLoading: _isLoadingSummary,
+          color: Colors.purple[700]!,
+          onPressed: _generateSummary,
+        ),
+      ],
     );
   }
 }

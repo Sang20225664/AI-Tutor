@@ -249,6 +249,39 @@ class ApiService {
     });
   }
 
+  // Phase 2: AI Personalization
+  static Future<Map<String, dynamic>> generateAdaptiveQuiz({
+    String difficulty = 'medium',
+    int questionCount = 5,
+  }) async {
+    return post('adaptive-quiz', {
+      'difficulty': difficulty,
+      'questionCount': questionCount,
+    });
+  }
+
+  static Future<Map<String, dynamic>> generateFlashcards({
+    required String lessonId,
+    int count = 10,
+  }) async {
+    return post('generate-flashcards', {
+      'lessonId': lessonId,
+      'count': count,
+    });
+  }
+
+  static Future<Map<String, dynamic>> summarizeLesson({
+    required String lessonId,
+  }) async {
+    return post('summarize', {
+      'lessonId': lessonId,
+    });
+  }
+
+  static Future<Map<String, dynamic>> getWeakTopics() async {
+    return get('weak-topics');
+  }
+
   // Quiz History
   static Future<Map<String, dynamic>> getQuizHistory({
     int page = 1,

@@ -17,6 +17,7 @@ class _LearningDashboardScreenState extends State<LearningDashboardScreen> {
 
   Map<String, dynamic>? _progressSummary;
   List<dynamic> _quizHistory = [];
+  List<dynamic> _weakTopics = [];
 
   @override
   void initState() {
@@ -34,15 +35,20 @@ class _LearningDashboardScreenState extends State<LearningDashboardScreen> {
       final futures = await Future.wait([
         ApiService.getProgressSummary(),
         ApiService.getQuizHistory(page: 1, limit: 10),
+        ApiService.getWeakTopics(),
       ]);
 
       final progressData = futures[0];
       final historyData = futures[1];
+      final weakTopicsData = futures[2];
 
       if (progressData['success'] == true && historyData['success'] == true) {
         setState(() {
           _progressSummary = progressData['data'];
           _quizHistory = historyData['data'] ?? [];
+          _weakTopics = (weakTopicsData['success'] == true) 
+              ? (weakTopicsData['data'] ?? []) 
+              : [];
           _isLoading = false;
         });
       } else {
@@ -97,6 +103,16 @@ class _LearningDashboardScreenState extends State<LearningDashboardScreen> {
                       children: [
                         _buildOverviewCards(),
                         const SizedBox(height: 24),
+                        if (_weakTopics.isNotEmpty) ...[
+                          const Text(
+                            'Chủ đề cần cải thiện',
+                            style: TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 12),
+                          _buildWeakTopics(),
+                          const SizedBox(height: 24),
+                        ],
                         const Text(
                           'Lịch sử làm bài',
                           style: TextStyle(
@@ -132,6 +148,47 @@ class _LearningDashboardScreenState extends State<LearningDashboardScreen> {
         _buildStatCard('Tiến độ', '${overview['completionRate']}%',
             Icons.trending_up, Colors.purple),
       ],
+    );
+  }
+
+  Widget _buildWeakTopics() {
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: _weakTopics.length,
+      itemBuilder: (context, index) {
+        final topic = _weakTopics[index];
+        final accuracy = (topic['accuracy'] as num).toDouble();
+        
+        return Card(
+          elevation: 1,
+          margin: const EdgeInsets.only(bottom: 8),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(color: Colors.orange.shade200)),
+          child: ListTile(
+            leading: const Icon(Icons.warning_amber_rounded, color: Colors.orange),
+            title: Text(
+              topic['lessonTitle'] ?? 'Chủ đề',
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            trailing: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.red.shade50,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                '${accuracy.toStringAsFixed(0)}%',
+                style: TextStyle(
+                  color: Colors.red.shade700,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
