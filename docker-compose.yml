@@ -151,6 +151,7 @@ services:
       - PORT=3004
       - MONGO_URI=mongodb://mongo:27017/ai_chat_db
       - LEARNING_SERVICE_URL=http://learning:3002
+      - ASSESSMENT_SERVICE_URL=http://assessment:3003
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - JWT_SECRET=${JWT_SECRET}
       - NODE_ENV=production

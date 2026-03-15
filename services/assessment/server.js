@@ -16,7 +16,7 @@ app.use(cors());
 
 // Request logging middleware
 app.use((req, res, next) => {
-    logger.info(`${req.method} ${req.url}`, req);
+    logger.info(`${req.method} ${req.url}`);
     next();
 });
 
@@ -39,8 +39,12 @@ app.get('/ready', (req, res) => {
     }
 });
 
-// Public API routes
+// Public API routes (JWT auth required)
 app.use('/api/v1', assessmentRoutes);
+
+// Internal routes (no JWT auth — service-to-service only)
+const analysisController = require('./src/controllers/analysisController');
+app.get('/internal/analysis/weak-topics', analysisController.getWeakTopics);
 
 // Connect to MongoDB and start server
 mongoose.set('strictQuery', false);

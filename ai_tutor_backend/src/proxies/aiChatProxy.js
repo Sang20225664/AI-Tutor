@@ -62,6 +62,11 @@ router.post('/gemini/chat', (req, res) => proxyAiChat(req, res, '/api/v1/ai/mess
 // Proxy /api/generate-quiz POST -> AI Chat Service /api/v1/ai/generate-quiz
 router.post('/generate-quiz', (req, res) => proxyAiChat(req, res, '/api/v1/ai/generate-quiz'));
 
+// Phase 2: AI Personalization
+router.post('/adaptive-quiz', (req, res) => proxyAiChat(req, res, '/api/v1/ai/adaptive-quiz'));
+router.post('/generate-flashcards', (req, res) => proxyAiChat(req, res, '/api/v1/ai/generate-flashcards'));
+router.post('/summarize', (req, res) => proxyAiChat(req, res, '/api/v1/ai/summarize'));
+
 // Proxy /api/chat-history GET -> AI Chat Service /api/v1/ai/conversations
 router.get('/chat-history', (req, res) => proxyAiChat(req, res, '/api/v1/ai/conversations'));
 router.get('/chats', (req, res) => proxyAiChat(req, res, '/api/v1/ai/conversations'));

@@ -92,14 +92,6 @@ app.use((req, res, next) => {
 
   // Write to stderr (which is captured by kubectl logs)
   process.stderr.write(logMsg + ' - START\n');
-
-  // Log response
-  const originalSend = res.send;
-  res.send = function (data) {
-    process.stderr.write(logMsg + ` - ${res.statusCode} - END\n`);
-    return originalSend.call(this, data);
-  };
-
   next();
 });
 

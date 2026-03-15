@@ -60,4 +60,9 @@ router.get('/quiz-history', auth, (req, res) => {
     proxyRequest(req, res, '/api/v1/attempts/history');
 });
 
+// Weak Topic Analysis
+router.get('/weak-topics', auth, (req, res) => {
+    proxyRequest(req, res, '/api/v1/analysis/weak-topics');
+});
+
 module.exports = router;

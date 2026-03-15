@@ -8,7 +8,7 @@ const quizSchema = new mongoose.Schema({
     lessonId: { type: mongoose.Schema.Types.ObjectId, ref: "Lesson" }, // Link to source lesson (AI quizzes)
     grade: [{ type: Number }], // Grades this quiz is for
     difficulty: { type: String, enum: ["easy", "medium", "hard"], default: "medium" },
-    generatedBy: { type: String, enum: ["seed", "AI"], default: "seed" }, // Origin of the quiz
+    generatedBy: { type: String, enum: ["seed", "AI", "AI-Adaptive"], default: "seed" }, // Origin of the quiz
     questions: [{
         question: { type: String, required: true },
         options: [{ type: String, required: true }],
