@@ -4,19 +4,27 @@ const logger = require('../config/logger');
 const FlashcardCache = require('../models/flashcardCache.model');
 const SummaryCache = require('../models/summaryCache.model');
 
+// Cache key versioning — bump these when changing prompts or model
+const AI_MODEL = 'gemini-2.5-flash';
+const FLASHCARD_PROMPT_VERSION = 'v1';
+const SUMMARY_PROMPT_VERSION = 'v1';
+
 /**
- * Content Generator — Flashcard and Summary generation via Gemini
- * Uses MongoDB cache to avoid hitting Gemini for the same lesson twice.
+ * Build composite cache key: lessonId:model:promptVersion
  */
+const buildCacheKey = (lessonId, model, promptVersion) =>
+    `${lessonId}:${model}:${promptVersion}`;
 
 /**
  * Generate flashcards from a lesson (cache-first)
  */
 const generateFlashcards = async (lessonId, count = 10, requestId) => {
-    // 1. Check cache first
-    const cached = await FlashcardCache.findOne({ lessonId: lessonId.toString() }).lean();
+    const cacheKey = buildCacheKey(lessonId, AI_MODEL, FLASHCARD_PROMPT_VERSION);
+
+    // 1. Check cache
+    const cached = await FlashcardCache.findOne({ cacheKey }).lean();
     if (cached) {
-        logger.info(`Flashcard cache HIT for lesson ${lessonId}`, { headers: { 'x-request-id': requestId } });
+        logger.info(`Flashcard cache HIT [${cacheKey}]`, { headers: { 'x-request-id': requestId } });
         return {
             lessonId: cached.lessonId,
             lessonTitle: cached.lessonTitle,
@@ -25,8 +33,8 @@ const generateFlashcards = async (lessonId, count = 10, requestId) => {
         };
     }
 
-    // 2. Cache miss — fetch lesson and generate
-    logger.info(`Flashcard cache MISS for lesson ${lessonId}, calling Gemini`, { headers: { 'x-request-id': requestId } });
+    // 2. Cache miss — generate
+    logger.info(`Flashcard cache MISS [${cacheKey}], calling Gemini`, { headers: { 'x-request-id': requestId } });
     const lesson = await learningClient.getLessonById(lessonId, requestId);
     if (!lesson || !lesson.content) {
         throw new Error('Lesson content is empty — cannot generate flashcards');
@@ -79,40 +87,34 @@ Rules:
     }
 
     const flashcards = data.flashcards.map((fc, i) => {
-        if (!fc.front || !fc.back) {
-            throw new Error(`Invalid flashcard at index ${i}`);
-        }
+        if (!fc.front || !fc.back) throw new Error(`Invalid flashcard at index ${i}`);
         return { front: fc.front, back: fc.back };
     });
 
     // 3. Save to cache
     try {
         await FlashcardCache.findOneAndUpdate(
-            { lessonId: lessonId.toString() },
-            { lessonId: lessonId.toString(), lessonTitle: lesson.title, cards: flashcards },
+            { cacheKey },
+            { cacheKey, lessonId: lessonId.toString(), lessonTitle: lesson.title, model: AI_MODEL, promptVersion: FLASHCARD_PROMPT_VERSION, cards: flashcards },
             { upsert: true, new: true }
         );
-        logger.info(`Flashcard cache SAVED for lesson ${lessonId}`);
     } catch (cacheErr) {
         logger.warn(`Failed to cache flashcards: ${cacheErr.message}`);
     }
 
-    return {
-        lessonId: lesson._id,
-        lessonTitle: lesson.title,
-        flashcards,
-        cached: false
-    };
+    return { lessonId: lesson._id, lessonTitle: lesson.title, flashcards, cached: false };
 };
 
 /**
  * Generate a bullet-point summary from a lesson (cache-first)
  */
 const generateSummary = async (lessonId, requestId) => {
-    // 1. Check cache first
-    const cached = await SummaryCache.findOne({ lessonId: lessonId.toString() }).lean();
+    const cacheKey = buildCacheKey(lessonId, AI_MODEL, SUMMARY_PROMPT_VERSION);
+
+    // 1. Check cache
+    const cached = await SummaryCache.findOne({ cacheKey }).lean();
     if (cached) {
-        logger.info(`Summary cache HIT for lesson ${lessonId}`, { headers: { 'x-request-id': requestId } });
+        logger.info(`Summary cache HIT [${cacheKey}]`, { headers: { 'x-request-id': requestId } });
         return {
             lessonId: cached.lessonId,
             lessonTitle: cached.lessonTitle,
@@ -121,8 +123,8 @@ const generateSummary = async (lessonId, requestId) => {
         };
     }
 
-    // 2. Cache miss — fetch lesson and generate
-    logger.info(`Summary cache MISS for lesson ${lessonId}, calling Gemini`, { headers: { 'x-request-id': requestId } });
+    // 2. Cache miss — generate
+    logger.info(`Summary cache MISS [${cacheKey}], calling Gemini`, { headers: { 'x-request-id': requestId } });
     const lesson = await learningClient.getLessonById(lessonId, requestId);
     if (!lesson || !lesson.content) {
         throw new Error('Lesson content is empty — cannot generate summary');
@@ -175,21 +177,15 @@ Rules:
     // 3. Save to cache
     try {
         await SummaryCache.findOneAndUpdate(
-            { lessonId: lessonId.toString() },
-            { lessonId: lessonId.toString(), lessonTitle: lesson.title, summary: data.summary },
+            { cacheKey },
+            { cacheKey, lessonId: lessonId.toString(), lessonTitle: lesson.title, model: AI_MODEL, promptVersion: SUMMARY_PROMPT_VERSION, summary: data.summary },
             { upsert: true, new: true }
         );
-        logger.info(`Summary cache SAVED for lesson ${lessonId}`);
     } catch (cacheErr) {
         logger.warn(`Failed to cache summary: ${cacheErr.message}`);
     }
 
-    return {
-        lessonId: lesson._id,
-        lessonTitle: lesson.title,
-        summary: data.summary,
-        cached: false
-    };
+    return { lessonId: lesson._id, lessonTitle: lesson.title, summary: data.summary, cached: false };
 };
 
 module.exports = { generateFlashcards, generateSummary };
