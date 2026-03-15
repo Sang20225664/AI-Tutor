@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: assessment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: assessment
+  template:
+    metadata:
+      labels:
+        app: assessment
+    spec:
+      containers:
+      - name: assessment
+        image: ai-tutor-assessment:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 3003
+        env:
+        - name: PORT
+          value: "3003"
+        - name: MONGO_URI
+          value: "mongodb://mongo:27017/assessment_db"
+        - name: LEARNING_SERVICE_URL
+          value: "http://learning:3002"
+        - name: JWT_SECRET
+          value: "your_jwt_secret_here"
+        - name: REDIS_HOST
+          value: "redis"
+        - name: NODE_ENV
+          value: "production"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: assessment
+spec:
+  selector:
+    app: assessment
+  ports:
+    - protocol: TCP
+      port: 3003
+      targetPort: 3003

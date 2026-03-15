@@ -33,14 +33,15 @@ router.use(aiLimiter);
 async function proxyAiChat(req, res, targetPath) {
     try {
         const url = `${AICHAT_SERVICE_URL}${targetPath}`;
+        
         const response = await axios({
             method: req.method,
             url: url,
-            data: req.body,
             headers: {
                 ...req.headers,
                 host: new URL(AICHAT_SERVICE_URL).host
             },
+            data: req.body,
             timeout: 30000 // Gemini can be slow
         });
 

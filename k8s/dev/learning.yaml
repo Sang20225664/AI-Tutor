@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: learning
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: learning
+  template:
+    metadata:
+      labels:
+        app: learning
+    spec:
+      containers:
+      - name: learning
+        image: ai-tutor-learning:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 3002
+        env:
+        - name: PORT
+          value: "3002"
+        - name: MONGO_URI
+          value: "mongodb://mongo:27017/learning_db"
+        - name: NODE_ENV
+          value: "production"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: learning
+spec:
+  selector:
+    app: learning
+  ports:
+    - protocol: TCP
+      port: 3002
+      targetPort: 3002

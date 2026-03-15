@@ -125,6 +125,7 @@ services:
       - MONGO_URI=mongodb://mongo:27017/assessment_db
       - LEARNING_SERVICE_URL=http://learning:3002
       - JWT_SECRET=${JWT_SECRET}
+      - REDIS_HOST=redis
       - NODE_ENV=production
     networks:
       - ai_tutor_network
@@ -154,6 +155,7 @@ services:
       - ASSESSMENT_SERVICE_URL=http://assessment:3003
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - JWT_SECRET=${JWT_SECRET}
+      - REDIS_HOST=redis
       - NODE_ENV=production
     networks:
       - ai_tutor_network
@@ -164,6 +166,30 @@ services:
       timeout: 10s
       start_period: 15s
       retries: 3
+
+  # AI Worker microservice (Background job processor using BullMQ)
+  ai-worker:
+    build:
+      context: ./services/ai-chat
+      dockerfile: Dockerfile
+    container_name: ai_tutor_ai_worker
+    command: node src/workers/aiWorker.js
+    depends_on:
+      - mongo
+      - redis
+      - learning
+      - assessment
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/ai_chat_db
+      - LEARNING_SERVICE_URL=http://learning:3002
+      - ASSESSMENT_SERVICE_URL=http://assessment:3003
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - JWT_SECRET=${JWT_SECRET}
+      - REDIS_HOST=redis
+      - NODE_ENV=production
+    networks:
+      - ai_tutor_network
+    restart: unless-stopped
 
   # Database service
   mongo:
@@ -177,6 +203,15 @@ services:
     networks:
       - ai_tutor_network
     command: [ "mongod", "--quiet" ]
+
+  # Redis Cache service
+  redis:
+    image: redis:7-alpine
+    container_name: ai_tutor_redis
+    ports:
+      - "6379:6379"
+    networks:
+      - ai_tutor_network
 
 volumes:
   mongo_data:

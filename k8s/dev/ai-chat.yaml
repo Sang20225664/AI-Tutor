@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-chat
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ai-chat
+  template:
+    metadata:
+      labels:
+        app: ai-chat
+    spec:
+      containers:
+      - name: ai-chat
+        image: ai-tutor-ai-chat:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 3004
+        env:
+        - name: PORT
+          value: "3004"
+        - name: MONGO_URI
+          value: "mongodb://mongo:27017/ai_chat_db"
+        - name: LEARNING_SERVICE_URL
+          value: "http://learning:3002"
+        - name: ASSESSMENT_SERVICE_URL
+          value: "http://assessment:3003"
+        - name: GEMINI_API_KEY
+          value: "your_gemini_api_key_here"
+        - name: JWT_SECRET
+          value: "your_jwt_secret_here"
+        - name: REDIS_HOST
+          value: "redis"
+        - name: NODE_ENV
+          value: "production"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai-chat
+spec:
+  selector:
+    app: ai-chat
+  ports:
+    - protocol: TCP
+      port: 3004
+      targetPort: 3004

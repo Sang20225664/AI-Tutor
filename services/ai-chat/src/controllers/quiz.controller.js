@@ -1,5 +1,13 @@
-const quizGenerator = require('../services/quiz.generator');
+const { QueueEvents } = require('bullmq');
+const aiQueue = require('../config/queue');
 const logger = require('../config/logger');
+
+const queueEvents = new QueueEvents('ai-jobs', {
+    connection: {
+        host: process.env.REDIS_HOST || 'redis',
+        port: process.env.REDIS_PORT || 6379,
+    }
+});
 
 /**
  * POST /api/v1/ai/generate-quiz
@@ -22,11 +30,14 @@ const generateQuiz = async (req, res) => {
 
         const requestId = req.headers['x-request-id'];
 
-        const quiz = await quizGenerator.generateQuiz({
+        const job = await aiQueue.add('generateQuiz', {
             lessonId,
             difficulty: diff,
-            questionCount: count
-        }, requestId);
+            questionCount: count,
+            requestId
+        });
+
+        const quiz = await job.waitUntilFinished(queueEvents);
 
         res.status(201).json({
             success: true,

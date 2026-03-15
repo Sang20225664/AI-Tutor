@@ -1,5 +1,6 @@
 const axios = require('axios');
 const QuizAttempt = require('../models/QuizAttempt');
+const redis = require('../config/redis');
 
 const LEARNING_SERVICE_URL = process.env.LEARNING_SERVICE_URL || 'http://localhost:3002';
 
@@ -14,6 +15,17 @@ const analysisController = {
             
             if (!userId) {
                 return res.status(401).json({ success: false, message: 'Unauthorized: Missing User ID' });
+            }
+
+            // 0. Check Cache
+            const cacheKey = `weakTopics:${userId}`;
+            try {
+                const cachedStr = await redis.get(cacheKey);
+                if (cachedStr) {
+                    return res.json({ success: true, data: JSON.parse(cachedStr), cached: true });
+                }
+            } catch (err) {
+                console.warn(`Redis cache fetch error for weak-topics: ${err.message}`);
             }
 
             // 1. Fetch all attempts for the user
@@ -78,6 +90,13 @@ const analysisController = {
 
             // Sort by lowest accuracy first
             weakTopics.sort((a, b) => a.accuracy - b.accuracy);
+
+            // Save to Cache with 600s TTL (10 minutes)
+            try {
+                await redis.set(cacheKey, JSON.stringify(weakTopics), 'EX', 600);
+            } catch (err) {
+                console.warn(`Redis cache save error for weak-topics: ${err.message}`);
+            }
 
             res.json({
                 success: true,

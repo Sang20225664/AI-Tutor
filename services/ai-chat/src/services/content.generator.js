@@ -1,8 +1,7 @@
 const geminiClient = require('./gemini.client');
 const learningClient = require('./learning.client');
 const logger = require('../config/logger');
-const FlashcardCache = require('../models/flashcardCache.model');
-const SummaryCache = require('../models/summaryCache.model');
+const redis = require('../config/redis');
 
 // Cache key versioning — bump these when changing prompts or model
 const AI_MODEL = 'gemini-2.5-flash';
@@ -22,9 +21,10 @@ const generateFlashcards = async (lessonId, count = 10, requestId) => {
     const cacheKey = buildCacheKey(lessonId, AI_MODEL, FLASHCARD_PROMPT_VERSION);
 
     // 1. Check cache
-    const cached = await FlashcardCache.findOne({ cacheKey }).lean();
-    if (cached) {
+    const cachedStr = await redis.get(cacheKey);
+    if (cachedStr) {
         logger.info(`Flashcard cache HIT [${cacheKey}]`, { headers: { 'x-request-id': requestId } });
+        const cached = JSON.parse(cachedStr);
         return {
             lessonId: cached.lessonId,
             lessonTitle: cached.lessonTitle,
@@ -93,13 +93,15 @@ Rules:
 
     // 3. Save to cache
     try {
-        await FlashcardCache.findOneAndUpdate(
-            { cacheKey },
-            { cacheKey, lessonId: lessonId.toString(), lessonTitle: lesson.title, model: AI_MODEL, promptVersion: FLASHCARD_PROMPT_VERSION, cards: flashcards },
-            { upsert: true, new: true }
-        );
+        const cacheData = {
+            lessonId: lessonId.toString(),
+            lessonTitle: lesson.title,
+            cards: flashcards
+        };
+        // Cache for 24 hours (86400 seconds)
+        await redis.set(cacheKey, JSON.stringify(cacheData), 'EX', 86400);
     } catch (cacheErr) {
-        logger.warn(`Failed to cache flashcards: ${cacheErr.message}`);
+        logger.warn(`Failed to cache flashcards in Redis: ${cacheErr.message}`);
     }
 
     return { lessonId: lesson._id, lessonTitle: lesson.title, flashcards, cached: false };
@@ -112,9 +114,10 @@ const generateSummary = async (lessonId, requestId) => {
     const cacheKey = buildCacheKey(lessonId, AI_MODEL, SUMMARY_PROMPT_VERSION);
 
     // 1. Check cache
-    const cached = await SummaryCache.findOne({ cacheKey }).lean();
-    if (cached) {
+    const cachedStr = await redis.get(cacheKey);
+    if (cachedStr) {
         logger.info(`Summary cache HIT [${cacheKey}]`, { headers: { 'x-request-id': requestId } });
+        const cached = JSON.parse(cachedStr);
         return {
             lessonId: cached.lessonId,
             lessonTitle: cached.lessonTitle,
@@ -176,13 +179,15 @@ Rules:
 
     // 3. Save to cache
     try {
-        await SummaryCache.findOneAndUpdate(
-            { cacheKey },
-            { cacheKey, lessonId: lessonId.toString(), lessonTitle: lesson.title, model: AI_MODEL, promptVersion: SUMMARY_PROMPT_VERSION, summary: data.summary },
-            { upsert: true, new: true }
-        );
+        const cacheData = {
+            lessonId: lessonId.toString(),
+            lessonTitle: lesson.title,
+            summary: data.summary
+        };
+        // Cache for 24 hours (86400 seconds)
+        await redis.set(cacheKey, JSON.stringify(cacheData), 'EX', 86400);
     } catch (cacheErr) {
-        logger.warn(`Failed to cache summary: ${cacheErr.message}`);
+        logger.warn(`Failed to cache summary in Redis: ${cacheErr.message}`);
     }
 
     return { lessonId: lesson._id, lessonTitle: lesson.title, summary: data.summary, cached: false };

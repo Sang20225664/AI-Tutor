@@ -1,6 +1,13 @@
-const adaptiveGenerator = require('../services/adaptive.generator');
-const contentGenerator = require('../services/content.generator');
+const { QueueEvents } = require('bullmq');
+const aiQueue = require('../config/queue');
 const logger = require('../config/logger');
+
+const queueEvents = new QueueEvents('ai-jobs', {
+    connection: {
+        host: process.env.REDIS_HOST || 'redis',
+        port: process.env.REDIS_PORT || 6379,
+    }
+});
 
 /**
  * POST /api/v1/ai/adaptive-quiz
@@ -19,11 +26,14 @@ const generateAdaptiveQuiz = async (req, res) => {
         const diff = ['easy', 'medium', 'hard'].includes(difficulty) ? difficulty : 'medium';
         const requestId = req.headers['x-request-id'];
 
-        const result = await adaptiveGenerator.generateAdaptiveQuiz({
+        const job = await aiQueue.add('adaptiveQuiz', {
             userId,
             difficulty: diff,
-            questionCount: count
-        }, requestId);
+            questionCount: count,
+            requestId
+        });
+
+        const result = await job.waitUntilFinished(queueEvents);
 
         res.status(201).json({
             success: true,
@@ -56,7 +66,13 @@ const generateFlashcards = async (req, res) => {
         const cardCount = Math.min(Math.max(parseInt(count) || 10, 3), 20);
         const requestId = req.headers['x-request-id'];
 
-        const result = await contentGenerator.generateFlashcards(lessonId, cardCount, requestId);
+        const job = await aiQueue.add('generateFlashcards', {
+            lessonId,
+            count: cardCount,
+            requestId
+        });
+
+        const result = await job.waitUntilFinished(queueEvents);
 
         res.status(201).json({
             success: true,
@@ -86,7 +102,13 @@ const summarizeLesson = async (req, res) => {
         }
 
         const requestId = req.headers['x-request-id'];
-        const result = await contentGenerator.generateSummary(lessonId, requestId);
+        
+        const job = await aiQueue.add('summarizeLesson', {
+            lessonId,
+            requestId
+        });
+
+        const result = await job.waitUntilFinished(queueEvents);
 
         res.json({
             success: true,
