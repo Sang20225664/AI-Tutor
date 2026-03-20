@@ -14,6 +14,7 @@ class LessonSuggestionScreen extends StatefulWidget {
 class _LessonSuggestionScreenState extends State<LessonSuggestionScreen> {
   List<LessonSuggestion> _suggestions = [];
   bool _isLoading = true;
+  bool _isGeneratingAI = false;
   String? _errorMessage;
   int _selectedGrade = 5; // Default grade
 
@@ -61,6 +62,44 @@ class _LessonSuggestionScreenState extends State<LessonSuggestionScreen> {
       setState(() {
         _errorMessage = 'Error loading suggestions: $e';
         _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _generateAISuggestions() async {
+    setState(() {
+      _isGeneratingAI = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final response = await ApiService.suggestLessons(
+        grade: _selectedGrade,
+      );
+
+      if (response['success'] == true && response['data'] != null) {
+        final suggestionsData = response['data'] as List;
+        setState(() {
+          _suggestions = suggestionsData
+              .map((json) => LessonSuggestion.fromJson(json))
+              .toList();
+          _isGeneratingAI = false;
+        });
+        if (mounted) {
+           ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Đã tạo thành công gợi ý cá nhân hóa từ AI!')),
+           );
+        }
+      } else {
+        setState(() {
+          _errorMessage = response['message'] ?? 'Lỗi khi tạo danh sách từ AI';
+          _isGeneratingAI = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Lỗi kết nối AI: $e';
+        _isGeneratingAI = false;
       });
     }
   }
@@ -249,6 +288,15 @@ class _LessonSuggestionScreenState extends State<LessonSuggestionScreen> {
                         },
                       ),
                     ),
+      floatingActionButton: _isLoading || _isGeneratingAI 
+          ? null 
+          : FloatingActionButton.extended(
+              onPressed: _generateAISuggestions,
+              icon: const Icon(Icons.auto_awesome),
+              label: const Text('AI Gợi ý Cá nhân'),
+              backgroundColor: Colors.purple,
+              foregroundColor: Colors.white,
+            ),
     );
   }
 

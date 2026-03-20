@@ -162,7 +162,7 @@ class ApiService {
       if (message != null) 'message': message,
       if (prompt != null) 'prompt': prompt,
       if (subject != null) 'subject': subject,
-      if (sessionId != null) 'sessionId': sessionId,
+      if (sessionId != null) 'conversationId': sessionId,
       if (greet) 'greet': true,
     };
 
@@ -189,6 +189,10 @@ class ApiService {
 
   static Future<Map<String, dynamic>> deleteChatHistory(String chatId) async {
     return delete('chats/$chatId');
+  }
+
+  static Future<Map<String, dynamic>> toggleChatPin(String chatId) async {
+    return patch('chats/$chatId/pin', {});
   }
 
   // Subject APIs
@@ -250,6 +254,14 @@ class ApiService {
   }
 
   // Phase 2: AI Personalization
+  static Future<Map<String, dynamic>> suggestLessons({
+    required int grade,
+  }) async {
+    return post('suggest-lessons', {
+      'grade': grade,
+    });
+  }
+
   static Future<Map<String, dynamic>> generateAdaptiveQuiz({
     String difficulty = 'medium',
     int questionCount = 5,

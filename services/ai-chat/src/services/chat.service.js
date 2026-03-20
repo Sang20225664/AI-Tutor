@@ -73,8 +73,24 @@ const getConversationById = async (userId, conversationId) => {
     return convo;
 };
 
+const deleteConversation = async (userId, conversationId) => {
+    const result = await Conversation.findOneAndDelete({ _id: conversationId, userId });
+    if (!result) throw new Error('Conversation not found');
+    return result;
+};
+
+const togglePin = async (userId, conversationId) => {
+    const convo = await Conversation.findOne({ _id: conversationId, userId });
+    if (!convo) throw new Error('Conversation not found');
+    convo.isPinned = !convo.isPinned;
+    await convo.save();
+    return convo;
+};
+
 module.exports = {
     processMessage,
     getUserConversations,
-    getConversationById
+    getConversationById,
+    deleteConversation,
+    togglePin
 };

@@ -67,10 +67,13 @@ router.post('/generate-quiz', (req, res) => proxyAiChat(req, res, '/api/v1/ai/ge
 router.post('/adaptive-quiz', (req, res) => proxyAiChat(req, res, '/api/v1/ai/adaptive-quiz'));
 router.post('/generate-flashcards', (req, res) => proxyAiChat(req, res, '/api/v1/ai/generate-flashcards'));
 router.post('/summarize', (req, res) => proxyAiChat(req, res, '/api/v1/ai/summarize'));
+router.post('/suggest-lessons', (req, res) => proxyAiChat(req, res, '/api/v1/ai/suggest-lessons'));
 
 // Proxy /api/chat-history GET -> AI Chat Service /api/v1/ai/conversations
 router.get('/chat-history', (req, res) => proxyAiChat(req, res, '/api/v1/ai/conversations'));
 router.get('/chats', (req, res) => proxyAiChat(req, res, '/api/v1/ai/conversations'));
+router.delete('/chats/:id', (req, res) => proxyAiChat(req, res, `/api/v1/ai/conversations/${req.params.id}`));
+router.patch('/chats/:id/pin', (req, res) => proxyAiChat(req, res, `/api/v1/ai/conversations/${req.params.id}/pin`));
 
 // Support direct calls if needed
 router.use('/ai', async (req, res) => {

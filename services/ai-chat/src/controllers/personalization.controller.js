@@ -125,4 +125,42 @@ const summarizeLesson = async (req, res) => {
     }
 };
 
-module.exports = { generateAdaptiveQuiz, generateFlashcards, summarizeLesson };
+/**
+ * POST /api/v1/ai/suggest-lessons
+ * Body: { grade }
+ */
+const suggestLessons = async (req, res) => {
+    try {
+        const userId = req.user?.userId || req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: 'Unauthorized' });
+        }
+
+        const { grade } = req.body;
+        const targetGrade = parseInt(grade) || 5;
+        const requestId = req.headers['x-request-id'];
+
+        const job = await aiQueue.add('suggestLessons', {
+            userId,
+            grade: targetGrade,
+            requestId
+        });
+
+        const result = await job.waitUntilFinished(queueEvents);
+
+        res.status(201).json({
+            success: true,
+            data: result
+        });
+
+    } catch (error) {
+        logger.error(`Lesson suggestions generated failed: ${error.message}`);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to generate recommendations from AI',
+            detail: error.message
+        });
+    }
+};
+
+module.exports = { generateAdaptiveQuiz, generateFlashcards, summarizeLesson, suggestLessons };

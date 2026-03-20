@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ai_tutor_app/services/api_service.dart';
 import 'package:ai_tutor_app/models/quiz.dart';
+import 'package:ai_tutor_app/utils/responsive_utils.dart';
 
 class QuizScreen extends StatefulWidget {
   final String? quizId; // nếu truyền vào thì load thẳng quiz đó
@@ -205,14 +206,16 @@ class _QuizScreenState extends State<QuizScreen> {
                       ),
                     )
                   : selectedQuizIndex == null
-                      ? ListView.builder(
-                          itemCount: _filteredQuizzes
-                              .length, // Sử dụng _filteredQuizzes
-                          itemBuilder: (context, index) {
-                            final quiz = _filteredQuizzes[
-                                index]; // Sử dụng _filteredQuizzes
-                            return Card(
-                              margin: const EdgeInsets.symmetric(
+                      ? Responsive.constrainedContent(
+                          context,
+                          ListView.builder(
+                            itemCount: _filteredQuizzes
+                                .length, // Sử dụng _filteredQuizzes
+                            itemBuilder: (context, index) {
+                              final quiz = _filteredQuizzes[
+                                  index]; // Sử dụng _filteredQuizzes
+                              return Card(
+                                margin: const EdgeInsets.symmetric(
                                 horizontal: 16,
                                 vertical: 8,
                               ),
@@ -273,10 +276,14 @@ class _QuizScreenState extends State<QuizScreen> {
                               ),
                             );
                           },
-                        )
-                      : _buildQuizDetail(
+                        ),
+                      )
+                      : Responsive.constrainedContent(
                           context,
-                          _filteredQuizzes[selectedQuizIndex!],
+                          _buildQuizDetail(
+                            context,
+                            _filteredQuizzes[selectedQuizIndex!],
+                          ),
                         ), // Sử dụng _filteredQuizzes
     );
   }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ai_tutor_app/services/api_service.dart';
 import 'package:intl/intl.dart';
 import 'lesson/quiz_screen.dart';
+import 'package:ai_tutor_app/utils/responsive_utils.dart';
 
 class LearningDashboardScreen extends StatefulWidget {
   const LearningDashboardScreen({super.key});
@@ -95,12 +96,14 @@ class _LearningDashboardScreenState extends State<LearningDashboardScreen> {
                 )
               : RefreshIndicator(
                   onRefresh: _loadDashboardData,
-                  child: SingleChildScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
+                  child: Responsive.constrainedContent(
+                    context,
+                    SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                         _buildOverviewCards(),
                         const SizedBox(height: 24),
                         if (_weakTopics.isNotEmpty) ...[
@@ -124,6 +127,7 @@ class _LearningDashboardScreenState extends State<LearningDashboardScreen> {
                     ),
                   ),
                 ),
+              ),
     );
   }
 

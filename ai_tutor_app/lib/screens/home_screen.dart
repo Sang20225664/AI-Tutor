@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ai_tutor_app/utils/responsive_utils.dart';
-import 'notification_screen.dart';
 import 'chat/chat_screen.dart';
 import 'lesson/lesson_screen.dart';
-import 'chat/history_screen.dart';
 import 'lesson/quiz_screen.dart';
 import 'profile_screen.dart';
 import 'subject/subject_screen.dart';
@@ -37,11 +35,16 @@ class HomeScreen extends StatelessWidget {
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications),
+            icon: const Icon(Icons.person),
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const NotificationScreen()),
+                MaterialPageRoute(
+                  builder: (_) => ProfileScreen(
+                    toggleDarkMode: () {},
+                    isDarkMode: false,
+                  ),
+                ),
               );
             },
           ),
@@ -76,7 +79,62 @@ class HomeScreen extends StatelessWidget {
                   desktop: 40,
                 ),
               ),
-              GridView.count(
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const SubjectsScreen(),
+                    ),
+                  );
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Colors.blueAccent, Colors.indigo],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.blueAccent.withOpacity(0.3),
+                        blurRadius: 10,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      const Icon(Icons.rocket_launch, size: 60, color: Colors.white),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Bắt đầu học ngay!',
+                        style: TextStyle(
+                          fontSize: Responsive.getScaledFontSize(context, 24),
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Khám phá kiến thức mới với trợ lý ảo AI Tutors của bạn',
+                        style: TextStyle(
+                          fontSize: Responsive.getScaledFontSize(context, 16),
+                          color: Colors.white70,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 32),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  return GridView.count(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 crossAxisCount: gridColumns,
@@ -127,16 +185,6 @@ class HomeScreen extends StatelessWidget {
                   ),
                   _buildMenuCard(
                     context,
-                    icon: Icons.history,
-                    label: 'Lịch sử hội thoại',
-                    color: Colors.orange,
-                    onTap: () {
-                      // TODO: Lấy userId động nếu có hệ thống đăng nhập
-                      _navigate(context, HistoryScreen());
-                    },
-                  ),
-                  _buildMenuCard(
-                    context,
                     icon: Icons.quiz,
                     label: 'Bài tập luyện tập',
                     color: Colors.teal,
@@ -153,38 +201,9 @@ class HomeScreen extends StatelessWidget {
                       _navigate(context, const LearningDashboardScreen());
                     },
                   ),
-                  _buildMenuCard(
-                    context,
-                    icon: Icons.menu_book,
-                    label: 'Chọn Môn Học',
-                    color: Colors.brown,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const SubjectsScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  _buildMenuCard(
-                    context,
-                    icon: Icons.person,
-                    label: 'Hồ sơ cá nhân',
-                    color: Colors.deepPurple,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => ProfileScreen(
-                            toggleDarkMode: () {},
-                            isDarkMode: false,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
                 ],
+              );
+                },
               ),
             ],
           ),

@@ -10,6 +10,7 @@ mongoose.connect(process.env.MONGO_URI)
 // Important Generators
 const { generateAdaptiveQuiz } = require('../services/adaptive.generator');
 const { generateFlashcards, generateSummary } = require('../services/content.generator');
+const { generateLessonSuggestions } = require('../services/suggestion.generator');
 const quizGenerator = require('../services/quiz.generator');
 
 const connection = {
@@ -29,6 +30,9 @@ const worker = new Worker('ai-jobs', async (job) => {
 
     case 'summarizeLesson':
       return await generateSummary(job.data.lessonId, job.data.requestId);
+
+    case 'suggestLessons':
+      return await generateLessonSuggestions(job.data.userId, job.data.grade, job.data.requestId);
 
     case 'generateQuiz':
       return await quizGenerator.generateQuiz({
