@@ -43,6 +43,9 @@ jobs:
             type=ref,event=branch
             type=sha,prefix=,format=short
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -50,6 +53,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./ai_tutor_backend
+          platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -83,6 +87,9 @@ jobs:
             type=ref,event=branch
             type=sha,prefix=,format=short
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -90,6 +97,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./ai_tutor_app
+          platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
