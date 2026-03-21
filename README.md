@@ -10,11 +10,17 @@ AI Tutor is a comprehensive educational platform that combines the power of arti
 
 - **AI-Powered Tutoring**: Intelligent content generation using Google Gemini AI
 - **Personalized Learning**: Adaptive learning paths based on student performance
-- **Multi-Subject Support**: Mathematics, Science, Literature, History, and more
-- **Interactive Chat**: Real-time AI tutor chat interface for instant help
+- **Multi-Subject Support**: Mathematics, Physics, Chemistry, English, and more
+- **Interactive Chat**: Real-time AI tutor chat with conversation history, pinning, and sliding drawer
+- **AI Quiz Generation**: Generate quizzes from lesson content using Gemini
+- **Adaptive Quiz**: AI-generated quizzes targeting student weak topics
+- **AI Flashcards**: Gemini-generated flashcards with 3D flip animation
+- **AI Lesson Summary**: Automatic lesson summarization
+- **AI Lesson Suggestions**: Personalized lesson recommendations based on learning analytics (persisted in DB)
+- **Learning Dashboard**: Progress summary, quiz history, and weak topic analysis
 - **Cross-Platform**: Available on mobile (Flutter) and web platforms
-- **User Management**: Registration, login, and guest mode support
-- **Progress Tracking**: Grade selection and learning progress monitoring
+- **User Management**: Registration, login, and JWT-based authentication
+- **Progress Tracking**: Grade selection, quiz scoring, and learning progress monitoring
 
 ## 🏗️ Project Structure
 
@@ -39,17 +45,21 @@ AI-Tutor/
 - **Dart** - Programming language
 - **HTTP** - API communication
 - **Shared Preferences** - Local storage
+- **Markdown Widget** - Rich content rendering
 
 ### Backend Architecture
 - **API Gateway** - Central entry point (Express.js)
-- **Microservices** - Auth, Learning, Assessment, AI Chat
-- **MongoDB** - 4 isolated logical databases per service
+- **Microservices** - Auth, Learning, Assessment, AI Chat, AI Worker
+- **MongoDB 7** - 4 isolated logical databases per service
+- **Redis 7** - Caching (Flashcards, Summaries, Weak Topics) + Message Queue
+- **BullMQ** - Background job processing for AI tasks
 - **JWT** - Cross-service stateless authentication
-- **Docker & Docker Compose** - Containerization
-- **Kubernetes (K3s)** - Production-grade orchestration
+- **Rate Limiting** - express-rate-limit (AI endpoints: 10 req/min/user)
+- **Docker & Docker Compose** - Containerization (9 containers)
+- **Kubernetes (K3s)** - Production-grade orchestration (3 environments)
 
 ### AI & ML
-- **Google Gemini API** - Natural language processing and content generation
+- **Google Gemini API** - Chat, Quiz generation, Flashcards, Summaries, Lesson suggestions
 
 ## 📋 Prerequisites
 
@@ -84,39 +94,31 @@ docker compose up -d --build
 To verify the microservices are running:
 ```bash
 docker compose ps
-# Ensure all 6 containers (Mongo, Gateway, Auth, Learning, Assessment, AI Chat) are healthy.
+# Ensure all 9 containers are running:
+# Mongo, Redis, Gateway, Auth, Learning, Assessment, AI Chat, AI Worker, Frontend
 ```
 
 
 #### Option B: Kubernetes (K3s)
-1. Install K3s (single node):
-  ```bash
-  curl -sfL https://get.k3s.io | sh -
-  export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
-  ```
-2. Create namespace:
-  ```bash
-  kubectl apply -f k8s/namespace/namespace.yaml
-  ```
-3. Deploy MongoDB:
-  ```bash
-  kubectl apply -f k8s/mongodb/
-  # Check PVC, pod, service
-  kubectl get pvc,pod,svc -n ai-dev
-  ```
-4. Deploy Backend:
-  ```bash
-  kubectl apply -f k8s/backend/
-  # Check rollout, pod, service
-  kubectl get deployment,pod,svc -n ai-dev
-  ```
-5. Testing:
-  ```bash
-  # Port-forward to test API
-  kubectl port-forward -n ai-dev service/backend 8080:5000
-  curl http://localhost:8080/api/ping
-  curl http://localhost:8080/api/ready
-  ```
+
+The project supports 3 environments (dev/staging/prod) with dedicated deploy scripts:
+
+```bash
+# Install K3s (single node)
+curl -sfL https://get.k3s.io | sh -
+export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+
+# Deploy to DEV
+cd k8s/scripts && ./deploy-dev.sh
+
+# Deploy to STAGING
+./deploy-staging.sh
+
+# Deploy to PRODUCTION
+./deploy-prod.sh
+```
+
+For detailed multi-environment guide, see [`k8s/MULTI_ENV_GUIDE.md`](k8s/MULTI_ENV_GUIDE.md).
 
 ### 3. Frontend Setup
 ```bash
@@ -137,7 +139,7 @@ PORT=5000
 NODE_ENV=production
 
 # Database (K8s)
-MONGO_URI=mongodb://mongodb.ai-dev.svc.cluster.local:27017/ai_tutor
+MONGO_URI=mongodb://mongodb.ai-tutor-dev.svc.cluster.local:27017/ai_tutor
 
 # JWT Auth
 JWT_SECRET=your-super-secret-jwt-key
@@ -154,13 +156,16 @@ GEMINI_API_KEY=your-gemini-api-key
 3. Add the key to your `.env` file as `GEMINI_API_KEY`
 
 ### Docker Microservices
-The backend uses Docker Compose with:
+The backend uses Docker Compose with 9 containers:
 - **API Gateway (Port 5000)**: Central proxy routing
 - **Auth Service (Port 3001)**: Registration and Login
 - **Learning Service (Port 3002)**: Curriculum content
 - **Assessment Service (Port 3003)**: Quiz attempts and progress
 - **AI Chat Service (Port 3004)**: Gemini integration
-- **MongoDB**: Shared instance with 4 isolated logical databases
+- **AI Worker**: Background BullMQ job processor (Quiz, Flashcard, Summary, Suggestions)
+- **Frontend (Port 3000)**: Flutter Web served via Nginx
+- **MongoDB 7**: Shared instance with 4 isolated logical databases
+- **Redis 7**: Caching + BullMQ message queue
 
 ## 📱 Running the Application
 
@@ -198,20 +203,20 @@ curl http://localhost:8080/api/ready
 ### Advanced Testing (Kubernetes)
 ```bash
 # List pods, PVC, service
-kubectl get all -n ai-dev
-kubectl get pvc -n ai-dev
+kubectl get all -n ai-tutor-dev
+kubectl get pvc -n ai-tutor-dev
 
 # Delete backend pod to test auto-healing
-kubectl delete pod -n ai-dev -l app=backend --force --grace-period=0
+kubectl delete pod -n ai-tutor-dev -l app=backend --force --grace-period=0
 
 # Simulate MongoDB downtime
-kubectl scale deployment mongodb -n ai-dev --replicas=0
+kubectl scale deployment mongodb -n ai-tutor-dev --replicas=0
 # Check backend readiness, service endpoints
-kubectl get pods -n ai-dev
-kubectl get endpoints backend -n ai-dev
+kubectl get pods -n ai-tutor-dev
+kubectl get endpoints backend -n ai-tutor-dev
 
 # Restore MongoDB
-kubectl scale deployment mongodb -n ai-dev --replicas=1
+kubectl scale deployment mongodb -n ai-tutor-dev --replicas=1
 ```
 
 ### Frontend Tests
@@ -227,10 +232,13 @@ The application implements a Strangler Fig pattern where the legacy backend acts
 
 - `POST /api/users/*` - Proxied to **Auth Service**
 - `GET /api/subjects`, `GET /api/lessons/*` - Proxied to **Learning Service**
-- `POST /api/quizzes/:id/submit`, `/api/progress/*` - Proxied to **Assessment Service**
-- `POST /api/chats`, `GET /api/chat-history` - Proxied to **AI Chat Service**
+- `POST /api/quizzes/:id/submit`, `/api/progress/*`, `/api/weak-topics` - Proxied to **Assessment Service**
+- `POST /api/gemini/chat`, `GET /api/chats`, `GET /api/chat-history` - Proxied to **AI Chat Service**
+- `POST /api/generate-quiz`, `POST /api/adaptive-quiz` - Proxied to **AI Chat Service**
+- `POST /api/generate-flashcards`, `POST /api/summarize` - Proxied to **AI Chat Service**
+- `POST|GET /api/suggest-lessons` - Proxied to **AI Chat Service**
 
-For detailed architectural diagrams, please refer to the `MICROSERVICE_ARCHITECTURE.md` file.
+For detailed architectural diagrams, please refer to the [`MICROSERVICE_ARCHITECTURE.md`](MICROSERVICE_ARCHITECTURE.md) file.
 
 ## 🐳 Docker Commands
 
@@ -283,13 +291,22 @@ For support and questions:
 - [x] User authentication system
 - [x] Docker containerization
 - [x] MongoDB integration
-- [ ] Advanced learning analytics
+- [x] Microservice architecture (Strangler Fig migration)
+- [x] Kubernetes multi-environment deployment (dev/staging/prod)
+- [x] AI Quiz generation from lesson content
+- [x] Adaptive Quiz (targeting weak topics)
+- [x] AI Flashcard generation
+- [x] AI Lesson summary
+- [x] AI Lesson suggestions (personalized, persisted)
+- [x] Learning dashboard with progress analytics
+- [x] Redis caching + BullMQ background jobs
+- [x] Responsive Web layout
+- [x] CI/CD pipeline (GitHub Actions)
+- [x] K8s demo scripts (8 scripts, ~23 min)
+- [ ] Cloud deployment (Phase 5)
 - [ ] Voice interaction support
-- [ ] Offline mode capability
-- [ ] Parent/teacher dashboard
 - [ ] Gamification features
 - [ ] Multi-language support
-- [ ] Mobile app optimization
 
 
 
@@ -309,12 +326,12 @@ For support and questions:
 # Check if services are running
 docker ps
 # or
-kubectl get pods -n ai-dev
+kubectl get pods -n ai-tutor-dev
 
 # Restart services
 docker compose down && docker compose up
 # or
-kubectl rollout restart deployment/backend -n ai-dev
+kubectl rollout restart deployment/backend -n ai-tutor-dev
 ```
 
 **Flutter Build Issues**
@@ -326,6 +343,3 @@ flutter run
 ```
 
 ---
-
-# Test CD Pipeline Fix
-# CD Pipeline Ready

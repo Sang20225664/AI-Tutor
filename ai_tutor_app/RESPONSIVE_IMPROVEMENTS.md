@@ -159,10 +159,10 @@ Subject Screen:  2 (mobile) | 3 (tablet) | 4 (desktop)
 ## Next Steps (Optional)
 
 1. **Add responsive to remaining screens:**
-   - Lesson screens
+   - Lesson detail and theory screens
    - Quiz screen
-   - History screen
-   - Notification screen
+   - Flashcard screen
+   - Learning dashboard screen
 
 2. **Responsive for widgets:**
    - ResponsiveText widget can be further improved
