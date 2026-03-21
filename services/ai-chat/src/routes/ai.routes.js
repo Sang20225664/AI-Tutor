@@ -21,6 +21,7 @@ router.post('/adaptive-quiz', personalizationController.generateAdaptiveQuiz);
 router.post('/generate-flashcards', personalizationController.generateFlashcards);
 router.post('/summarize', personalizationController.summarizeLesson);
 router.post('/suggest-lessons', personalizationController.suggestLessons);
+router.get('/suggest-lessons', personalizationController.getAiSuggestions);
 
 module.exports = router;
 

@@ -262,6 +262,10 @@ class ApiService {
     });
   }
 
+  static Future<Map<String, dynamic>> getAiSuggestions() async {
+    return get('suggest-lessons');
+  }
+
   static Future<Map<String, dynamic>> generateAdaptiveQuiz({
     String difficulty = 'medium',
     int questionCount = 5,

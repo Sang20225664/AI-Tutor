@@ -1,6 +1,7 @@
 const { QueueEvents } = require('bullmq');
 const aiQueue = require('../config/queue');
 const logger = require('../config/logger');
+const AiSuggestion = require('../models/aiSuggestion.model');
 
 const queueEvents = new QueueEvents('ai-jobs', {
     connection: {
@@ -128,6 +129,7 @@ const summarizeLesson = async (req, res) => {
 /**
  * POST /api/v1/ai/suggest-lessons
  * Body: { grade }
+ * Generates AI suggestions, saves to DB, returns saved documents
  */
 const suggestLessons = async (req, res) => {
     try {
@@ -148,9 +150,28 @@ const suggestLessons = async (req, res) => {
 
         const result = await job.waitUntilFinished(queueEvents);
 
+        // Save each suggestion to MongoDB
+        const savedSuggestions = [];
+        for (const item of result) {
+            const doc = await AiSuggestion.create({
+                userId,
+                grade: targetGrade,
+                title: item.title,
+                description: item.description,
+                subjectName: item.subjectName || '',
+                difficulty: item.difficulty || 'beginner',
+                difficultyText: item.difficultyText || 'Cơ bản',
+                duration: item.duration || 30,
+                icon: item.icon || 'lightbulb',
+                backgroundColor: item.backgroundColor || '0xFFE3F2FD',
+                topics: item.topics || [],
+            });
+            savedSuggestions.push(doc);
+        }
+
         res.status(201).json({
             success: true,
-            data: result
+            data: savedSuggestions
         });
 
     } catch (error) {
@@ -163,4 +184,35 @@ const suggestLessons = async (req, res) => {
     }
 };
 
-module.exports = { generateAdaptiveQuiz, generateFlashcards, summarizeLesson, suggestLessons };
+/**
+ * GET /api/v1/ai/suggest-lessons
+ * Returns all saved AI suggestions for the authenticated user, newest first
+ */
+const getAiSuggestions = async (req, res) => {
+    try {
+        const userId = req.user?.userId || req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: 'Unauthorized' });
+        }
+
+        const suggestions = await AiSuggestion.find({ userId })
+            .sort({ createdAt: -1 })
+            .limit(50)
+            .lean();
+
+        res.json({
+            success: true,
+            data: suggestions
+        });
+
+    } catch (error) {
+        logger.error(`Failed to fetch AI suggestions: ${error.message}`);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch AI suggestions',
+            detail: error.message
+        });
+    }
+};
+
+module.exports = { generateAdaptiveQuiz, generateFlashcards, summarizeLesson, suggestLessons, getAiSuggestions };

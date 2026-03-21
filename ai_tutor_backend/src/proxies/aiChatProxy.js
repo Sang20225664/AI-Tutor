@@ -68,6 +68,7 @@ router.post('/adaptive-quiz', (req, res) => proxyAiChat(req, res, '/api/v1/ai/ad
 router.post('/generate-flashcards', (req, res) => proxyAiChat(req, res, '/api/v1/ai/generate-flashcards'));
 router.post('/summarize', (req, res) => proxyAiChat(req, res, '/api/v1/ai/summarize'));
 router.post('/suggest-lessons', (req, res) => proxyAiChat(req, res, '/api/v1/ai/suggest-lessons'));
+router.get('/suggest-lessons', (req, res) => proxyAiChat(req, res, '/api/v1/ai/suggest-lessons'));
 
 // Proxy /api/chat-history GET -> AI Chat Service /api/v1/ai/conversations
 router.get('/chat-history', (req, res) => proxyAiChat(req, res, '/api/v1/ai/conversations'));

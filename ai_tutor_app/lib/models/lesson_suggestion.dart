@@ -45,7 +45,7 @@ class LessonSuggestion {
       difficulty: json['difficulty']?.toString() ?? 'beginner',
       duration: _parseIntSafely(json['duration']),
       icon: json['icon']?.toString() ?? 'lightbulb',
-      color: json['color']?.toString() ?? '#4CAF50',
+      color: json['backgroundColor']?.toString() ?? json['color']?.toString() ?? '#4CAF50',
       lessonIds: _parseListOfStrings(json['lessonIds']),
       order: _parseIntSafely(json['order']),
     );
@@ -108,8 +108,15 @@ class LessonSuggestion {
   Color get backgroundColor {
     try {
       String colorStr = color.replaceAll('#', '').trim();
+      // Handle 0xFFRRGGBB format from AI
+      if (colorStr.startsWith('0x') || colorStr.startsWith('0X')) {
+        return Color(int.parse(colorStr));
+      }
       if (colorStr.length == 6) {
         return Color(int.parse('FF$colorStr', radix: 16));
+      }
+      if (colorStr.length == 8) {
+        return Color(int.parse(colorStr, radix: 16));
       }
       return Colors.blue;
     } catch (e) {
