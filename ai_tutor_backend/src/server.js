@@ -101,20 +101,6 @@ logger.info('📊 Gateway: http://%s:%s', HOST, PORT);
 logger.info('🌍 Environment: %s', process.env.NODE_ENV);
 logger.info('%s', '─'.repeat(50));
 
-// === Routes (domain-organized) ===
-// Auth domain
-app.use("/api/users", authProxy);
-
-// Learning domain (proxied to Learning Service)
-app.use("/api", learningProxy);
-
-// Learning domain — quiz POST submission stays in monolith (assessment logic)
-// Assessment domain handled by Proxy
-app.use("/api", assessmentProxy);
-
-// AI/Chat domain (proxied to AI Chat Service)
-app.use("/api", aiChatProxy);
-
 // --- Root route ---
 app.get("/", (req, res) => {
   res.json({
@@ -162,7 +148,19 @@ app.get('/api/ready', (req, res) => {
   });
 });
 
+// === Routes (domain-organized) ===
+// Auth domain
+app.use("/api/users", authProxy);
 
+// Learning domain (proxied to Learning Service)
+app.use("/api", learningProxy);
+
+// Learning domain — quiz POST submission stays in monolith (assessment logic)
+// Assessment domain handled by Proxy
+app.use("/api", assessmentProxy);
+
+// AI/Chat domain (proxied to AI Chat Service)
+app.use("/api", aiChatProxy);
 
 // === Global Error Handler (must be LAST) ===
 app.use(errorHandler);

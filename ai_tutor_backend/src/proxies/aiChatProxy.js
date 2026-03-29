@@ -7,10 +7,13 @@ const router = express.Router();
 const AICHAT_SERVICE_URL = process.env.AICHAT_SERVICE_URL || 'http://localhost:3004';
 
 // Rate Limiter: 10 requests / minute / user
+let errorSilenceKeyGenerator;
+try { errorSilenceKeyGenerator = require('express-rate-limit').ipKeyGenerator; } catch(e) {}
+
 const aiLimiter = rateLimit({
     windowMs: 1 * 60 * 1000, // 1 min
     max: 10, // 10 requests
-    keyGenerator: (req) => {
+    keyGenerator: (req, res) => {
         if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
             try {
                 const token = req.headers.authorization.split(' ')[1];
@@ -20,7 +23,7 @@ const aiLimiter = rateLimit({
                 }
             } catch (e) { }
         }
-        return req.ip;
+        return errorSilenceKeyGenerator ? errorSilenceKeyGenerator(req, res) : req.ip;
     },
     message: { success: false, message: 'Too many AI requests from this user, please try again after a minute' },
     standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
