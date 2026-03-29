@@ -1,5 +1,5 @@
 # Stage 1: Build Flutter Web
-FROM ghcr.io/cirruslabs/flutter:latest AS build-env
+FROM --platform=$BUILDPLATFORM ghcr.io/cirruslabs/flutter:latest AS build-env
 WORKDIR /app
 COPY pubspec.yaml pubspec.lock ./
 RUN flutter pub get
