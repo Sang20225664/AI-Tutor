@@ -132,7 +132,7 @@ jobs:
           SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
 
           # Update images if deployments exist, skip if not yet deployed
-          for svc in backend auth learning assessment ai-chat; do
+          for svc in backend auth learning assessment ai-chat frontend; do
             if kubectl get deployment ${svc} -n dev 2>/dev/null; then
               kubectl set image deployment/${svc} \
                 ${svc}=${{ env.ACR_LOGIN_SERVER }}/ai-tutor-${svc}:${SHORT_SHA} \
@@ -171,7 +171,7 @@ jobs:
           SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
 
           # Update images if deployments exist, skip if not yet deployed
-          for svc in backend auth learning assessment ai-chat; do
+          for svc in backend auth learning assessment ai-chat frontend; do
             if kubectl get deployment ${svc} -n prod 2>/dev/null; then
               kubectl set image deployment/${svc} \
                 ${svc}=${{ env.ACR_LOGIN_SERVER }}/ai-tutor-${svc}:${SHORT_SHA} \
