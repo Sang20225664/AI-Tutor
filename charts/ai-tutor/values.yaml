@@ -1,0 +1,46 @@
+global:
+  imageRegistry: aitutortansangdevacr.azurecr.io
+  imageTag: latest
+  environment: dev
+
+backend:
+  image: ai-tutor-backend
+  replicas: 1
+  port: 5000
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 256Mi
+  env:
+    NODE_ENV: production
+    PORT: "5000"
+    LOG_LEVEL: info
+
+frontend:
+  image: ai-tutor-frontend
+  replicas: 1
+  port: 80
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
+redis:
+  image: redis
+  tag: "7-alpine"
+  replicas: 1
+  port: 6379
+
+ingress:
+  enabled: true
+  className: nginx
+  host: ""
+
+cosmos:
+  databaseName: ai_tutor

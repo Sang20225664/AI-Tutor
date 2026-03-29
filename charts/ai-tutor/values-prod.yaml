@@ -1,0 +1,15 @@
+global:
+  imageTag: main
+  environment: prod
+
+backend:
+  replicas: 2
+  env:
+    NODE_ENV: production
+    LOG_LEVEL: warn
+
+frontend:
+  replicas: 2
+
+ingress:
+  host: ""  # điền domain sau

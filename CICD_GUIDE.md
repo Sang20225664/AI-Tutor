@@ -68,13 +68,8 @@ cat ~/.ssh/github_actions_key
 ## 🌳 Git Branch Strategy
 
 ```
-main (production)
+main (prod)
   │
-  ├── staging
-  │     │
-  │     └── dev
-  │           │
-  │           ├── feature/xxx
   │           └── fix/xxx
 ```
 
@@ -112,7 +107,7 @@ main (production)
 
 1. Vào **Settings** → **Environments**
 2. Click **New environment**
-3. Đặt tên: `staging` hoặc `production`
+3. Đặt tên: `prod`
 4. Enable **Required reviewers**
 5. Thêm reviewers (người có quyền approve deployment)
 
@@ -231,6 +226,6 @@ k8s/
 - [ ] Tạo GitHub Secret: `K3S_USER`
 - [ ] Tạo GitHub Secret: `K3S_SSH_KEY`
 - [ ] Tạo Environment: `staging` (với required reviewers)
-- [ ] Tạo Environment: `production` (với required reviewers)
+- [ ] Tạo Environment: `prod` (với required reviewers)
 - [ ] Tạo branches: `dev`, `staging` từ `main`
 - [ ] Test SSH từ GitHub Actions runner (nếu có self-hosted runner)

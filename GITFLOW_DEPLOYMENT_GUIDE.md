@@ -5,17 +5,15 @@
 Dự án sử dụng **Git Flow** với **CD (Continuous Deployment)** để tự động deploy qua 3 môi trường:
 
 - **DEV**: Phát triển và test nội bộ
-- **STAGING**: UAT testing, giống production 90%
-- **PRODUCTION**: Người dùng thực tế
+
+- **PROD**: Người dùng thực tế
 
 ---
 
 ## 🌳 Branch Strategy
 
 ```
-main (production)
-    ↑
-staging
+main (prod)
     ↑
 dev
     ↑
@@ -27,7 +25,6 @@ feature/*
 | Branch | Purpose | Protected | Auto Deploy | Approval Required |
 |--------|---------|-----------|-------------|-------------------|
 | `main` | Production code | ⚠️ Recommended | ✅ Yes | ⚠️ Recommended |
-| `staging` | Pre-production | ❌ No | ✅ Yes | ❌ Auto |
 | `dev` | Development | ❌ No | ✅ Yes | ❌ Auto |
 | `feature/*` | New features | ❌ No | ❌ No | N/A |
 
@@ -109,7 +106,7 @@ git push origin main
 2. **After merge to main:**
    - 🤖 `cd-prod.yml` triggers
    - 🏗️ Build with `prod-{sha}` tags
-   - ⏸️ **WAIT FOR MANUAL APPROVAL** (environment: production)
+   - ⏸️ **WAIT FOR MANUAL APPROVAL** (environment: prod)
    - 🚀 Deploy to PRODUCTION (`ai-tutor-prod` namespace)
    - 🏥 Run critical smoke tests
    - ✅ **Success:** Show deployment summary
@@ -248,7 +245,7 @@ Bạn muốn làm theo option nào?
 **Steps:**
 1. Build & push backend image → `sang5664/ai-tutor-backend:prod-{sha}`
 2. Build & push frontend image → `sang5664/ai-tutor-frontend:prod-{sha}`
-3. **⏸️ WAIT FOR MANUAL APPROVAL** (environment: production)
+3. **⏸️ WAIT FOR MANUAL APPROVAL** (environment: prod)
 4. Deploy to K3s PRODUCTION namespace
 5. Wait for rollout (timeout: 300s)
 6. Run critical smoke tests:
@@ -268,7 +265,7 @@ Bạn muốn làm theo option nào?
 
 **Steps:**
 1. Build & push images with `hotfix-{sha}` tags
-2. **⏸️ REQUIRE APPROVAL** (environment: production)
+2. **⏸️ REQUIRE APPROVAL** (environment: prod)
 3. Deploy to PRODUCTION
 4. Run health checks
 5. Show backport reminder

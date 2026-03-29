@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: {{ .Values.global.environment }}
+  labels:
+    {{- include "ai-tutor.labels" . | nindent 4 }}
+    app: backend
+spec:
+  replicas: {{ .Values.backend.replicas }}
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+      - name: backend
+        image: {{ .Values.global.imageRegistry }}/{{ .Values.backend.image }}:{{ .Values.global.imageTag }}
+        ports:
+        - containerPort: {{ .Values.backend.port }}
+        env:
+        - name: NODE_ENV
+          value: {{ .Values.backend.env.NODE_ENV }}
+        - name: PORT
+          value: {{ .Values.backend.env.PORT | quote }}
+        - name: LOG_LEVEL
+          value: {{ .Values.backend.env.LOG_LEVEL }}
+        - name: MONGO_URI
+          valueFrom:
+            secretKeyRef:
+              name: ai-tutor-secrets
+              key: MONGO_URI
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: ai-tutor-secrets
+              key: JWT_SECRET
+        - name: GEMINI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: ai-tutor-secrets
+              key: GEMINI_API_KEY
+        - name: REDIS_URL
+          value: redis://redis:6379
+        resources:
+          {{- toYaml .Values.backend.resources | nindent 10 }}
+        livenessProbe:
+          httpGet:
+            path: /api/ping
+            port: {{ .Values.backend.port }}
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /api/ping
+            port: {{ .Values.backend.port }}
+          initialDelaySeconds: 10
+          periodSeconds: 5

@@ -7,7 +7,7 @@ Dự án sử dụng **3 môi trường** độc lập:
 ```
 k8s/
 ├── dev/          # Development - Internal testing
-├── staging/      # Pre-production - UAT testing
+
 └── prod/         # Production - Live users
 ```
 

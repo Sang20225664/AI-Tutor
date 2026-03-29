@@ -1,0 +1,12 @@
+global:
+  imageTag: dev
+  environment: dev
+
+backend:
+  replicas: 1
+  env:
+    NODE_ENV: development
+    LOG_LEVEL: debug
+
+ingress:
+  host: ""  # dùng IP trực tiếp khi dev
