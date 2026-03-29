@@ -8,6 +8,8 @@ metadata:
     app: ai-worker
 spec:
   replicas: {{ index .Values "ai-worker" "replicas" }}
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: ai-worker

@@ -9,22 +9,22 @@ backend:
     LOG_LEVEL: warn
 
 frontend:
-  replicas: 2
+  replicas: 1
 
 auth:
-  replicas: 2
+  replicas: 1
 
 learning:
-  replicas: 2
+  replicas: 1
 
 assessment:
-  replicas: 2
+  replicas: 1
 
 ai-chat:
-  replicas: 2
+  replicas: 1
 
 ai-worker:
-  replicas: 2
+  replicas: 1
 
 ingress:
   host: ""  # điền domain sau

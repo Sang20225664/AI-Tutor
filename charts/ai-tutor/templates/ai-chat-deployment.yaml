@@ -8,6 +8,8 @@ metadata:
     app: ai-chat
 spec:
   replicas: {{ index .Values "ai-chat" "replicas" }}
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: ai-chat

@@ -8,6 +8,8 @@ metadata:
     app: assessment
 spec:
   replicas: {{ .Values.assessment.replicas }}
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: assessment

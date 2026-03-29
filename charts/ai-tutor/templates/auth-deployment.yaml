@@ -8,6 +8,8 @@ metadata:
     app: auth
 spec:
   replicas: {{ .Values.auth.replicas }}
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: auth

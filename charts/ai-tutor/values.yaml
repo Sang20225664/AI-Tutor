@@ -48,7 +48,7 @@ auth:
   port: 3001
   resources:
     requests:
-      cpu: 50m
+      cpu: 10m
       memory: 64Mi
     limits:
       cpu: 200m
@@ -60,7 +60,7 @@ learning:
   port: 3002
   resources:
     requests:
-      cpu: 50m
+      cpu: 10m
       memory: 64Mi
     limits:
       cpu: 200m
@@ -72,7 +72,7 @@ assessment:
   port: 3003
   resources:
     requests:
-      cpu: 50m
+      cpu: 10m
       memory: 64Mi
     limits:
       cpu: 200m
@@ -84,7 +84,7 @@ ai-chat:
   port: 3004
   resources:
     requests:
-      cpu: 50m
+      cpu: 10m
       memory: 64Mi
     limits:
       cpu: 200m
@@ -95,7 +95,7 @@ ai-worker:
   replicas: 1
   resources:
     requests:
-      cpu: 50m
+      cpu: 10m
       memory: 64Mi
     limits:
       cpu: 200m
