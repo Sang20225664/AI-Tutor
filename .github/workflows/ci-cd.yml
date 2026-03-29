@@ -127,6 +127,15 @@ jobs:
             --name ${{ env.AKS_CLUSTER_NAME }} \
             --overwrite-existing
 
+      - name: Inject Kubernetes Secrets
+        run: |
+          kubectl create namespace dev --dry-run=client -o yaml | kubectl apply -f -
+          kubectl create secret generic ai-tutor-secrets \
+            --from-literal=MONGO_URI="${{ secrets.MONGO_URI }}" \
+            --from-literal=JWT_SECRET="${{ secrets.JWT_SECRET }}" \
+            --from-literal=GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}" \
+            -n dev --dry-run=client -o yaml | kubectl apply -f -
+
       - name: Deploy to DEV namespace
         run: |
           SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
@@ -165,6 +174,15 @@ jobs:
             --resource-group ${{ env.AKS_RESOURCE_GROUP }} \
             --name ${{ env.AKS_CLUSTER_NAME }} \
             --overwrite-existing
+
+      - name: Inject Kubernetes Secrets
+        run: |
+          kubectl create namespace prod --dry-run=client -o yaml | kubectl apply -f -
+          kubectl create secret generic ai-tutor-secrets \
+            --from-literal=MONGO_URI="${{ secrets.MONGO_URI }}" \
+            --from-literal=JWT_SECRET="${{ secrets.JWT_SECRET }}" \
+            --from-literal=GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}" \
+            -n prod --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Deploy to PROD namespace
         run: |

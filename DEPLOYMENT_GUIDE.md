@@ -49,6 +49,9 @@ Tất cả các luồng CI/CD được đóng gói gọn gàng trong 1 file duy 
 | `AZURE_CLIENT_ID` | Client ID cho OIDC Login |
 | `AZURE_TENANT_ID` | Tenant ID của Azure AD |
 | `AZURE_SUBSCRIPTION_ID` | Subscription ID chứa Kubernetes/AKS |
+| `MONGO_URI` | Chuỗi kết nối MongoDB (vd: `mongodb://.../ai_tutor`) |
+| `JWT_SECRET` | Khóa bí mật dùng để mã hóa JWT tokens |
+| `GEMINI_API_KEY` | API Key của Google Gemini dùng cho AI Assistant |
 
 *(Lưu ý: Bạn cũng có thể thiết lập Required Reviewers cho môi trường `prod` thông qua tab Environments trong Setting Github)*
 
