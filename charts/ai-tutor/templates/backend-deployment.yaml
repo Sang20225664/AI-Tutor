@@ -59,3 +59,18 @@ spec:
             port: {{ .Values.backend.port }}
           initialDelaySeconds: 10
           periodSeconds: 5
+        volumeMounts:
+        {{- if .Values.keyvault.enabled }}
+        - name: secrets-store-inline
+          mountPath: "/mnt/secrets-store"
+          readOnly: true
+        {{- end }}
+      volumes:
+      {{- if .Values.keyvault.enabled }}
+      - name: secrets-store-inline
+        csi:
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: "ai-tutor-secrets"
+      {{- end }}
