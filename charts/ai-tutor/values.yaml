@@ -42,8 +42,64 @@ ingress:
   className: nginx
   host: ""
 
-cosmos:
-  databaseName: ai_tutor
+auth:
+  image: ai-tutor-auth
+  replicas: 1
+  port: 3001
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
+learning:
+  image: ai-tutor-learning
+  replicas: 1
+  port: 3002
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
+assessment:
+  image: ai-tutor-assessment
+  replicas: 1
+  port: 3003
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
+ai-chat:
+  image: ai-tutor-ai-chat
+  replicas: 1
+  port: 3004
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
+ai-worker:
+  image: ai-tutor-ai-worker
+  replicas: 1
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
 
 keyvault:
   enabled: true

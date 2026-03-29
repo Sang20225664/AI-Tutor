@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth
+  namespace: {{ .Values.global.environment }}
+  labels:
+    {{- include "ai-tutor.labels" . | nindent 4 }}
+    app: auth
+spec:
+  replicas: {{ .Values.auth.replicas }}
+  selector:
+    matchLabels:
+      app: auth
+  template:
+    metadata:
+      labels:
+        app: auth
+    spec:
+      containers:
+      - name: auth
+        image: {{ .Values.global.imageRegistry }}/{{ .Values.auth.image }}:{{ .Values.global.imageTag }}
+        ports:
+        - containerPort: {{ .Values.auth.port }}
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: {{ .Values.auth.port | quote }}
+        - name: MONGO_URI
+          valueFrom:
+            secretKeyRef:
+              name: ai-tutor-secrets
+              key: MONGO_URI
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: ai-tutor-secrets
+              key: JWT_SECRET
+        - name: GEMINI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: ai-tutor-secrets
+              key: GEMINI_API_KEY
+        - name: REDIS_URL
+          value: redis://redis:6379
+        resources:
+          {{- toYaml .Values.auth.resources | nindent 10 }}
+        volumeMounts:
+        {{- if .Values.keyvault.enabled }}
+        - name: secrets-store-inline
+          mountPath: "/mnt/secrets-store"
+          readOnly: true
+        {{- end }}
+      volumes:
+      {{- if .Values.keyvault.enabled }}
+      - name: secrets-store-inline
+        csi:
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: "ai-tutor-secrets"
+      {{- end }}

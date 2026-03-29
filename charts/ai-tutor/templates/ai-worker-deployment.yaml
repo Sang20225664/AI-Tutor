@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-worker
+  namespace: {{ .Values.global.environment }}
+  labels:
+    {{- include "ai-tutor.labels" . | nindent 4 }}
+    app: ai-worker
+spec:
+  replicas: {{ index .Values "ai-worker" "replicas" }}
+  selector:
+    matchLabels:
+      app: ai-worker
+  template:
+    metadata:
+      labels:
+        app: ai-worker
+    spec:
+      containers:
+      - name: ai-worker
+        image: {{ .Values.global.imageRegistry }}/{{ index .Values "ai-worker" "image" }}:{{ .Values.global.imageTag }}
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: MONGO_URI
+          valueFrom:
+            secretKeyRef:
+              name: ai-tutor-secrets
+              key: MONGO_URI
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: ai-tutor-secrets
+              key: JWT_SECRET
+        - name: GEMINI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: ai-tutor-secrets
+              key: GEMINI_API_KEY
+        - name: REDIS_URL
+          value: redis://redis:6379
+        resources:
+          {{- toYaml (index .Values "ai-worker" "resources") | nindent 10 }}
+        volumeMounts:
+        {{- if .Values.keyvault.enabled }}
+        - name: secrets-store-inline
+          mountPath: "/mnt/secrets-store"
+          readOnly: true
+        {{- end }}
+      volumes:
+      {{- if .Values.keyvault.enabled }}
+      - name: secrets-store-inline
+        csi:
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: "ai-tutor-secrets"
+      {{- end }}

@@ -11,5 +11,20 @@ backend:
 frontend:
   replicas: 2
 
+auth:
+  replicas: 2
+
+learning:
+  replicas: 2
+
+assessment:
+  replicas: 2
+
+ai-chat:
+  replicas: 2
+
+ai-worker:
+  replicas: 2
+
 ingress:
   host: ""  # điền domain sau
