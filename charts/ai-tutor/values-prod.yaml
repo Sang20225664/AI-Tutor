@@ -27,4 +27,8 @@ ai-worker:
   replicas: 1
 
 ingress:
-  host: ""  # điền domain sau
+  host: "ai-tutot-ts.duckdns.org"
+  clusterIssuer: "letsencrypt-prod"
+  tls:
+    enabled: true
+    secretName: "ai-tutor-prod-tls"

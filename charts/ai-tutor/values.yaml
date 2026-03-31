@@ -41,6 +41,10 @@ ingress:
   enabled: true
   className: nginx
   host: ""
+  clusterIssuer: "letsencrypt-prod"
+  tls:
+    enabled: true
+    secretName: "ai-tutor-tls"
 
 auth:
   image: ai-tutor-auth
