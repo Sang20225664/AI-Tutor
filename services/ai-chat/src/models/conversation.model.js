@@ -14,4 +14,8 @@ const conversationSchema = new mongoose.Schema({
     messages: [messageSchema]
 }, { timestamps: true });
 
+// Cosmos DB (Mongo API) requires matching indexes for ORDER BY with filters
+conversationSchema.index({ userId: 1, updatedAt: -1 });
+conversationSchema.index({ userId: 1, isPinned: 1, updatedAt: -1 });
+
 module.exports = mongoose.model('Conversation', conversationSchema);
