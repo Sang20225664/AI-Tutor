@@ -4,6 +4,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const logger = require('./src/config/logger');
+const Progress = require('./src/models/Progress');
+const QuizAttempt = require('./src/models/QuizAttempt');
 
 const assessmentRoutes = require('./src/routes/assessmentRoutes');
 
@@ -49,8 +51,16 @@ app.get('/internal/analysis/weak-topics', analysisController.getWeakTopics);
 // Connect to MongoDB and start server
 mongoose.set('strictQuery', false);
 mongoose
-    .connect(process.env.MONGO_URI)
-    .then(() => {
+    .connect(process.env.MONGO_URI, {
+        serverSelectionTimeoutMS: 10000,
+        autoIndex: true,
+    })
+    .then(async () => {
+        await Promise.all([
+            Progress.createIndexes(),
+            QuizAttempt.createIndexes(),
+        ]);
+
         console.log('📝 Assessment Service Started');
         console.log('📊 Port: %s', PORT);
         console.log('💾 MongoDB: Connected');

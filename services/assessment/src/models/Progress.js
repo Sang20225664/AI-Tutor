@@ -50,6 +50,7 @@ progressSchema.index({ userId: 1, lessonId: 1 }, { unique: true });
 
 // Index for analytics queries
 progressSchema.index({ userId: 1, updatedAt: -1 });
+progressSchema.index({ userId: 1, lastAccessedAt: -1 });
 progressSchema.index({ lessonId: 1, completionPercent: 1 });
 
 module.exports = mongoose.model('Progress', progressSchema);
