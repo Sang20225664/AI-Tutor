@@ -4,11 +4,11 @@ const rateLimit = require('express-rate-limit');
 const jwt = require('jsonwebtoken');
 const router = express.Router();
 
-const AICHAT_SERVICE_URL = process.env.AICHAT_SERVICE_URL || 'http://localhost:3004';
+const AICHAT_SERVICE_URL = process.env.AICHAT_SERVICE_URL || 'http://ai-chat:3004';
 
 // Rate Limiter: 10 requests / minute / user
 let errorSilenceKeyGenerator;
-try { errorSilenceKeyGenerator = require('express-rate-limit').ipKeyGenerator; } catch(e) {}
+try { errorSilenceKeyGenerator = require('express-rate-limit').ipKeyGenerator; } catch (e) { }
 
 const aiLimiter = rateLimit({
     windowMs: 1 * 60 * 1000, // 1 min
@@ -36,7 +36,7 @@ router.use(aiLimiter);
 async function proxyAiChat(req, res, targetPath) {
     try {
         const url = `${AICHAT_SERVICE_URL}${targetPath}`;
-        
+
         const response = await axios({
             method: req.method,
             url: url,
@@ -53,7 +53,7 @@ async function proxyAiChat(req, res, targetPath) {
         if (error.response) {
             res.status(error.response.status).json(error.response.data);
         } else {
-            console.error(`❌ AI Chat proxy error (${targetPath}):`, error.message);
+            console.error(`❌ AI Chat proxy error (${targetPath}):`, error.message, error.code || 'NO_CODE');
             res.status(500).json({ success: false, message: 'AI Chat service unavailable' });
         }
     }

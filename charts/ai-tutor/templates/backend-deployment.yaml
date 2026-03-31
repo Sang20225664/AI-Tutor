@@ -47,6 +47,8 @@ spec:
               key: GEMINI_API_KEY
         - name: REDIS_URL
           value: redis://redis:6379
+        - name: AICHAT_SERVICE_URL
+          value: http://ai-chat:3004
         resources:
           {{- toYaml .Values.backend.resources | nindent 10 }}
         livenessProbe:
