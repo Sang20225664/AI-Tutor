@@ -69,7 +69,12 @@ const progressController = {
     async getProgressSummary(req, res) {
         try {
             const userId = req.user.userId;
-            const rawProgressRecords = await Progress.find({ userId }).sort({ lastAccessedAt: -1 }).lean();
+            const rawProgressRecords = await Progress.find({ userId }).lean();
+            rawProgressRecords.sort((a, b) => {
+                const aTime = a?.lastAccessedAt ? new Date(a.lastAccessedAt).getTime() : 0;
+                const bTime = b?.lastAccessedAt ? new Date(b.lastAccessedAt).getTime() : 0;
+                return bTime - aTime;
+            });
 
             // Fetch lessons from Learning Service
             let allLessons = [];
