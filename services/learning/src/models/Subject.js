@@ -10,4 +10,7 @@ const subjectSchema = new mongoose.Schema({
     updatedAt: { type: Date, default: Date.now }
 });
 
+// Cosmos DB (Mongo API): ensure ORDER BY on name works reliably
+subjectSchema.index({ name: 1 });
+
 module.exports = mongoose.model("Subject", subjectSchema);

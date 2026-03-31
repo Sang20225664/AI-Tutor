@@ -13,4 +13,10 @@ const lessonSchema = new mongoose.Schema({
     updatedAt: { type: Date, default: Date.now }
 });
 
+// Cosmos DB (Mongo API): support ORDER BY createdAt with common filters
+lessonSchema.index({ createdAt: -1 });
+lessonSchema.index({ subjectId: 1, createdAt: -1 });
+lessonSchema.index({ subjectName: 1, createdAt: -1 });
+lessonSchema.index({ grade: 1, createdAt: -1 });
+
 module.exports = mongoose.model("Lesson", lessonSchema);

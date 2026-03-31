@@ -19,4 +19,10 @@ const quizSchema = new mongoose.Schema({
     updatedAt: { type: Date, default: Date.now }
 });
 
+// Cosmos DB (Mongo API): support ORDER BY createdAt with common filters
+quizSchema.index({ createdAt: -1 });
+quizSchema.index({ subjectId: 1, createdAt: -1 });
+quizSchema.index({ subjectName: 1, createdAt: -1 });
+quizSchema.index({ grade: 1, createdAt: -1 });
+
 module.exports = mongoose.model("Quiz", quizSchema);

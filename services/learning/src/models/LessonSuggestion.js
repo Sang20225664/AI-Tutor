@@ -17,4 +17,9 @@ const lessonSuggestionSchema = new mongoose.Schema({
     updatedAt: { type: Date, default: Date.now }
 });
 
+// Cosmos DB (Mongo API): support ORDER BY order with common filters
+lessonSuggestionSchema.index({ order: 1 });
+lessonSuggestionSchema.index({ subjectId: 1, order: 1 });
+lessonSuggestionSchema.index({ grade: 1, order: 1 });
+
 module.exports = mongoose.model("LessonSuggestion", lessonSuggestionSchema);
