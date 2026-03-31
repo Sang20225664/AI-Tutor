@@ -31,6 +31,7 @@ yarn-error.log*
 
 # Environment variables
 .env
+.env.bak*
 .env.local
 .env.development.local
 .env.test.local
@@ -68,6 +69,10 @@ logs/
 # Temporary files
 tmp/
 temp/
+
+# Terraform state
+*.tfstate
+*.tfstate.*
 
 # Kubernetes secrets (DO NOT COMMIT)
 k8s/**/backend-secret.yaml

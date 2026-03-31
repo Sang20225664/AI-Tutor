@@ -36,26 +36,24 @@ The `Dockerfile` uses a multi-stage build:
 Build the Docker image:
 ```bash
 cd ai_tutor_app
-docker build -t sang5664/ai-tutor-frontend:latest .
+docker build -t aitutortansangdevacr.azurecr.io/ai-tutor-frontend:latest .
 ```
 
 **Options:**
-- Use `--no-cache` to force rebuild: `docker build --no-cache -t sang5664/ai-tutor-frontend:latest .`
-- Tag with version: `docker build -t sang5664/ai-tutor-frontend:v1.0.0 .`
+- Use `--no-cache` to force rebuild: `docker build --no-cache -t aitutortansangdevacr.azurecr.io/ai-tutor-frontend:latest .`
+- Tag with version: `docker build -t aitutortansangdevacr.azurecr.io/ai-tutor-frontend:v1.0.0 .`
 
 ---
 
 ### 4. Push Docker Image
 
-Push the image to Docker Hub:
+Push the image to Azure Container Registry (ACR):
 ```bash
-docker push sang5664/ai-tutor-frontend:latest
+az acr login --name aitutortansangdevacr
+docker push aitutortansangdevacr.azurecr.io/ai-tutor-frontend:latest
 ```
 
-**Note:** Ensure you're logged in to Docker Hub:
-```bash
-docker login
-```
+**Note:** Ensure you have access to ACR and are logged in with Azure CLI.
 
 ---
 
@@ -76,7 +74,7 @@ The `nginx.conf` includes:
 
 Test the Docker image locally before pushing:
 ```bash
-docker run -d -p 8080:80 --name frontend-test sang5664/ai-tutor-frontend:latest
+docker run -d -p 8080:80 --name frontend-test aitutortansangdevacr.azurecr.io/ai-tutor-frontend:latest
 curl http://localhost:8080/health
 docker stop frontend-test && docker rm frontend-test
 ```
@@ -85,7 +83,7 @@ docker stop frontend-test && docker rm frontend-test
 
 ### 7. Quick Build & Push Script
 
-Create a script `build-and-push.sh`:
+Create a script `build-and-push-acr.sh`:
 ```bash
 #!/bin/bash
 set -e
@@ -94,18 +92,21 @@ echo "Building Flutter Web..."
 flutter build web --release
 
 echo "Building Docker image..."
-docker build -t sang5664/ai-tutor-frontend:latest .
+docker build -t aitutortansangdevacr.azurecr.io/ai-tutor-frontend:latest .
 
-echo "Pushing to Docker Hub..."
-docker push sang5664/ai-tutor-frontend:latest
+echo "Logging in to ACR..."
+az acr login --name aitutortansangdevacr
 
-echo "Done! Image: sang5664/ai-tutor-frontend:latest"
+echo "Pushing to ACR..."
+docker push aitutortansangdevacr.azurecr.io/ai-tutor-frontend:latest
+
+echo "Done! Image: aitutortansangdevacr.azurecr.io/ai-tutor-frontend:latest"
 ```
 
 Make it executable:
 ```bash
-chmod +x build-and-push.sh
-./build-and-push.sh
+chmod +x build-and-push-acr.sh
+./build-and-push-acr.sh
 ```
 
 ---

@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: sang5664/ai-tutor-frontend:v5
+        image: aitutortansangdevacr.azurecr.io/ai-tutor-frontend:v5
         imagePullPolicy: Always
         ports:
         - containerPort: 80

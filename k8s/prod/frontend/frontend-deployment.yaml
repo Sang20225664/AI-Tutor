@@ -24,7 +24,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: sang5664/ai-tutor-frontend:v1.0.0  # Prod: Use specific version tags
+        image: aitutortansangdevacr.azurecr.io/ai-tutor-frontend:v1.0.0  # Prod: Use specific version tags
         ports:
         - containerPort: 80
         volumeMounts:
