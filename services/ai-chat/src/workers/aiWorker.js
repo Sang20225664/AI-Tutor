@@ -1,9 +1,12 @@
 require('dotenv').config();
 const { Worker } = require('bullmq');
 const mongoose = require('mongoose');
+const { buildRedisConnection } = require('../config/redisConnection');
 
 // Wait for mongoose connection before processing jobs
-mongoose.connect(process.env.MONGO_URI)
+mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/ai_chat_db', {
+  serverSelectionTimeoutMS: 10000,
+})
   .then(() => console.log('Worker MongoDB Connected'))
   .catch(err => console.error('Worker MongoDB Connection Error:', err));
 
@@ -13,14 +16,11 @@ const { generateFlashcards, generateSummary } = require('../services/content.gen
 const { generateLessonSuggestions } = require('../services/suggestion.generator');
 const quizGenerator = require('../services/quiz.generator');
 
-const connection = {
-  host: process.env.REDIS_HOST || 'redis',
-  port: process.env.REDIS_PORT || 6379,
-};
+const connection = buildRedisConnection();
 
 const worker = new Worker('ai-jobs', async (job) => {
   console.log(`[Worker] Started processing job ${job.id} of type: ${job.name}`);
-  
+
   switch (job.name) {
     case 'adaptiveQuiz':
       return await generateAdaptiveQuiz(job.data.userId, job.data.requestId);
@@ -36,9 +36,9 @@ const worker = new Worker('ai-jobs', async (job) => {
 
     case 'generateQuiz':
       return await quizGenerator.generateQuiz({
-          lessonId: job.data.lessonId,
-          difficulty: job.data.difficulty,
-          questionCount: job.data.questionCount
+        lessonId: job.data.lessonId,
+        difficulty: job.data.difficulty,
+        questionCount: job.data.questionCount
       }, job.data.requestId);
 
     default:

@@ -2,12 +2,10 @@ const { QueueEvents } = require('bullmq');
 const aiQueue = require('../config/queue');
 const logger = require('../config/logger');
 const AiSuggestion = require('../models/aiSuggestion.model');
+const { buildRedisConnection } = require('../config/redisConnection');
 
 const queueEvents = new QueueEvents('ai-jobs', {
-    connection: {
-        host: process.env.REDIS_HOST || 'redis',
-        port: process.env.REDIS_PORT || 6379,
-    }
+    connection: buildRedisConnection()
 });
 
 /**
@@ -103,7 +101,7 @@ const summarizeLesson = async (req, res) => {
         }
 
         const requestId = req.headers['x-request-id'];
-        
+
         const job = await aiQueue.add('summarizeLesson', {
             lessonId,
             requestId
