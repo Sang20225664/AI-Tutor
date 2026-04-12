@@ -1,8 +1,14 @@
 const Subject = require('../models/Subject');
 
 const subjectService = {
-    async getAll() {
-        return Subject.find().sort({ name: 1 });
+    async getAll(query = {}) {
+        const filter = {};
+
+        if (query.grade !== undefined) {
+            filter.grade = { $in: [Number(query.grade)] };
+        }
+
+        return Subject.find(filter).sort({ name: 1 });
     },
 
     async getById(id) {
