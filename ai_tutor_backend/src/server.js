@@ -38,31 +38,11 @@ if (process.env.NODE_ENV === 'development') {
   app.use(helmet());
 }
 
-// AGGRESSIVE CORS SETUP FIRST
-app.use((req, res, next) => {
-  // Set CORS headers as early as possible
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Credentials", "false");
-  res.header("Access-Control-Allow-Methods", "*");
-  res.header("Access-Control-Allow-Headers", "*");
-  res.header("Access-Control-Max-Age", "86400");
-
-  // Handle preflight requests immediately
-  if (req.method === "OPTIONS") {
-    console.log(`✅ CORS preflight for ${req.url}`);
-    return res.status(200).end();
-  }
-
-  next();
-});
-
-// Secondary CORS middleware
+// CORS middleware
+const corsOrigin = process.env.CORS_ORIGIN || '*';
 app.use(cors({
-  origin: function (origin, callback) {
-    // Allow all origins in development
-    callback(null, true);
-  },
-  credentials: false,
+  origin: corsOrigin,
+  credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['*'],
 }));

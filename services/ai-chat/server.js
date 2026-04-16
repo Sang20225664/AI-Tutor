@@ -9,7 +9,12 @@ const connectDB = require('./src/config/mongoose');
 const app = express();
 
 // Middleware
-app.use(cors());
+// Setup CORS with configurable origin
+const corsOrigin = process.env.CORS_ORIGIN || '*';
+app.use(cors({
+    origin: corsOrigin,
+    credentials: true
+}));
 app.use(express.json());
 
 // Request logging middleware

@@ -11,7 +11,7 @@ services:
       - "5000:5000"
     depends_on:
       mongo:
-        condition: service_started
+        condition: service_healthy
       auth:
         condition: service_healthy
       learning:
@@ -68,7 +68,8 @@ services:
     ports:
       - "3001:3001"
     depends_on:
-      - mongo
+      mongo:
+        condition: service_healthy
     environment:
       - PORT=3001
       - MONGO_URI=mongodb://mongo:27017/ai_tutor_v2
@@ -94,7 +95,8 @@ services:
     ports:
       - "3002:3002"
     depends_on:
-      - mongo
+      mongo:
+        condition: service_healthy
     environment:
       - PORT=3002
       - MONGO_URI=mongodb://mongo:27017/learning_db
@@ -118,8 +120,10 @@ services:
     ports:
       - "3003:3003"
     depends_on:
-      - mongo
-      - learning
+      mongo:
+        condition: service_healthy
+      learning:
+        condition: service_started
     environment:
       - PORT=3003
       - MONGO_URI=mongodb://mongo:27017/assessment_db
@@ -146,8 +150,10 @@ services:
     ports:
       - "3004:3004"
     depends_on:
-      - mongo
-      - learning
+      mongo:
+        condition: service_healthy
+      learning:
+        condition: service_started
     environment:
       - PORT=3004
       - MONGO_URI=mongodb://mongo:27017/ai_chat_db
@@ -175,10 +181,14 @@ services:
     container_name: ai_tutor_ai_worker
     command: node src/workers/aiWorker.js
     depends_on:
-      - mongo
-      - redis
-      - learning
-      - assessment
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      learning:
+        condition: service_started
+      assessment:
+        condition: service_started
     environment:
       - MONGO_URI=mongodb://mongo:27017/ai_chat_db
       - LEARNING_SERVICE_URL=http://learning:3002
@@ -203,6 +213,12 @@ services:
     networks:
       - ai_tutor_network
     command: [ "mongod", "--quiet" ]
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   # Redis Cache service
   redis:
