@@ -176,6 +176,7 @@ jobs:
       - name: Deploy to DEV namespace
         run: |
           SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+          ROLLOUT_TIMEOUT="600s"
 
           # Update images if deployments exist, skip if not yet deployed
           for svc in backend auth learning assessment ai-chat frontend; do
@@ -183,7 +184,22 @@ jobs:
               kubectl set image deployment/${svc} \
                 ${svc}=${{ env.ACR_LOGIN_SERVER }}/ai-tutor-${svc}:${SHORT_SHA} \
                 -n dev
-              kubectl rollout status deployment/${svc} -n dev --timeout=300s
+
+              if ! kubectl rollout status deployment/${svc} -n dev --timeout=${ROLLOUT_TIMEOUT}; then
+                echo "❌ Rollout failed for ${svc} in dev. Collecting diagnostics..."
+                kubectl get deployment ${svc} -n dev -o wide || true
+                kubectl describe deployment ${svc} -n dev || true
+                kubectl get pods -n dev -l app=${svc} -o wide || true
+
+                NEW_POD=$(kubectl get pods -n dev -l app=${svc} --sort-by=.metadata.creationTimestamp -o jsonpath='{.items[-1:].metadata.name}' 2>/dev/null || true)
+                if [ -n "${NEW_POD}" ]; then
+                  kubectl describe pod ${NEW_POD} -n dev || true
+                  kubectl logs ${NEW_POD} -n dev --all-containers --tail=200 || true
+                fi
+
+                kubectl get events -n dev --sort-by=.metadata.creationTimestamp | tail -50 || true
+                exit 1
+              fi
             else
               echo "⏭️  ${svc} not deployed yet, skipping..."
             fi
@@ -216,6 +232,7 @@ jobs:
       - name: Deploy to PROD namespace
         run: |
           SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+          ROLLOUT_TIMEOUT="600s"
 
           # Update images if deployments exist, skip if not yet deployed
           for svc in backend auth learning assessment ai-chat frontend; do
@@ -223,7 +240,22 @@ jobs:
               kubectl set image deployment/${svc} \
                 ${svc}=${{ env.ACR_LOGIN_SERVER }}/ai-tutor-${svc}:${SHORT_SHA} \
                 -n prod
-              kubectl rollout status deployment/${svc} -n prod --timeout=300s
+
+              if ! kubectl rollout status deployment/${svc} -n prod --timeout=${ROLLOUT_TIMEOUT}; then
+                echo "❌ Rollout failed for ${svc} in prod. Collecting diagnostics..."
+                kubectl get deployment ${svc} -n prod -o wide || true
+                kubectl describe deployment ${svc} -n prod || true
+                kubectl get pods -n prod -l app=${svc} -o wide || true
+
+                NEW_POD=$(kubectl get pods -n prod -l app=${svc} --sort-by=.metadata.creationTimestamp -o jsonpath='{.items[-1:].metadata.name}' 2>/dev/null || true)
+                if [ -n "${NEW_POD}" ]; then
+                  kubectl describe pod ${NEW_POD} -n prod || true
+                  kubectl logs ${NEW_POD} -n prod --all-containers --tail=200 || true
+                fi
+
+                kubectl get events -n prod --sort-by=.metadata.creationTimestamp | tail -50 || true
+                exit 1
+              fi
             else
               echo "⏭️  ${svc} not deployed yet, skipping..."
             fi
