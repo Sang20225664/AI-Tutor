@@ -177,14 +177,24 @@ jobs:
         run: |
           SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
           ROLLOUT_TIMEOUT="600s"
+          FAILED_SVCS=""
 
-          # Update images if deployments exist, skip if not yet deployed
+          # Step 1: Update all images in parallel (fast)
           for svc in backend auth learning assessment ai-chat frontend; do
-            if kubectl get deployment ${svc} -n dev 2>/dev/null; then
+            if kubectl get deployment ${svc} -n dev &>/dev/null; then
               kubectl set image deployment/${svc} \
                 ${svc}=${{ env.ACR_LOGIN_SERVER }}/ai-tutor-${svc}:${SHORT_SHA} \
                 -n dev
+              echo "✅ Image updated: ${svc}"
+            else
+              echo "⏭️  ${svc} not deployed yet, skipping..."
+            fi
+          done
 
+          # Step 2: Wait for all rollouts (sequential to get clear logs)
+          for svc in backend auth learning assessment ai-chat frontend; do
+            if kubectl get deployment ${svc} -n dev &>/dev/null; then
+              echo "⏳ Waiting for ${svc} rollout..."
               if ! kubectl rollout status deployment/${svc} -n dev --timeout=${ROLLOUT_TIMEOUT}; then
                 echo "❌ Rollout failed for ${svc} in dev. Collecting diagnostics..."
                 kubectl get deployment ${svc} -n dev -o wide || true
@@ -198,12 +208,16 @@ jobs:
                 fi
 
                 kubectl get events -n dev --sort-by=.metadata.creationTimestamp | tail -50 || true
-                exit 1
+                FAILED_SVCS="${FAILED_SVCS} ${svc}"
               fi
-            else
-              echo "⏭️  ${svc} not deployed yet, skipping..."
             fi
           done
+
+          if [ -n "${FAILED_SVCS}" ]; then
+            echo "❌ Failed services:${FAILED_SVCS}"
+            exit 1
+          fi
+          echo "✅ All DEV deployments rolled out successfully."
 
   deploy-prod:
     name: Deploy to PROD
@@ -233,14 +247,24 @@ jobs:
         run: |
           SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
           ROLLOUT_TIMEOUT="600s"
+          FAILED_SVCS=""
 
-          # Update images if deployments exist, skip if not yet deployed
+          # Step 1: Update all images in parallel (fast)
           for svc in backend auth learning assessment ai-chat frontend; do
-            if kubectl get deployment ${svc} -n prod 2>/dev/null; then
+            if kubectl get deployment ${svc} -n prod &>/dev/null; then
               kubectl set image deployment/${svc} \
                 ${svc}=${{ env.ACR_LOGIN_SERVER }}/ai-tutor-${svc}:${SHORT_SHA} \
                 -n prod
+              echo "✅ Image updated: ${svc}"
+            else
+              echo "⏭️  ${svc} not deployed yet, skipping..."
+            fi
+          done
 
+          # Step 2: Wait for all rollouts
+          for svc in backend auth learning assessment ai-chat frontend; do
+            if kubectl get deployment ${svc} -n prod &>/dev/null; then
+              echo "⏳ Waiting for ${svc} rollout..."
               if ! kubectl rollout status deployment/${svc} -n prod --timeout=${ROLLOUT_TIMEOUT}; then
                 echo "❌ Rollout failed for ${svc} in prod. Collecting diagnostics..."
                 kubectl get deployment ${svc} -n prod -o wide || true
@@ -254,9 +278,13 @@ jobs:
                 fi
 
                 kubectl get events -n prod --sort-by=.metadata.creationTimestamp | tail -50 || true
-                exit 1
+                FAILED_SVCS="${FAILED_SVCS} ${svc}"
               fi
-            else
-              echo "⏭️  ${svc} not deployed yet, skipping..."
             fi
           done
+
+          if [ -n "${FAILED_SVCS}" ]; then
+            echo "❌ Failed services:${FAILED_SVCS}"
+            exit 1
+          fi
+          echo "✅ All PROD deployments rolled out successfully."
