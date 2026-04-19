@@ -9,7 +9,10 @@ metadata:
 spec:
   replicas: {{ index .Values "ai-chat" "replicas" }}
   strategy:
-    type: Recreate
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   selector:
     matchLabels:
       app: ai-chat
@@ -47,6 +50,20 @@ spec:
           value: redis://redis:6379
         resources:
           {{- toYaml (index .Values "ai-chat" "resources") | nindent 10 }}
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: {{ index .Values "ai-chat" "port" }}
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          failureThreshold: 3
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: {{ index .Values "ai-chat" "port" }}
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          failureThreshold: 3
         volumeMounts:
         {{- if .Values.keyvault.enabled }}
         - name: secrets-store-inline

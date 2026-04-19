@@ -9,7 +9,10 @@ metadata:
 spec:
   replicas: {{ .Values.learning.replicas }}
   strategy:
-    type: Recreate
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   selector:
     matchLabels:
       app: learning
@@ -47,6 +50,20 @@ spec:
           value: redis://redis:6379
         resources:
           {{- toYaml .Values.learning.resources | nindent 10 }}
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: {{ .Values.learning.port }}
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          failureThreshold: 3
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: {{ .Values.learning.port }}
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          failureThreshold: 3
         volumeMounts:
         {{- if .Values.keyvault.enabled }}
         - name: secrets-store-inline
