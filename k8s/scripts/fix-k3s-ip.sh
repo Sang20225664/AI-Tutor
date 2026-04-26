@@ -2,15 +2,24 @@
 
 # Script to update K3s with current IP address
 
-# Get current IP (exclude docker IPs)
-CURRENT_IP=$(ip -4 addr show wlo1 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
+# Detect active network interface and current IP from default route
+DEFAULT_IFACE=$(ip route get 1.1.1.1 2>/dev/null | awk '{for (i=1;i<=NF;i++) if ($i=="dev") {print $(i+1); exit}}')
+CURRENT_IP=$(ip -4 route get 1.1.1.1 2>/dev/null | awk '{for (i=1;i<=NF;i++) if ($i=="src") {print $(i+1); exit}}')
+
+# Fallback: first host IP if route-based detection is unavailable
+if [ -z "$CURRENT_IP" ]; then
+    CURRENT_IP=$(hostname -I 2>/dev/null | awk '{print $1}')
+fi
 
 if [ -z "$CURRENT_IP" ]; then
-    echo "❌ Cannot detect IP address on wlo1 interface"
+    echo "❌ Cannot detect host IPv4 address"
     exit 1
 fi
 
 echo "🔍 Current IP detected: $CURRENT_IP"
+if [ -n "$DEFAULT_IFACE" ]; then
+    echo "🌐 Active interface: $DEFAULT_IFACE"
+fi
 echo ""
 
 # Check current K3s service config

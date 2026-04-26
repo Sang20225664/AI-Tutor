@@ -70,7 +70,7 @@ spec:
               key: MONGO_URI
         readinessProbe:
           httpGet:
-            path: /api/ping
+            path: /api/ready
             port: 5000
           initialDelaySeconds: 10
           periodSeconds: 5

@@ -62,7 +62,7 @@ spec:
           periodSeconds: 10
         readinessProbe:
           httpGet:
-            path: /api/ping
+            path: /api/ready
             port: {{ .Values.backend.port }}
           initialDelaySeconds: 10
           periodSeconds: 5

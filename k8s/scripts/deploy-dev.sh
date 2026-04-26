@@ -42,7 +42,9 @@ kubectl get pods -n ai-tutor-dev
 
 echo ""
 echo "🌐 Access the application:"
-CURRENT_IP=$(ip -4 addr show wlo1 2>/dev/null | grep -oP '(?<=inet\s)\d+(\.\d+){3}' || echo "192.168.1.x")
+CURRENT_IP=$(ip -4 route get 1.1.1.1 2>/dev/null | awk '{for (i=1;i<=NF;i++) if ($i=="src") {print $(i+1); exit}}')
+[ -z "$CURRENT_IP" ] && CURRENT_IP=$(hostname -I 2>/dev/null | awk '{print $1}')
+[ -z "$CURRENT_IP" ] && CURRENT_IP="127.0.0.1"
 echo "  Add to /etc/hosts: $CURRENT_IP ai-tutor-dev.local"
 echo "  URL: https://ai-tutor-dev.local"
 echo ""
