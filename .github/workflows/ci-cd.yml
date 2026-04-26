@@ -16,9 +16,33 @@ permissions:
   contents: read
 
 jobs:
+  policy-checks:
+    name: Policy checks (images & secrets)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Block mutable latest tags in staging/prod manifests
+        run: |
+          if grep -RInE "image:\s*.*:latest" k8s/staging k8s/prod; then
+            echo "❌ Found ':latest' tag in staging/prod manifests. Use immutable tag (version/SHA)."
+            exit 1
+          fi
+          echo "✅ No ':latest' tags in staging/prod manifests."
+
+      - name: Block plaintext Kubernetes secret manifests
+        run: |
+          if find k8s -type f -name "*secret*.yaml" ! -name "*.template" | grep -q .; then
+            echo "❌ Found tracked secret manifest (*.yaml). Commit only template files and inject secrets at deploy time."
+            find k8s -type f -name "*secret*.yaml" ! -name "*.template"
+            exit 1
+          fi
+          echo "✅ No plaintext secret manifests tracked."
+
   build-backend:
     name: Build Backend
     runs-on: ubuntu-latest
+    needs: [policy-checks]
     outputs:
       image_tag: ${{ steps.meta.outputs.version }}
     steps:
@@ -63,6 +87,7 @@ jobs:
   build-frontend:
     name: Build Frontend
     runs-on: ubuntu-latest
+    needs: [policy-checks]
     outputs:
       image_tag: ${{ steps.meta.outputs.version }}
     steps:
@@ -107,6 +132,7 @@ jobs:
   build-services:
     name: Build Microservices
     runs-on: ubuntu-latest
+    needs: [policy-checks]
     strategy:
       matrix:
         service: [auth, learning, assessment, ai-chat]

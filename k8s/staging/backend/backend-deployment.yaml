@@ -24,7 +24,7 @@ spec:
     spec:
       containers:
       - name: backend
-        image: aitutortansangdevacr.azurecr.io/ai-tutor-backend:latest
+        image: aitutortansangdevacr.azurecr.io/ai-tutor-backend:v1.0.0
         ports:
         - containerPort: 5000
         env:
