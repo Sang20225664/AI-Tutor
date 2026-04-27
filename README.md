@@ -56,7 +56,7 @@ AI-Tutor/
 - **JWT** - Cross-service stateless authentication
 - **Rate Limiting** - express-rate-limit (AI endpoints: 10 req/min/user)
 - **Docker & Docker Compose** - Containerization (9 containers)
-- **Kubernetes (K3s)** - Production-grade orchestration (3 environments)
+- **Kubernetes (AKS)** - Production-grade orchestration on Azure (namespace `prod`)
 
 ### AI & ML
 - **Google Gemini API** - Chat, Quiz generation, Flashcards, Summaries, Lesson suggestions
@@ -99,26 +99,23 @@ docker compose ps
 ```
 
 
-#### Option B: Kubernetes (K3s)
+#### Option B: Kubernetes on Azure (AKS) via GitOps
 
-The project supports 3 environments (dev/staging/prod) with dedicated deploy scripts:
+The project runs on Azure Kubernetes Service (AKS), fully managed via ArgoCD + Helm.
 
 ```bash
-# Install K3s (single node)
-curl -sfL https://get.k3s.io | sh -
-export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+# Get kubeconfig
+az aks get-credentials --resource-group ai-tutor-dev-rg --name ai-tutor-dev-aks
 
-# Deploy to DEV
-cd k8s/scripts && ./deploy-dev.sh
+# Apply ArgoCD Application (one-time setup after fresh cluster)
+kubectl apply -f ai-tutor-infra/k8s/argocd-app.yaml
 
-# Deploy to STAGING
-./deploy-staging.sh
-
-# Deploy to PRODUCTION
-./deploy-prod.sh
+# ArgoCD auto-syncs charts/ai-tutor from main branch → deploys to namespace `prod`
+# Access ArgoCD UI
+kubectl port-forward svc/argocd-server -n argocd 8080:443
 ```
 
-For detailed multi-environment guide, see [`k8s/MULTI_ENV_GUIDE.md`](k8s/MULTI_ENV_GUIDE.md).
+See [`DEPLOYMENT_GUIDE.md`](DEPLOYMENT_GUIDE.md) for full CI/CD pipeline documentation.
 
 ### 3. Frontend Setup
 ```bash
@@ -301,9 +298,12 @@ For support and questions:
 - [x] Learning dashboard with progress analytics
 - [x] Redis caching + BullMQ background jobs
 - [x] Responsive Web layout
-- [x] CI/CD pipeline (GitHub Actions)
-- [x] K8s demo scripts (8 scripts, ~23 min)
-- [ ] Cloud deployment (Phase 5)
+- [x] CI/CD pipeline (GitHub Actions → ACR → AKS, GitOps write-back)
+- [x] Cloud deployment on Azure AKS (Phase 5 complete)
+- [x] GitOps with ArgoCD (auto-sync, self-healing)
+- [x] Canary deployment with Argo Rollouts (20% → 50% → 100%)
+- [x] KEDA autoscaling — Scale-to-Zero for AI Worker (Redis queue trigger)
+- [ ] Service Mesh (Linkerd — mTLS)
 - [ ] Voice interaction support
 - [ ] Gamification features
 - [ ] Multi-language support

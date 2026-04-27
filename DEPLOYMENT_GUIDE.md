@@ -32,10 +32,9 @@ Tất cả các luồng CI/CD được đóng gói gọn gàng trong 1 file duy 
 
 ### Các luồng xử lý chính trong Pipeline:
 1. **Azure & ACR Login (OIDC):** Authenticate với Azure bằng OpenID Connect.
-2. **Build Backend:** Build Docker image Backend với `tags: ref` & `sha` -> Push lên ACR.
-3. **Build Frontend:** Cùng lúc build Frontend Docker image -> Push lên ACR.
-4. **Deploy DEV:** (Chỉ chạy khi push vào `dev`). Update các Kubernetes Deployments trong namespace `dev` bằng lệnh `kubectl set image`.
-5. **Deploy PROD:** (Chỉ chạy khi push vào `main`). Tương tự, update hình ảnh ở namespace `prod`.
+2. **Matrix Build:** Build song song Docker images cho tất cả services, tag theo commit SHA → Push lên ACR.
+3. **GitOps Write-back:** Cập nhật `image.tag` trong `values-prod.yaml` bằng `yq` → commit + push lên `main`.
+4. **ArgoCD Auto-sync:** Phát hiện thay đổi Helm chart trên GitHub → tự động sync vào cluster.
 
 ---
 
@@ -146,12 +145,54 @@ kubectl port-forward -n monitoring svc/kube-prometheus-stack-prometheus 9090:909
   kubectl describe pod -n prod <tên-pod-bị-lỗi>
   ```
 
-### 3. Cần Rollback ứng dụng khẩn cấp
-- K8s lưu lại lịch sử rollout, nếu sau khi merge `main` xảy ra lỗi, bạn có thể thực hiện quay về bản trước đó:
-  ```bash
-  # Undo cho backend
-  kubectl rollout undo deployment/backend -n prod
-  
-  # Undo frontend
-  kubectl rollout undo deployment/frontend -n prod
-  ```
+### 3. Cần Rollback khẩn cấp
+
+**Backend (Argo Rollouts — Canary):**
+```bash
+# Rollback tức thì về stable version
+kubectl argo rollouts abort backend -n prod
+kubectl argo rollouts undo backend -n prod
+```
+
+**Các service khác (Deployment thường):**
+```bash
+kubectl rollout undo deployment/frontend -n prod
+kubectl rollout undo deployment/auth -n prod
+```
+
+---
+
+## ⚙️ GitOps & ArgoCD
+
+Hệ thống dùng **ArgoCD** để sync Helm chart từ GitHub → cluster tự động.
+
+```bash
+# Truy cập ArgoCD UI
+kubectl port-forward svc/argocd-server -n argocd 8080:443
+# Đăng nhập: admin / lấy password bằng:
+kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath="{.data.password}" | base64 -d
+
+# Force sync thủ công (nếu cần)
+kubectl patch app ai-tutor-prod -n argocd --type merge -p '{"operation":{"initiatedBy":{"username":"admin"},"sync":{}}}'
+```
+
+## ⚡ KEDA Autoscaling
+
+`ai-worker` tự động scale dựa trên độ dài Redis queue `bull:ai-jobs:wait`.
+
+| Trạng thái queue | Replicas |
+|---|---|
+| 0 jobs | 0 (Scale-to-Zero) |
+| 1–10 jobs | 1 |
+| 11–20 jobs | 2 |
+| > 20 jobs | 3 (max) |
+
+```bash
+# Kiểm tra KEDA ScaledObject
+kubectl get scaledobject -n prod
+
+# Test bơm jobs
+REDIS_POD=$(kubectl get pods -n prod -l app=redis -o jsonpath='{.items[0].metadata.name}')
+for i in $(seq 1 15); do kubectl exec -it $REDIS_POD -n prod -- redis-cli LPUSH bull:ai-jobs:wait "test-$i"; done
+kubectl get pods -n prod -w
+```
