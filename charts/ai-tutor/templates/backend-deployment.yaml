@@ -1,5 +1,5 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
 metadata:
   name: backend
   namespace: {{ .Values.global.environment }}
@@ -8,11 +8,19 @@ metadata:
     app: backend
 spec:
   replicas: {{ .Values.backend.replicas }}
+  revisionHistoryLimit: 2
   strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 0
+    canary:
+      canaryService: backend-canary
+      stableService: backend
+      trafficRouting:
+        nginx:
+          stableIngress: ai-tutor-ingress
+      steps:
+      - setWeight: 20
+      - pause: {}
+      - setWeight: 50
+      - pause: { duration: 30s }
   selector:
     matchLabels:
       app: backend
