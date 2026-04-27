@@ -10,19 +10,19 @@ backend:
     DEMO_CANARY: "true"
 
 frontend:
-  replicas: 0
+  replicas: 1
 
 auth:
-  replicas: 0
+  replicas: 1
 
 learning:
-  replicas: 0
+  replicas: 1
 
 assessment:
-  replicas: 0
+  replicas: 1
 
 ai-chat:
-  replicas: 0
+  replicas: 1
 
 ai-worker:
   replicas: 0
