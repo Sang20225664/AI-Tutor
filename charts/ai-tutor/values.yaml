@@ -95,8 +95,9 @@ ai-chat:
       memory: 128Mi
 
 ai-worker:
-  image: ai-tutor-ai-worker
+  image: ai-tutor-ai-chat
   replicas: 1
+  command: ["node", "src/workers/aiWorker.js"]
   resources:
     requests:
       cpu: 10m

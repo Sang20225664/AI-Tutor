@@ -21,6 +21,9 @@ spec:
       containers:
       - name: ai-worker
         image: {{ .Values.global.imageRegistry }}/{{ index .Values "ai-worker" "image" }}:{{ .Values.global.imageTag }}
+        {{- if index .Values "ai-worker" "command" }}
+        command: {{ index .Values "ai-worker" "command" | toJson }}
+        {{- end }}
         env:
         - name: NODE_ENV
           value: "production"
@@ -41,6 +44,10 @@ spec:
               key: GEMINI_API_KEY
         - name: REDIS_URL
           value: redis://redis:6379
+        - name: LEARNING_SERVICE_URL
+          value: http://learning:3002
+        - name: ASSESSMENT_SERVICE_URL
+          value: http://assessment:3003
         resources:
           {{- toYaml (index .Values "ai-worker" "resources") | nindent 10 }}
         volumeMounts:
