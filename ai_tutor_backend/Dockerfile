@@ -1,16 +1,27 @@
-FROM node:20-alpine
-RUN apk add --no-cache curl
+# STAGE 1: BUILDER
+FROM node:18-alpine AS builder
+
 WORKDIR /usr/src/app
+
 COPY package*.json ./
-RUN npm ci --only=production
+RUN npm ci
+
 COPY . .
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nodejs -u 1001
-RUN chown -R nodejs:nodejs /usr/src/app
-# create logs dir for winston and ensure correct ownership
-RUN mkdir -p /usr/src/app/logs && chown -R nodejs:nodejs /usr/src/app/logs
-USER nodejs
+
+# STAGE 2: PRODUCTION
+FROM node:18-alpine AS production
+
+ENV NODE_ENV=production
+
+WORKDIR /usr/src/app
+
+COPY package*.json ./
+RUN npm ci --omit=dev
+
+COPY --chown=node:node --from=builder /usr/src/app/src ./src
+
+USER node
+
 EXPOSE 5000
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:5000/api/ping || exit 1
-CMD ["npm", "start"]
+
+CMD ["node", "src/server.js"]
