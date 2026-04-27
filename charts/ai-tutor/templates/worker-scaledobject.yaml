@@ -13,8 +13,8 @@ spec:
   maxReplicaCount: 3
   restoreToOriginalReplicaCount: true
   triggers:
-  - type: redis
-    metadata:
-      address: redis:6379
-      listName: bull:ai-jobs:wait
-      listLength: "5"
+    - type: redis
+      metadata:
+        address: redis.prod.svc.cluster.local:6379
+        listName: bull:ai-jobs:wait
+        listLength: "5"
