@@ -196,6 +196,11 @@ jobs:
       - name: Install yq
         run: sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 && sudo chmod +x /usr/local/bin/yq
 
+      - name: Sync with latest main
+        run: |
+          git fetch origin main
+          git reset --hard origin/main
+
       - name: Update Helm values for GitOps
         run: |
           yq -i '.global.imageTag = env(SHORT_SHA)' charts/ai-tutor/values-prod.yaml
@@ -204,11 +209,29 @@ jobs:
         run: |
           git config --global user.name "github-actions-bot"
           git config --global user.email "github-actions@github.com"
-          git fetch origin main
-          git rebase origin/main
+
           git add charts/ai-tutor/values-prod.yaml
-          git commit -m "ci: bot updated global imageTag to ${SHORT_SHA}" || echo "No changes"
-          git push origin main
+
+          if git diff --cached --quiet; then
+            echo "No changes"
+            exit 0
+          fi
+
+          git commit -m "ci: bot updated global imageTag to ${SHORT_SHA}"
+
+          for attempt in 1 2 3; do
+            if git push origin HEAD:main; then
+              echo "Push succeeded"
+              exit 0
+            fi
+
+            echo "Push failed on attempt ${attempt}, rebasing and retrying..."
+            git fetch origin main
+            git rebase origin/main
+          done
+
+          echo "Push failed after retries"
+          exit 1
 
   # CD is intentionally managed by ArgoCD from Git state.
   # This workflow builds images and writes back immutable tags to Git only.
