@@ -48,6 +48,16 @@ spec:
               key: GEMINI_API_KEY
         - name: REDIS_URL
           value: redis://redis:6379
+        - name: AI_JOB_ATTEMPTS
+          value: {{ .Values.aiQueue.attempts | quote }}
+        - name: AI_JOB_BACKOFF_TYPE
+          value: {{ .Values.aiQueue.backoffType | quote }}
+        - name: AI_JOB_BACKOFF_DELAY_MS
+          value: {{ .Values.aiQueue.backoffDelayMs | quote }}
+        - name: AI_JOB_REMOVE_ON_COMPLETE
+          value: {{ .Values.aiQueue.removeOnComplete | quote }}
+        - name: AI_JOB_REMOVE_ON_FAIL
+          value: {{ .Values.aiQueue.removeOnFail | quote }}
         resources:
           {{- toYaml (index .Values "ai-chat" "resources") | nindent 10 }}
         readinessProbe:

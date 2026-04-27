@@ -47,6 +47,24 @@ spec:
           value: http://learning:3002
         - name: ASSESSMENT_SERVICE_URL
           value: http://assessment:3003
+        - name: AI_JOB_ATTEMPTS
+          value: {{ .Values.aiQueue.attempts | quote }}
+        - name: AI_JOB_BACKOFF_TYPE
+          value: {{ .Values.aiQueue.backoffType | quote }}
+        - name: AI_JOB_BACKOFF_DELAY_MS
+          value: {{ .Values.aiQueue.backoffDelayMs | quote }}
+        - name: AI_JOB_REMOVE_ON_COMPLETE
+          value: {{ .Values.aiQueue.removeOnComplete | quote }}
+        - name: AI_JOB_REMOVE_ON_FAIL
+          value: {{ .Values.aiQueue.removeOnFail | quote }}
+        - name: AI_WORKER_CONCURRENCY
+          value: {{ .Values.aiQueue.workerConcurrency | quote }}
+        - name: AI_DLQ_NAME
+          value: {{ .Values.aiQueue.dlqName | quote }}
+        - name: AI_DLQ_RETENTION
+          value: {{ .Values.aiQueue.dlqRetention | quote }}
+        - name: AI_DLQ_REMOVE_ON_COMPLETE
+          value: {{ .Values.aiQueue.dlqRemoveOnComplete | quote }}
         resources:
           {{- toYaml (index .Values "ai-worker" "resources") | nindent 10 }}
         volumeMounts:

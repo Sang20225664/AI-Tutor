@@ -27,6 +27,17 @@ ai-chat:
 ai-worker:
   replicas: 0
 
+aiQueue:
+  attempts: 4
+  backoffType: exponential
+  backoffDelayMs: 1500
+  removeOnComplete: 300
+  removeOnFail: 1000
+  workerConcurrency: 2
+  dlqName: ai-jobs-dlq
+  dlqRetention: 5000
+  dlqRemoveOnComplete: 300
+
 ingress:
   host: "ai-tutot-ts.duckdns.org"
   clusterIssuer: "letsencrypt-prod"

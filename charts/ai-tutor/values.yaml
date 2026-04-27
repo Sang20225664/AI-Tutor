@@ -106,6 +106,17 @@ ai-worker:
       cpu: 200m
       memory: 128Mi
 
+aiQueue:
+  attempts: 3
+  backoffType: exponential
+  backoffDelayMs: 2000
+  removeOnComplete: 200
+  removeOnFail: 500
+  workerConcurrency: 2
+  dlqName: ai-jobs-dlq
+  dlqRetention: 2000
+  dlqRemoveOnComplete: 200
+
 keyvault:
   enabled: true
   name: "ai-tutor-dev-kv"
