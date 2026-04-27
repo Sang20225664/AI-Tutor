@@ -1,0 +1,20 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: ai-worker-scaler
+  labels:
+    app: ai-worker
+spec:
+  scaleTargetRef:
+    name: ai-worker
+  pollingInterval: 15
+  cooldownPeriod: 30
+  minReplicaCount: 0
+  maxReplicaCount: 3
+  restoreToOriginalReplicaCount: true
+  triggers:
+  - type: redis
+    metadata:
+      address: redis:6379
+      listName: bull:ai-jobs:wait
+      listLength: "5"
