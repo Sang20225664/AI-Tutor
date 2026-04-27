@@ -1,32 +1,24 @@
 global:
-  imageTag: main
+  imageTag: 891c144
   environment: prod
-
 backend:
   replicas: 1
   env:
     NODE_ENV: production
     LOG_LEVEL: warn
     DEMO_CANARY: "true"
-
 frontend:
   replicas: 1
-
 auth:
   replicas: 1
-
 learning:
   replicas: 1
-
 assessment:
   replicas: 1
-
 ai-chat:
   replicas: 1
-
 ai-worker:
   replicas: 0
-
 aiQueue:
   attempts: 4
   backoffType: exponential
@@ -37,7 +29,6 @@ aiQueue:
   dlqName: ai-jobs-dlq
   dlqRetention: 5000
   dlqRemoveOnComplete: 300
-
 ingress:
   host: "ai-tutot-ts.duckdns.org"
   clusterIssuer: "letsencrypt-prod"
