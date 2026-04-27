@@ -25,7 +25,7 @@ ai-chat:
   replicas: 1
 
 ai-worker:
-  replicas: 1
+  replicas: 0
 
 ingress:
   host: "ai-tutot-ts.duckdns.org"
