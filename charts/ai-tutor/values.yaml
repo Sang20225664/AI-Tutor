@@ -109,4 +109,4 @@ keyvault:
   enabled: true
   name: "ai-tutor-dev-kv"
   tenantId: "01843f17-d034-4d59-a1e0-086d061bb770"
-  clientId: "ee8b8792-2f12-4fef-9e4f-0509893d2458"
+  clientId: "a345f191-4dc4-4e62-9db2-3a16b7c1b1cc"
