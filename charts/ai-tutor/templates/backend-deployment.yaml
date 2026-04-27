@@ -37,6 +37,10 @@ spec:
         env:
         - name: NODE_ENV
           value: {{ .Values.backend.env.NODE_ENV }}
+        {{- if .Values.backend.env.DEMO_CANARY }}
+        - name: DEMO_CANARY
+          value: {{ .Values.backend.env.DEMO_CANARY | quote }}
+        {{- end }}
         - name: PORT
           value: {{ .Values.backend.env.PORT | quote }}
         - name: LOG_LEVEL

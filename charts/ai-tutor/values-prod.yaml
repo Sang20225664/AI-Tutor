@@ -7,6 +7,7 @@ backend:
   env:
     NODE_ENV: production
     LOG_LEVEL: warn
+    DEMO_CANARY: "true"
 
 frontend:
   replicas: 1
