@@ -7,7 +7,6 @@ metadata:
     {{- include "ai-tutor.labels" . | nindent 4 }}
     app: ai-worker
 spec:
-  replicas: {{ index .Values "ai-worker" "replicas" }}
   strategy:
     type: Recreate
   selector:
