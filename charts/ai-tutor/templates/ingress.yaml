@@ -7,6 +7,9 @@ metadata:
   annotations:
     nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     cert-manager.io/cluster-issuer: {{ .Values.ingress.clusterIssuer | quote }}
+    nginx.ingress.kubernetes.io/limit-rps: "10"
+    nginx.ingress.kubernetes.io/limit-rpm: "100"
+    nginx.ingress.kubernetes.io/limit-req-status-code: "429"
 spec:
   ingressClassName: {{ .Values.ingress.className }}
   {{- if and .Values.ingress.tls.enabled .Values.ingress.host }}
