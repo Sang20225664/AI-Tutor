@@ -39,21 +39,20 @@ const progressController = {
                 return res.status(404).json({ success: false, message: 'Lesson not found' });
             }
 
-            let progress = await Progress.findOne({ userId, lessonId });
-
-            if (!progress) {
-                progress = new Progress({
-                    userId,
-                    lessonId,
-                    completionPercent: 0,
-                    attempts: 0,
-                    lastAccessedAt: new Date()
-                });
-                await progress.save();
-            } else {
-                progress.lastAccessedAt = new Date();
-                await progress.save();
-            }
+            const now = new Date();
+            const progress = await Progress.findOneAndUpdate(
+                { userId, lessonId },
+                {
+                    $setOnInsert: {
+                        userId,
+                        lessonId,
+                        completionPercent: 0,
+                        attempts: 0
+                    },
+                    $max: { lastAccessedAt: now }
+                },
+                { new: true, upsert: true, setDefaultsOnInsert: true }
+            );
 
             res.json({ success: true, data: progress });
         } catch (error) {

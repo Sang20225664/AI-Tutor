@@ -36,49 +36,26 @@ router.get('/subjects/:id', (req, res) => proxyGet(req, res, `/api/v1/subjects/$
 // === Lessons ===
 router.get('/lessons', (req, res) => proxyGet(req, res, '/api/v1/lessons'));
 
-// Intercept GET /lessons/:id — fetch lesson from Learning + progress from Assessment
+// Intercept GET /lessons/:id — forward auth so Learning can track progress asynchronously
 router.get('/lessons/:id', async (req, res) => {
     try {
         const url = `${LEARNING_URL}/api/v1/lessons/${req.params.id}`;
-        const response = await axios.get(url, { timeout: 5000 });
+        const headers = {};
+        if (req.header('Authorization')) headers.Authorization = req.header('Authorization');
+        if (req.headers['x-request-id']) headers['x-request-id'] = req.headers['x-request-id'];
+
+        const response = await axios.get(url, {
+            headers,
+            timeout: 5000
+        });
         const responsePayload = response.data;
         const lessonData = responsePayload.data;
-
-        let progress = null;
-        const authHeader = req.header('Authorization');
-        if (authHeader && lessonData) {
-            try {
-                const ASSESSMENT_URL = process.env.ASSESSMENT_SERVICE_URL || 'http://assessment:3003';
-                // Proxy to Assessment Service to get/create progress
-                const progressRes = await axios.post(
-                    `${ASSESSMENT_URL}/api/v1/progress/lesson/${lessonData._id}`,
-                    {},
-                    {
-                        headers: {
-                            'Authorization': authHeader,
-                            'x-request-id': req.headers['x-request-id']
-                        },
-                        timeout: 3000
-                    }
-                );
-                if (progressRes.data.success) {
-                    progress = progressRes.data.data;
-                }
-            } catch (authError) {
-                console.warn('Progress tracking skipped in proxy:', authError.message);
-            }
-        }
 
         res.json({
             ...responsePayload,
             data: {
                 ...lessonData,
-                progress: progress ? {
-                    completionPercent: progress.completionPercent,
-                    quizScore: progress.quizScore,
-                    attempts: progress.attempts,
-                    lastAccessedAt: progress.lastAccessedAt
-                } : null
+                progress: null
             }
         });
     } catch (error) {

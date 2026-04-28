@@ -23,8 +23,12 @@ spec:
           value: "3002"
         - name: MONGO_URI
           value: "mongodb://mongo:27017/learning_db"
+        - name: JWT_SECRET
+          value: "your_jwt_secret_here"
         - name: NODE_ENV
           value: "production"
+        - name: ASSESSMENT_SERVICE_URL
+          value: "http://assessment:3003"
 ---
 apiVersion: v1
 kind: Service

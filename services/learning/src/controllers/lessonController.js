@@ -1,3 +1,4 @@
+const axios = require('axios');
 const lessonService = require('../services/lessonService');
 
 const lessonController = {
@@ -14,6 +15,17 @@ const lessonController = {
         try {
             const lesson = await lessonService.getById(req.params.id);
             if (!lesson) return res.status(404).json({ success: false, message: 'Lesson not found' });
+
+            // FIRE AND FORGET: Cập nhật tiến độ học tập (Progress) Async
+            if (req.user && req.user.userId) {
+                const assessmentUrl = process.env.ASSESSMENT_SERVICE_URL || 'http://assessment:3003';
+                // Push request báo hiệu đã đọc bài mà không cần await (BullMQ/Internal API)
+                axios.post(`${assessmentUrl}/api/v1/progress/lesson/${lesson._id}`, {}, {
+                    headers: { Authorization: req.headers.authorization },
+                    timeout: 1000
+                }).catch(err => console.error("Lỗi cập nhật tiến độ ngầm:", err.message));
+            }
+
             res.json({ success: true, data: lesson });
         } catch (err) {
             res.status(500).json({ success: false, message: err.message });

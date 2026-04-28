@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const lessonController = require('../controllers/lessonController');
+const optionalAuth = require('../middleware/optionalAuth');
 
 // GET /api/v1/lessons
 router.get('/', lessonController.getAll);
@@ -9,6 +10,6 @@ router.get('/', lessonController.getAll);
 router.get('/suggestions', lessonController.getSuggestions);
 
 // GET /api/v1/lessons/:id
-router.get('/:id', lessonController.getById);
+router.get('/:id', optionalAuth, lessonController.getById);
 
 module.exports = router;

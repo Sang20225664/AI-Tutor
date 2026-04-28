@@ -48,6 +48,8 @@ spec:
               key: GEMINI_API_KEY
         - name: REDIS_URL
           value: redis://redis:6379
+        - name: ASSESSMENT_SERVICE_URL
+          value: http://assessment:3003
         resources:
           {{- toYaml .Values.learning.resources | nindent 10 }}
         readinessProbe:
