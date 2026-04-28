@@ -1,0 +1,84 @@
+[
+    {
+        "lessonTitle": "Thế giới hiện đại - Lịch sử 11",
+        "questions": [
+            {
+                "question": "Mục tiêu quan trọng nhất khi học \"Thế giới hiện đại\" trong Lịch sử lớp 11 là gì?",
+                "options": [
+                    "Hiểu khái niệm và biết vận dụng vào bài tập",
+                    "Chỉ học thuộc tên bài",
+                    "Bỏ qua ví dụ minh họa",
+                    "Chỉ chọn đáp án theo cảm tính"
+                ],
+                "correctAnswer": 0,
+                "explanation": "Bài học nhấn mạnh việc hiểu kiến thức trọng tâm và vận dụng vào câu hỏi hoặc bài tập cụ thể.",
+                "difficulty": "easy"
+            },
+            {
+                "question": "Khi gặp bài tập thuộc chủ đề \"Thế giới hiện đại\", bước đầu tiên nên làm là gì?",
+                "options": [
+                    "Đọc kỹ đề và xác định dữ kiện quan trọng",
+                    "Chọn ngay đáp án dài nhất",
+                    "Bỏ qua điều kiện của bài",
+                    "Chỉ nhìn vào kết quả cuối"
+                ],
+                "correctAnswer": 0,
+                "explanation": "Đọc kỹ đề giúp xác định đúng kiến thức cần dùng và tránh sai sót do hiểu nhầm dữ kiện.",
+                "difficulty": "easy"
+            },
+            {
+                "question": "Vì sao cần xem ví dụ minh họa trong bài \"Thế giới hiện đại\"?",
+                "options": [
+                    "Để hiểu cách áp dụng lý thuyết vào tình huống cụ thể",
+                    "Để thay thế hoàn toàn phần lý thuyết",
+                    "Để bỏ qua bài tập tự luyện",
+                    "Để học thuộc từng chữ trong lời giải"
+                ],
+                "correctAnswer": 0,
+                "explanation": "Ví dụ minh họa giúp nối phần khái niệm với cách giải bài tập thực tế.",
+                "difficulty": "medium"
+            }
+        ]
+    },
+    {
+        "lessonTitle": "Lịch sử Việt Nam - Lịch sử 11",
+        "questions": [
+            {
+                "question": "Mục tiêu quan trọng nhất khi học \"Lịch sử Việt Nam\" trong Lịch sử lớp 11 là gì?",
+                "options": [
+                    "Hiểu khái niệm và biết vận dụng vào bài tập",
+                    "Chỉ học thuộc tên bài",
+                    "Bỏ qua ví dụ minh họa",
+                    "Chỉ chọn đáp án theo cảm tính"
+                ],
+                "correctAnswer": 0,
+                "explanation": "Bài học nhấn mạnh việc hiểu kiến thức trọng tâm và vận dụng vào câu hỏi hoặc bài tập cụ thể.",
+                "difficulty": "easy"
+            },
+            {
+                "question": "Khi gặp bài tập thuộc chủ đề \"Lịch sử Việt Nam\", bước đầu tiên nên làm là gì?",
+                "options": [
+                    "Đọc kỹ đề và xác định dữ kiện quan trọng",
+                    "Chọn ngay đáp án dài nhất",
+                    "Bỏ qua điều kiện của bài",
+                    "Chỉ nhìn vào kết quả cuối"
+                ],
+                "correctAnswer": 0,
+                "explanation": "Đọc kỹ đề giúp xác định đúng kiến thức cần dùng và tránh sai sót do hiểu nhầm dữ kiện.",
+                "difficulty": "easy"
+            },
+            {
+                "question": "Vì sao cần xem ví dụ minh họa trong bài \"Lịch sử Việt Nam\"?",
+                "options": [
+                    "Để hiểu cách áp dụng lý thuyết vào tình huống cụ thể",
+                    "Để thay thế hoàn toàn phần lý thuyết",
+                    "Để bỏ qua bài tập tự luyện",
+                    "Để học thuộc từng chữ trong lời giải"
+                ],
+                "correctAnswer": 0,
+                "explanation": "Ví dụ minh họa giúp nối phần khái niệm với cách giải bài tập thực tế.",
+                "difficulty": "medium"
+            }
+        ]
+    }
+]

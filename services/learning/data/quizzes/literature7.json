@@ -1,0 +1,84 @@
+[
+    {
+        "lessonTitle": "Tập làm văn - Ngữ văn 7",
+        "questions": [
+            {
+                "question": "Mục tiêu quan trọng nhất khi học \"Tập làm văn\" trong Ngữ văn lớp 7 là gì?",
+                "options": [
+                    "Hiểu khái niệm và biết vận dụng vào bài tập",
+                    "Chỉ học thuộc tên bài",
+                    "Bỏ qua ví dụ minh họa",
+                    "Chỉ chọn đáp án theo cảm tính"
+                ],
+                "correctAnswer": 0,
+                "explanation": "Bài học nhấn mạnh việc hiểu kiến thức trọng tâm và vận dụng vào câu hỏi hoặc bài tập cụ thể.",
+                "difficulty": "easy"
+            },
+            {
+                "question": "Khi gặp bài tập thuộc chủ đề \"Tập làm văn\", bước đầu tiên nên làm là gì?",
+                "options": [
+                    "Đọc kỹ đề và xác định dữ kiện quan trọng",
+                    "Chọn ngay đáp án dài nhất",
+                    "Bỏ qua điều kiện của bài",
+                    "Chỉ nhìn vào kết quả cuối"
+                ],
+                "correctAnswer": 0,
+                "explanation": "Đọc kỹ đề giúp xác định đúng kiến thức cần dùng và tránh sai sót do hiểu nhầm dữ kiện.",
+                "difficulty": "easy"
+            },
+            {
+                "question": "Vì sao cần xem ví dụ minh họa trong bài \"Tập làm văn\"?",
+                "options": [
+                    "Để hiểu cách áp dụng lý thuyết vào tình huống cụ thể",
+                    "Để thay thế hoàn toàn phần lý thuyết",
+                    "Để bỏ qua bài tập tự luyện",
+                    "Để học thuộc từng chữ trong lời giải"
+                ],
+                "correctAnswer": 0,
+                "explanation": "Ví dụ minh họa giúp nối phần khái niệm với cách giải bài tập thực tế.",
+                "difficulty": "medium"
+            }
+        ]
+    },
+    {
+        "lessonTitle": "Văn học Việt Nam - Ngữ văn 7",
+        "questions": [
+            {
+                "question": "Mục tiêu quan trọng nhất khi học \"Văn học Việt Nam\" trong Ngữ văn lớp 7 là gì?",
+                "options": [
+                    "Hiểu khái niệm và biết vận dụng vào bài tập",
+                    "Chỉ học thuộc tên bài",
+                    "Bỏ qua ví dụ minh họa",
+                    "Chỉ chọn đáp án theo cảm tính"
+                ],
+                "correctAnswer": 0,
+                "explanation": "Bài học nhấn mạnh việc hiểu kiến thức trọng tâm và vận dụng vào câu hỏi hoặc bài tập cụ thể.",
+                "difficulty": "easy"
+            },
+            {
+                "question": "Khi gặp bài tập thuộc chủ đề \"Văn học Việt Nam\", bước đầu tiên nên làm là gì?",
+                "options": [
+                    "Đọc kỹ đề và xác định dữ kiện quan trọng",
+                    "Chọn ngay đáp án dài nhất",
+                    "Bỏ qua điều kiện của bài",
+                    "Chỉ nhìn vào kết quả cuối"
+                ],
+                "correctAnswer": 0,
+                "explanation": "Đọc kỹ đề giúp xác định đúng kiến thức cần dùng và tránh sai sót do hiểu nhầm dữ kiện.",
+                "difficulty": "easy"
+            },
+            {
+                "question": "Vì sao cần xem ví dụ minh họa trong bài \"Văn học Việt Nam\"?",
+                "options": [
+                    "Để hiểu cách áp dụng lý thuyết vào tình huống cụ thể",
+                    "Để thay thế hoàn toàn phần lý thuyết",
+                    "Để bỏ qua bài tập tự luyện",
+                    "Để học thuộc từng chữ trong lời giải"
+                ],
+                "correctAnswer": 0,
+                "explanation": "Ví dụ minh họa giúp nối phần khái niệm với cách giải bài tập thực tế.",
+                "difficulty": "medium"
+            }
+        ]
+    }
+]

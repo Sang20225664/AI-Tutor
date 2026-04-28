@@ -1,42 +1,72 @@
 [
     {
-        "name": "Toán 10",
+        "name": "Toán học",
         "icon": "calculate",
-        "color": "#1976d2",
-        "gradeLevels": [
-            10
-        ],
-        "description": "Chương trình Toán lớp 10 bao gồm đại số và hình học: hàm số, phương trình, bất phương trình, hệ thức lượng trong tam giác, và phương pháp tọa độ trong mặt phẳng. Môn học giúp học sinh phát triển tư duy logic và kỹ năng giải quyết vấn đề.",
-        "createdAt": "2024-01-15T00:00:00.000Z"
+        "color": "#2196F3",
+        "description": "Học toán từ cơ bản đến nâng cao, bao gồm số học, đại số, hình học, thống kê và xác suất.",
+        "grade": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
     },
     {
-        "name": "Vật lý 10",
+        "name": "Vật lý",
         "icon": "science",
-        "color": "#388e3c",
-        "gradeLevels": [
-            10
-        ],
-        "description": "Vật lý 10 giới thiệu các khái niệm cơ bản về cơ học: động học, động lực học, các định luật Newton, công suất và năng lượng. Học sinh sẽ hiểu về chuyển động của vật thể và các lực tác động trong tự nhiên.",
-        "createdAt": "2024-01-15T00:00:00.000Z"
+        "color": "#F44336",
+        "description": "Khám phá các quy luật tự nhiên qua cơ học, nhiệt học, điện học, quang học và vật lý hiện đại.",
+        "grade": [6, 7, 8, 9, 10, 11, 12]
     },
     {
-        "name": "Hóa học 10",
+        "name": "Hóa học",
         "icon": "biotech",
-        "color": "#f57c00",
-        "gradeLevels": [
-            10
-        ],
-        "description": "Hóa học 10 nghiên cứu cấu tạo nguyên tử, bảng tuần hoàn các nguyên tố, liên kết hóa học và các phản ứng hóa học cơ bản. Môn học giúp học sinh hiểu về thành phần và tính chất của chất.",
-        "createdAt": "2024-01-15T00:00:00.000Z"
+        "color": "#4CAF50",
+        "description": "Tìm hiểu cấu tạo chất, phản ứng hóa học, dung dịch, vô cơ và hữu cơ cơ bản.",
+        "grade": [8, 9, 10, 11, 12]
     },
     {
-        "name": "Tiếng Anh 10",
+        "name": "Ngữ văn",
+        "icon": "text_fields",
+        "color": "#00BCD4",
+        "description": "Rèn luyện đọc hiểu, tiếng Việt, làm văn, nghị luận và cảm thụ văn học.",
+        "grade": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    },
+    {
+        "name": "Tiếng Anh",
         "icon": "language",
-        "color": "#d32f2f",
-        "gradeLevels": [
-            10
-        ],
-        "description": "Tiếng Anh 10 tập trung vào phát triển 4 kỹ năng: nghe, nói, đọc, viết. Chương trình bao gồm từ vựng, ngữ pháp, và các chủ đề giao tiếp thường ngày như gia đình, bạn bè, sở thích và môi trường.",
-        "createdAt": "2024-01-15T00:00:00.000Z"
+        "color": "#9C27B0",
+        "description": "Phát triển từ vựng, ngữ pháp, đọc hiểu, viết và giao tiếp tiếng Anh.",
+        "grade": [3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    },
+    {
+        "name": "Sinh học",
+        "icon": "eco",
+        "color": "#009688",
+        "description": "Khám phá tế bào, cơ thể sống, di truyền, tiến hóa, sinh thái và môi trường.",
+        "grade": [6, 7, 8, 9, 10, 11, 12]
+    },
+    {
+        "name": "Lịch sử",
+        "icon": "history_edu",
+        "color": "#FF9800",
+        "description": "Tìm hiểu lịch sử Việt Nam và thế giới, các sự kiện, nhân vật và tiến trình phát triển xã hội.",
+        "grade": [4, 5, 6, 7, 8, 9, 10, 11, 12]
+    },
+    {
+        "name": "Địa lý",
+        "icon": "public",
+        "color": "#795548",
+        "description": "Khám phá bản đồ, tự nhiên, dân cư, kinh tế, môi trường Việt Nam và thế giới.",
+        "grade": [4, 5, 6, 7, 8, 9, 10, 11, 12]
+    },
+    {
+        "name": "Tin học",
+        "icon": "computer",
+        "color": "#3F51B5",
+        "description": "Làm quen máy tính, an toàn số, thuật toán, lập trình, dữ liệu và Internet.",
+        "grade": [3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    },
+    {
+        "name": "Giáo dục công dân",
+        "icon": "school",
+        "color": "#FFC107",
+        "description": "Học đạo đức, kỹ năng ứng xử, quyền và nghĩa vụ công dân, pháp luật cơ bản.",
+        "grade": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
     }
 ]
