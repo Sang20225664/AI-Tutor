@@ -1,13 +1,14 @@
 const { GoogleGenAI } = require('@google/genai');
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const AI_MODEL = process.env.AI_MODEL || 'gemini-2.5-flash';
 
 const generateChatResponse = async (messages, systemPromptContext = '') => {
     try {
         const customSystemInstruction = `You are a helpful and knowledgeable AI Tutor. Always respond in Vietnamese.\n\nContext about the current learning subject and lesson:\n${systemPromptContext}`;
 
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
+            model: AI_MODEL,
             contents: messages.map(msg => ({
                 role: msg.role === 'assistant' ? 'model' : 'user', // genai SDK uses 'model' and 'user' mapping
                 parts: [{ text: msg.content }]
@@ -39,7 +40,7 @@ const generateChatResponse = async (messages, systemPromptContext = '') => {
 const generateQuizContent = async (prompt) => {
     try {
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
+            model: AI_MODEL,
             contents: [{ role: 'user', parts: [{ text: prompt }] }],
             config: {
                 temperature: 0.3, // Lower temperature for consistent JSON
