@@ -51,6 +51,7 @@ app.get('/internal/analysis/weak-topics', analysisController.getWeakTopics);
 mongoose.set('strictQuery', false);
 mongoose
     .connect(process.env.MONGO_URI, {
+        dbName: 'assessment_db',
         serverSelectionTimeoutMS: 10000,
     })
     .then(() => {

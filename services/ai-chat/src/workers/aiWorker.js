@@ -9,7 +9,8 @@ const toPositiveInt = (value, fallback) => {
 };
 
 // Wait for mongoose connection before processing jobs
-mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/ai_chat_db', {
+mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017', {
+  dbName: 'ai_chat_db',
   serverSelectionTimeoutMS: 10000,
 })
   .then(() => console.log('Worker MongoDB Connected'))

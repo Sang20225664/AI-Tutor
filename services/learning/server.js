@@ -80,6 +80,7 @@ async function ensureIndexes() {
 mongoose.set('strictQuery', false);
 mongoose
     .connect(process.env.MONGO_URI, {
+        dbName: 'learning_db',
         autoIndex: true
     })
     .then(async () => {

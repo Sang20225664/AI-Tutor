@@ -1,9 +1,10 @@
 const mongoose = require('mongoose');
 
 const connectDB = async () => {
-    const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/ai_chat_db';
+    const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017';
     try {
         await mongoose.connect(MONGO_URI, {
+            dbName: 'ai_chat_db',
             serverSelectionTimeoutMS: 10000,
             autoIndex: true,
         });

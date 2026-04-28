@@ -53,7 +53,7 @@ app.use('/api/auth', userRoutes);
 // Connect to MongoDB and start server
 mongoose.set('strictQuery', false);
 mongoose
-    .connect(process.env.MONGO_URI)
+    .connect(process.env.MONGO_URI, { dbName: 'auth_db' })
     .then(() => {
         console.log('🔐 Auth Service Started');
         console.log('📊 Port: %s', PORT);
