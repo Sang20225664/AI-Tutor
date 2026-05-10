@@ -11,7 +11,8 @@ spec:
   cooldownPeriod: 30
   minReplicaCount: 0
   maxReplicaCount: 3
-  restoreToOriginalReplicaCount: true
+  advanced:
+    restoreToOriginalReplicaCount: true
   triggers:
     - type: redis
       metadata:
