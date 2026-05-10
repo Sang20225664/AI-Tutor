@@ -29,6 +29,10 @@ aiQueue:
   dlqName: ai-jobs-dlq
   dlqRetention: 5000
   dlqRemoveOnComplete: 300
+keyvault:
+  name: "ai-tutor-dev-kv"
+  tenantId: "818e69ee-b657-41ec-b2c3-42e5b6db760e"
+  clientId: "410b880d-ad61-4515-86a4-40438e8608e1"
 ingress:
   host: "ai-tutot-ts.duckdns.org"
   clusterIssuer: "letsencrypt-prod"
