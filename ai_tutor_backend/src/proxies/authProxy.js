@@ -10,6 +10,7 @@ async function proxyToAuth(req, res, path) {
         const response = await axios({
             method: req.method,
             url: `${AUTH_SERVICE_URL}${path}`,
+            params: req.query,
             data: req.body,
             headers: {
                 'Content-Type': 'application/json',
@@ -28,6 +29,12 @@ async function proxyToAuth(req, res, path) {
             res.status(503).json({
                 success: false,
                 message: 'Auth service unavailable'
+            });
+        } else if (error.code === 'ECONNABORTED') {
+            console.error('❌ Auth service timeout:', error.message);
+            res.status(504).json({
+                success: false,
+                message: 'Auth service timeout'
             });
         } else {
             console.error('❌ Auth proxy error:', error.message);
