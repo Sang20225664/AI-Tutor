@@ -7,16 +7,25 @@ const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || 'http://auth:3001';
 // Proxy helper — forwards request to auth service and returns response
 async function proxyToAuth(req, res, path) {
     try {
+        const headers = {
+            'Content-Type': 'application/json'
+        };
+
+        if (req.headers.authorization) {
+            headers.Authorization = req.headers.authorization;
+        }
+
+        const requestId = req.requestId || req.headers['x-request-id'];
+        if (requestId) {
+            headers['x-request-id'] = requestId;
+        }
+
         const response = await axios({
             method: req.method,
             url: `${AUTH_SERVICE_URL}${path}`,
             params: req.query,
             data: req.body,
-            headers: {
-                'Content-Type': 'application/json',
-                ...(req.headers.authorization ? { Authorization: req.headers.authorization } : {}),
-                'x-request-id': req.requestId || req.headers['x-request-id']
-            },
+            headers,
             timeout: 5000
         });
         res.status(response.status).json(response.data);
