@@ -8,7 +8,9 @@ const Quiz = require('../src/models/Quiz');
 const LessonSuggestion = require('../src/models/LessonSuggestion');
 
 const MONGODB_URI = process.env.MONGO_URI || process.env.MONGODB_URI || 'mongodb://localhost:27017/learning_db';
+const MONGODB_DB_NAME = process.env.MONGO_DB_NAME || 'learning_db';
 const DATA_DIR = path.join(__dirname, '../data');
+const FORCE_SEED = ['1', 'true', 'yes'].includes(String(process.env.FORCE_SEED || '').toLowerCase());
 
 function parseSubjects() {
     const subjectsPath = path.join(DATA_DIR, 'subjects.json');
@@ -138,8 +140,22 @@ function parseQuizzes() {
 async function seedDatabase() {
     try {
         console.log('Connecting to MongoDB...');
-        await mongoose.connect(MONGODB_URI);
+        await mongoose.connect(MONGODB_URI, { dbName: MONGODB_DB_NAME });
         console.log('Connected to MongoDB');
+
+        const existingCounts = {
+            subjects: await Subject.countDocuments(),
+            lessons: await Lesson.countDocuments(),
+            quizzes: await Quiz.countDocuments()
+        };
+
+        const hasLearningData = existingCounts.subjects > 0 || existingCounts.lessons > 0 || existingCounts.quizzes > 0;
+        if (hasLearningData && !FORCE_SEED) {
+            console.log('Learning data already exists; skipping seed.');
+            console.log(`Existing data: ${existingCounts.subjects} subjects, ${existingCounts.lessons} lessons, ${existingCounts.quizzes} quizzes.`);
+            console.log('Set FORCE_SEED=true to clear and reseed intentionally.');
+            return { skipped: true, existingCounts };
+        }
 
         const subjectsData = parseSubjects();
         const lessonsData = parseLessons();

@@ -1,0 +1,92 @@
+{{- if .Values.duckdns.enabled }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: duckdns-updater
+  namespace: {{ .Values.global.environment }}
+  labels:
+    {{- include "ai-tutor.labels" . | nindent 4 }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: duckdns-updater-read-ingress-service
+  namespace: {{ .Values.duckdns.ingressNamespace }}
+  labels:
+    {{- include "ai-tutor.labels" . | nindent 4 }}
+rules:
+- apiGroups: [""]
+  resources: ["services"]
+  resourceNames: [{{ .Values.duckdns.ingressServiceName | quote }}]
+  verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: duckdns-updater-read-ingress-service
+  namespace: {{ .Values.duckdns.ingressNamespace }}
+  labels:
+    {{- include "ai-tutor.labels" . | nindent 4 }}
+subjects:
+- kind: ServiceAccount
+  name: duckdns-updater
+  namespace: {{ .Values.global.environment }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: duckdns-updater-read-ingress-service
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: duckdns-updater
+  namespace: {{ .Values.global.environment }}
+  labels:
+    {{- include "ai-tutor.labels" . | nindent 4 }}
+spec:
+  schedule: {{ .Values.duckdns.schedule | quote }}
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: duckdns-updater
+          restartPolicy: OnFailure
+          containers:
+          - name: duckdns-updater
+            image: {{ .Values.duckdns.image | quote }}
+            imagePullPolicy: IfNotPresent
+            env:
+            - name: DUCKDNS_DOMAIN
+              value: {{ .Values.duckdns.domain | quote }}
+            - name: DUCKDNS_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.duckdns.tokenSecretName | quote }}
+                  key: {{ .Values.duckdns.tokenSecretKey | quote }}
+            - name: INGRESS_NAMESPACE
+              value: {{ .Values.duckdns.ingressNamespace | quote }}
+            - name: INGRESS_SERVICE
+              value: {{ .Values.duckdns.ingressServiceName | quote }}
+            command: ["/bin/sh", "-c"]
+            args:
+            - |
+              set -eu
+              KUBE_TOKEN="$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)"
+              KUBE_CA="/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+              KUBE_PORT="${KUBERNETES_SERVICE_PORT_HTTPS:-443}"
+              API="https://${KUBERNETES_SERVICE_HOST}:${KUBE_PORT}/api/v1/namespaces/${INGRESS_NAMESPACE}/services/${INGRESS_SERVICE}"
+              SERVICE_JSON="$(curl -fsS --cacert "${KUBE_CA}" -H "Authorization: Bearer ${KUBE_TOKEN}" "${API}")"
+              IP="$(printf '%s\n' "${SERVICE_JSON}" | tr -d '\n' | sed -n 's/.*"loadBalancer"[^{]*{.*"ingress"[[:space:]]*:[[:space:]]*\[[^]]*"ip"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')"
+              if [ -z "${IP}" ]; then
+                echo "Ingress service does not have an external IP yet."
+                exit 1
+              fi
+              RESULT="$(curl -fsS "https://www.duckdns.org/update?domains=${DUCKDNS_DOMAIN}&token=${DUCKDNS_TOKEN}&ip=${IP}")"
+              if [ "${RESULT}" != "OK" ]; then
+                echo "DuckDNS update failed: ${RESULT}"
+                exit 1
+              fi
+              echo "DuckDNS ${DUCKDNS_DOMAIN} updated to ${IP}."
+{{- end }}

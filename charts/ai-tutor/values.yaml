@@ -122,3 +122,21 @@ keyvault:
   name: "ai-tutor-dev-kv"
   tenantId: "01843f17-d034-4d59-a1e0-086d061bb770"
   clientId: "a345f191-4dc4-4e62-9db2-3a16b7c1b1cc"
+
+seedData:
+  enabled: false
+  force: "false"
+  dbName: learning_db
+  backoffLimit: 2
+  ttlSecondsAfterFinished: 86400
+  imagePullPolicy: IfNotPresent
+
+duckdns:
+  enabled: false
+  image: curlimages/curl:8.10.1
+  schedule: "*/5 * * * *"
+  domain: "ai-tutor-ts"
+  tokenSecretName: duckdns-token
+  tokenSecretKey: token
+  ingressNamespace: ingress-nginx
+  ingressServiceName: nginx-ingress-ingress-nginx-controller

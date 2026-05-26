@@ -33,6 +33,12 @@ keyvault:
   name: "ai-tutor-dev-kv"
   tenantId: "818e69ee-b657-41ec-b2c3-42e5b6db760e"
   clientId: "410b880d-ad61-4515-86a4-40438e8608e1"
+seedData:
+  enabled: true
+  force: "false"
+duckdns:
+  enabled: false
+  domain: "ai-tutor-ts"
 ingress:
   host: "ai-tutor-ts.duckdns.org"
   clusterIssuer: "letsencrypt-prod"

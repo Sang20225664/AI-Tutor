@@ -81,11 +81,11 @@ Mỗi file quiz là array các nhóm quiz theo bài học:
 
 `lessonTitle` phải trùng chính xác với H1 trong file markdown cùng folder. Khi seed, quiz sẽ được gắn `lessonId`, nên flow nộp quiz có thể update progress trực tiếp.
 
-## Seed lại sau khi apply Cosmos
+## Seed lại learning data
 
 ```bash
 cd services/learning
-MONGO_URI="<cosmos-mongodb-connection-string>" npm run seed
+MONGO_URI="<atlas-connection-string>" MONGO_DB_NAME="learning_db" npm run seed
 ```
 
 Lệnh `npm run seed` sẽ xóa và tạo lại learning data trong DB:
@@ -116,4 +116,3 @@ Validation kiểm tra:
 - mỗi quiz có `lessonTitle` match lesson H1
 - mỗi câu có đúng 4 options
 - `correctAnswer` nằm trong khoảng 0-3
-

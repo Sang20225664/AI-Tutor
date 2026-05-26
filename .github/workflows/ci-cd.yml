@@ -16,6 +16,7 @@ env:
 permissions:
   id-token: write
   contents: write
+  security-events: write
 
 jobs:
   policy-checks:
@@ -41,11 +42,65 @@ jobs:
           fi
           echo "✅ No plaintext secret manifests tracked."
 
+  trivy-scan:
+    name: Trivy Security Scan
+    runs-on: ubuntu-latest
+    needs: [policy-checks]
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Trivy — scan filesystem (dependencies)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-fs.sarif'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '0'
+
+      - name: Trivy — scan config (Dockerfiles & K8s manifests)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'config'
+          scan-ref: '.'
+          format: 'table'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '0'
+
+      - name: Upload Trivy SARIF to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-fs.sarif'
+
+      - name: Trivy gate — block critical filesystem vulnerabilities
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'table'
+          severity: 'CRITICAL'
+          ignore-unfixed: true
+          exit-code: '1'
+
+      - name: Trivy gate — block critical config issues
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'config'
+          scan-ref: '.'
+          format: 'table'
+          severity: 'CRITICAL'
+          exit-code: '1'
+
   build-backend:
     name: Build Backend
     runs-on: ubuntu-latest
     if: github.actor != 'github-actions[bot]'
-    needs: [policy-checks]
+    needs: [policy-checks, trivy-scan]
     outputs:
       image_tag: ${{ steps.meta.outputs.version }}
     steps:
@@ -91,7 +146,7 @@ jobs:
     name: Build Frontend
     runs-on: ubuntu-latest
     if: github.actor != 'github-actions[bot]'
-    needs: [policy-checks]
+    needs: [policy-checks, trivy-scan]
     outputs:
       image_tag: ${{ steps.meta.outputs.version }}
     steps:
@@ -137,7 +192,7 @@ jobs:
     name: Build Microservices
     runs-on: ubuntu-latest
     if: github.actor != 'github-actions[bot]'
-    needs: [policy-checks]
+    needs: [policy-checks, trivy-scan]
     strategy:
       matrix:
         service: [auth, learning, assessment, ai-chat]
