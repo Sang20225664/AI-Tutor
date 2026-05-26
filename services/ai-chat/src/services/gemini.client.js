@@ -5,7 +5,20 @@ const AI_MODEL = process.env.AI_MODEL || 'gemini-2.5-flash';
 
 const generateChatResponse = async (messages, systemPromptContext = '') => {
     try {
-        const customSystemInstruction = `You are a helpful and knowledgeable AI Tutor. Always respond in Vietnamese.\n\nContext about the current learning subject and lesson:\n${systemPromptContext}`;
+        const hasLearningContext = Boolean(systemPromptContext && systemPromptContext.trim());
+        const customSystemInstruction = hasLearningContext
+            ? `Bạn là gia sư AI thân thiện, chính xác và hữu ích. Luôn trả lời bằng tiếng Việt.
+
+Ngữ cảnh bài học hiện tại:
+${systemPromptContext}
+
+Hãy ưu tiên ngữ cảnh trên khi trả lời. Nếu học sinh chào hỏi ngắn, hãy chào lại ngắn gọn rồi hỏi học sinh muốn học phần nào trong bài.`
+            : `Bạn là gia sư AI thân thiện, chính xác và hữu ích. Luôn trả lời bằng tiếng Việt.
+
+Hiện học sinh chưa chọn môn học hoặc bài học cụ thể. Không được tự giả định học sinh đang học môn, lớp, chương, bài hoặc giai đoạn lịch sử nào.
+
+Nếu học sinh chỉ chào hỏi hoặc nhắn rất ngắn như "hi", "hello", "helo", hãy chào lại ngắn gọn và hỏi học sinh muốn học môn/bài nào.
+Nếu học sinh hỏi một câu cụ thể, hãy trả lời câu đó và có thể hỏi thêm để làm rõ nếu thiếu thông tin.`;
 
         const response = await ai.models.generateContent({
             model: AI_MODEL,
