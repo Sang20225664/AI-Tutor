@@ -3,6 +3,12 @@ import 'dart:io';
 
 class ConfigService {
   static String get backendUrl {
+    // Check if URL is provided via --dart-define
+    const definedUrl = String.fromEnvironment('API_BASE_URL');
+    if (definedUrl.isNotEmpty) {
+      return definedUrl;
+    }
+
     // In Docker container, backend is accessible via service name
     if (kIsWeb) {
       // Local development on Web: Point to localhost:5000 directly
@@ -13,7 +19,7 @@ class ConfigService {
       return '/api';
     }
     if (!kIsWeb && Platform.isAndroid) {
-      // For mobile emulator
+      // For mobile emulator fallback
       return 'http://10.0.2.2:5000/api';
     }
     // Default for iOS emulator or local testing

@@ -1,0 +1,47 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+    inputs:
+      api_base_url:
+        description: 'API Base URL for the mobile app'
+        required: true
+        default: 'https://ai-tutor-ts.duckdns.org/api'
+
+jobs:
+  build-apk:
+    name: Build & Upload APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.35.5'
+          channel: 'stable'
+          cache: true
+
+      - name: Get dependencies
+        working-directory: ./ai_tutor_app
+        run: flutter pub get
+
+      - name: Build APK
+        working-directory: ./ai_tutor_app
+        env:
+          API_BASE_URL: ${{ inputs.api_base_url }}
+        run: flutter build apk --release --dart-define=API_BASE_URL="$API_BASE_URL"
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-tutor-release-apk
+          path: ai_tutor_app/build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 7
