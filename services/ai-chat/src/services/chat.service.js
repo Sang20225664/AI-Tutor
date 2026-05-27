@@ -3,6 +3,24 @@ const Usage = require('../models/usage.model');
 const geminiClient = require('./gemini.client');
 const learningClient = require('./learning.client');
 
+const isShortGreeting = (message) => {
+    const normalized = String(message || '')
+        .trim()
+        .toLowerCase()
+        .replace(/[!?.\s]+$/g, '');
+
+    return [
+        'hi',
+        'hello',
+        'helo',
+        'hey',
+        'chao',
+        'chào',
+        'xin chào',
+        'xin chao'
+    ].includes(normalized);
+};
+
 /**
  * Handle a new message from the user, attach context, get AI response, and save everything.
  */
@@ -18,6 +36,18 @@ const processMessage = async (userId, message, subjectId, lessonId, conversation
 
     // Append user message
     conversation.messages.push({ role: 'user', content: message });
+
+    if (!subjectId && !lessonId && isShortGreeting(message)) {
+        const reply = 'Chào bạn! Bạn muốn học môn hoặc bài nào hôm nay?';
+        conversation.messages.push({ role: 'assistant', content: reply });
+        await conversation.save();
+
+        return {
+            conversationId: conversation._id,
+            messages: conversation.messages,
+            reply
+        };
+    }
 
     // Fetch context from Learning Service if this is a new conversation and we have a lessonId
     let context = '';

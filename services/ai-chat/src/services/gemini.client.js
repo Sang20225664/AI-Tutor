@@ -2,6 +2,26 @@ const { GoogleGenAI } = require('@google/genai');
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 const AI_MODEL = process.env.AI_MODEL || 'gemini-2.5-flash';
+const RETRYABLE_STATUSES = new Set([429, 503]);
+
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+const generateContentWithRetry = async (request) => {
+    const maxAttempts = 3;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+        try {
+            return await ai.models.generateContent(request);
+        } catch (error) {
+            const status = error.status || error.code;
+            if (!RETRYABLE_STATUSES.has(status) || attempt === maxAttempts) {
+                throw error;
+            }
+
+            await sleep(500 * attempt);
+        }
+    }
+};
 
 const generateChatResponse = async (messages, systemPromptContext = '') => {
     try {
@@ -20,7 +40,7 @@ Hiện học sinh chưa chọn môn học hoặc bài học cụ thể. Không �
 Nếu học sinh chỉ chào hỏi hoặc nhắn rất ngắn như "hi", "hello", "helo", hãy chào lại ngắn gọn và hỏi học sinh muốn học môn/bài nào.
 Nếu học sinh hỏi một câu cụ thể, hãy trả lời câu đó và có thể hỏi thêm để làm rõ nếu thiếu thông tin.`;
 
-        const response = await ai.models.generateContent({
+        const response = await generateContentWithRetry({
             model: AI_MODEL,
             contents: messages.map(msg => ({
                 role: msg.role === 'assistant' ? 'model' : 'user', // genai SDK uses 'model' and 'user' mapping
@@ -52,7 +72,7 @@ Nếu học sinh hỏi một câu cụ thể, hãy trả lời câu đó và có
  */
 const generateQuizContent = async (prompt) => {
     try {
-        const response = await ai.models.generateContent({
+        const response = await generateContentWithRetry({
             model: AI_MODEL,
             contents: [{ role: 'user', parts: [{ text: prompt }] }],
             config: {
