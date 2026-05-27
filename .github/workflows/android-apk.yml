@@ -10,6 +10,12 @@ on:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
 
 jobs:
   build-apk:
@@ -64,8 +70,26 @@ jobs:
 
             API base URL: `${{ inputs.api_base_url }}`
 
-            Direct download: https://github.com/${{ github.repository }}/releases/download/android-latest/ai-tutor.apk
+            Public download page: https://sang20225664.github.io/AI-Tutor/
           artifacts: release/ai-tutor.apk
           allowUpdates: true
           replacesArtifacts: true
           makeLatest: true
+
+      - name: Prepare public download page
+        run: |
+          cp ai_tutor_app/build/app/outputs/flutter-apk/app-release.apk download/ai-tutor.apk
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: Upload public download page
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: download
+
+      - name: Deploy public download page
+        id: deployment
+        uses: actions/deploy-pages@v4
