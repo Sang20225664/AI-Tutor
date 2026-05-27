@@ -8,9 +8,12 @@ on:
         required: true
         default: 'https://ai-tutor-ts.duckdns.org/api'
 
+permissions:
+  contents: write
+
 jobs:
   build-apk:
-    name: Build & Upload APK
+    name: Build & Publish APK
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -44,4 +47,25 @@ jobs:
         with:
           name: ai-tutor-release-apk
           path: ai_tutor_app/build/app/outputs/flutter-apk/app-release.apk
-          retention-days: 7
+          retention-days: 30
+
+      - name: Prepare release asset
+        run: |
+          mkdir -p release
+          cp ai_tutor_app/build/app/outputs/flutter-apk/app-release.apk release/ai-tutor.apk
+
+      - name: Publish APK to GitHub Release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: android-latest
+          name: AI Tutor Android APK
+          body: |
+            Latest Android APK built from `${{ github.sha }}`.
+
+            API base URL: `${{ inputs.api_base_url }}`
+
+            Direct download: https://github.com/${{ github.repository }}/releases/download/android-latest/ai-tutor.apk
+          artifacts: release/ai-tutor.apk
+          allowUpdates: true
+          replacesArtifacts: true
+          makeLatest: true
