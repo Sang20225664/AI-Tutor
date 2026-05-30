@@ -47,22 +47,34 @@ app.use('/api/v1', assessmentRoutes);
 const analysisController = require('./src/controllers/analysisController');
 app.get('/internal/analysis/weak-topics', analysisController.getWeakTopics);
 
-// Connect to MongoDB and start server
+// Connect to MongoDB and start server with retry
 mongoose.set('strictQuery', false);
-mongoose
-    .connect(process.env.MONGO_URI, {
-        dbName: 'assessment_db',
-        serverSelectionTimeoutMS: 10000,
-    })
-    .then(() => {
-        console.log('📝 Assessment Service Started');
-        console.log('📊 Port: %s', PORT);
-        console.log('💾 MongoDB: Connected');
-        app.listen(PORT, '0.0.0.0', () => {
-            console.log('✅ Listening on port %s', PORT);
-        });
-    })
-    .catch((err) => {
-        console.error('❌ MongoDB Connection Error:', err.message);
-        process.exit(1);
-    });
+
+const connectWithRetry = async (retries = 5, delayMs = 3000) => {
+    for (let attempt = 1; attempt <= retries; attempt++) {
+        try {
+            await mongoose.connect(process.env.MONGO_URI, {
+                dbName: 'assessment_db',
+                serverSelectionTimeoutMS: 10000,
+            });
+            console.log('📝 Assessment Service Started');
+            console.log('📊 Port: %s', PORT);
+            console.log('💾 MongoDB: Connected');
+            app.listen(PORT, '0.0.0.0', () => {
+                console.log('✅ Listening on port %s', PORT);
+            });
+            return;
+        } catch (err) {
+            console.error(`❌ MongoDB connection attempt ${attempt}/${retries} failed: ${err.message}`);
+            if (attempt === retries) {
+                console.error('❌ All MongoDB connection attempts exhausted. Exiting.');
+                process.exit(1);
+            }
+            const wait = delayMs * attempt;
+            console.log(`🔄 Retrying in ${wait / 1000}s...`);
+            await new Promise(r => setTimeout(r, wait));
+        }
+    }
+};
+
+connectWithRetry();

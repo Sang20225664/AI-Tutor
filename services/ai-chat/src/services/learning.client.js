@@ -1,6 +1,21 @@
 const axios = require('axios');
+const axiosRetry = require('axios-retry').default;
 
 const LEARNING_SERVICE_URL = process.env.LEARNING_SERVICE_URL || 'http://localhost:3002';
+
+// Retry up to 3 times with exponential backoff (1s, 2s, 4s)
+// Only retries on network errors or 5xx responses (not 4xx — those are client errors)
+axiosRetry(axios, {
+    retries: 3,
+    retryDelay: axiosRetry.exponentialDelay,
+    retryCondition: (error) => {
+        return axiosRetry.isNetworkOrIdempotentRequestError(error) ||
+            (error.response && error.response.status >= 500);
+    },
+    onRetry: (retryCount, error) => {
+        console.warn(`⚠️ Retry ${retryCount}/3 calling Learning Service: ${error.message}`);
+    }
+});
 
 const getContextForAi = async (lessonId) => {
     try {
