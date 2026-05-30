@@ -50,9 +50,9 @@ AI-Tutor/
 ### Backend Architecture
 - **API Gateway** - Central entry point (Express.js)
 - **Microservices** - Auth, Learning, Assessment, AI Chat, AI Worker
-- **MongoDB 7** - 4 isolated logical databases per service
+- **MongoDB Atlas** - 4 isolated logical databases per service (cloud-managed, free tier M0)
 - **Redis 7** - Caching (Flashcards, Summaries, Weak Topics) + Message Queue
-- **BullMQ** - Background job processing for AI tasks
+- **BullMQ** - Background job processing for AI tasks (Retry + Dead Letter Queue)
 - **JWT** - Cross-service stateless authentication
 - **Rate Limiting** - express-rate-limit (AI endpoints: 10 req/min/user)
 - **Docker & Docker Compose** - Containerization (9 containers)
@@ -77,7 +77,7 @@ Before running this project, make sure you have the following installed:
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/yourusername/AI-Tutor.git
+git clone https://github.com/Sang20225664/AI-Tutor.git
 cd AI-Tutor
 ```
 
@@ -200,20 +200,20 @@ curl http://localhost:8080/api/ready
 ### Advanced Testing (Kubernetes)
 ```bash
 # List pods, PVC, service
-kubectl get all -n ai-tutor-dev
-kubectl get pvc -n ai-tutor-dev
+kubectl get all -n prod
+kubectl get pvc -n prod
 
 # Delete backend pod to test auto-healing
-kubectl delete pod -n ai-tutor-dev -l app=backend --force --grace-period=0
+kubectl delete pod -n prod -l app=backend --force --grace-period=0
 
 # Simulate MongoDB downtime
-kubectl scale deployment mongodb -n ai-tutor-dev --replicas=0
+kubectl scale deployment redis -n prod --replicas=0
 # Check backend readiness, service endpoints
-kubectl get pods -n ai-tutor-dev
-kubectl get endpoints backend -n ai-tutor-dev
+kubectl get pods -n prod
+kubectl get endpoints backend -n prod
 
-# Restore MongoDB
-kubectl scale deployment mongodb -n ai-tutor-dev --replicas=1
+# Restore
+kubectl scale deployment redis -n prod --replicas=1
 ```
 
 ### Frontend Tests
@@ -279,7 +279,7 @@ Nguyen Duc Tan Sang
 ## 📞 Support
 
 For support and questions:
-- 🐛 Issues: [GitHub Issues](https://github.com/yourusername/AI-Tutor/issues)
+- 🐛 Issues: [GitHub Issues](https://github.com/Sang20225664/AI-Tutor/issues)
 - 📧 Email: sanga4k48@gmail.com
 
 ## 🗺️ Roadmap
@@ -287,23 +287,26 @@ For support and questions:
 - [x] Basic AI chat functionality
 - [x] User authentication system
 - [x] Docker containerization
-- [x] MongoDB integration
+- [x] MongoDB integration (migrated to MongoDB Atlas M0)
 - [x] Microservice architecture (Strangler Fig migration)
-- [x] Kubernetes multi-environment deployment (dev/staging/prod)
+- [x] Kubernetes multi-environment deployment (namespace `prod`)
 - [x] AI Quiz generation from lesson content
 - [x] Adaptive Quiz (targeting weak topics)
 - [x] AI Flashcard generation
 - [x] AI Lesson summary
 - [x] AI Lesson suggestions (personalized, persisted)
 - [x] Learning dashboard with progress analytics
-- [x] Redis caching + BullMQ background jobs
+- [x] Redis caching + BullMQ background jobs (Retry + DLQ)
 - [x] Responsive Web layout
 - [x] CI/CD pipeline (GitHub Actions → ACR → AKS, GitOps write-back)
-- [x] Cloud deployment on Azure AKS (Phase 5 complete)
+- [x] Security scan: Trivy (filesystem + config) in CI, SARIF upload to GitHub Security tab
+- [x] Cloud deployment on Azure AKS
 - [x] GitOps with ArgoCD (auto-sync, self-healing)
 - [x] Canary deployment with Argo Rollouts (20% → 50% → 100%)
 - [x] KEDA autoscaling — Scale-to-Zero for AI Worker (Redis queue trigger)
-- [ ] Service Mesh (Linkerd — mTLS)
+- [x] Android APK build workflow (`workflow_dispatch`) — publishes to GitHub Releases
+- [x] GitHub Pages download site for APK
+- [ ] Service Mesh (Linkerd — mTLS) — out of scope for thesis
 - [ ] Voice interaction support
 - [ ] Gamification features
 - [ ] Multi-language support
@@ -326,12 +329,12 @@ For support and questions:
 # Check if services are running
 docker ps
 # or
-kubectl get pods -n ai-tutor-dev
+kubectl get pods -n prod
 
 # Restart services
 docker compose down && docker compose up
 # or
-kubectl rollout restart deployment/backend -n ai-tutor-dev
+kubectl rollout restart deployment/backend -n prod
 ```
 
 **Flutter Build Issues**

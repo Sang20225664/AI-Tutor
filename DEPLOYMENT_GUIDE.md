@@ -31,10 +31,16 @@ Dự án quản lý 2 luồng môi trường chính tương ứng với 2 branch
 Tất cả các luồng CI/CD được đóng gói gọn gàng trong 1 file duy nhất: `.github/workflows/ci-cd.yml`.
 
 ### Các luồng xử lý chính trong Pipeline:
-1. **Azure & ACR Login (OIDC):** Authenticate với Azure bằng OpenID Connect.
-2. **Matrix Build:** Build song song Docker images cho tất cả services, tag theo commit SHA → Push lên ACR.
-3. **GitOps Write-back:** Cập nhật `image.tag` trong `values-prod.yaml` bằng `yq` → commit + push lên `main`.
-4. **ArgoCD Auto-sync:** Phát hiện thay đổi Helm chart trên GitHub → tự động sync vào cluster.
+1. **Policy Checks:** Chặn `:latest` tags và plaintext secret manifests.
+2. **Trivy Security Scan:** Scan filesystem (dependencies) + config (Dockerfiles, K8s manifests). Upload SARIF lên GitHub Security tab. Fail nếu có CRITICAL CVE.
+3. **Azure & ACR Login (OIDC):** Authenticate với Azure bằng OpenID Connect (passwordless).
+4. **Matrix Build:** Build song song Docker images cho tất cả services, tag theo commit SHA → Push lên ACR.
+5. **GitOps Write-back:** Cập nhật `global.imageTag` trong `values-prod.yaml` bằng `yq` → commit + push lên `main`.
+6. **ArgoCD Auto-sync:** Phát hiện thay đổi Helm chart trên GitHub → tự động sync vào cluster.
+
+**Android APK Workflow** (tách biệt, `workflow_dispatch` thủ công):
+- `.github/workflows/android-apk.yml` — Build Flutter APK release với `--dart-define=API_BASE_URL`
+- Upload artifact (30 ngày) + publish lên GitHub Releases tag `android-latest`
 
 ---
 
@@ -114,9 +120,9 @@ kubectl get svc -n prod
 
 ### Grafana Dashboard
 
-Truy cập tại: **`https://ai-tutot-ts.duckdns.org/grafana/`**
+Truy cập tại: **`https://ai-tutor-ts.duckdns.org/grafana/`**
 - Login: `admin` / `admin123`
-- Prometheus đã scrape metrics từ toàn bộ AKS cluster (kube-state-metrics, node-exporter)
+- Prometheus đã scrape metrics từ toàn bộ AKS cluster (kube-state-metrics, node-exporter, NGINX Ingress)
 - Data source Prometheus: `http://kube-prometheus-stack-prometheus:9090`
 
 ```bash
