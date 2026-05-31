@@ -1,0 +1,284 @@
+# Application-specific NetworkPolicy allow rules for the AI-Tutor microservices.
+# These rules sit on top of the "default-deny" baseline applied by Terraform.
+# Managed by ArgoCD — any change here triggers an automatic sync to the cluster.
+#
+# Communication matrix:
+#   frontend    → backend (API Gateway) only
+#   backend     → auth, learning, assessment, ai-chat (internal service calls)
+#   ai-chat     → learning, redis (context fetch + BullMQ queue)
+#   ai-worker   → redis, ai-chat (job processing + Gemini calls out)
+#   assessment  → learning (weak topic analysis)
+#   learning    → (no outbound service calls, only receives)
+#   auth        → (no outbound service calls, only receives)
+#   All pods    → Atlas (egress to 0.0.0.0 on 27017) via existing DNS allow in Terraform
+#   All pods    → kube-system (DNS — already allowed in Terraform default-deny)
+---
+# ─── frontend: may only receive traffic from ingress-nginx ────────────────────
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-frontend
+  namespace: {{ .Values.global.environment }}
+spec:
+  podSelector:
+    matchLabels:
+      app: frontend
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: backend
+      ports:
+        - port: 5000
+---
+# ─── backend (API Gateway): receives from ingress-nginx, calls internal services
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-backend
+  namespace: {{ .Values.global.environment }}
+spec:
+  podSelector:
+    matchLabels:
+      app: backend
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+    - from:
+        - podSelector:
+            matchLabels:
+              app: frontend
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: auth
+      ports:
+        - port: 3001
+    - to:
+        - podSelector:
+            matchLabels:
+              app: learning
+      ports:
+        - port: 3002
+    - to:
+        - podSelector:
+            matchLabels:
+              app: assessment
+      ports:
+        - port: 3003
+    - to:
+        - podSelector:
+            matchLabels:
+              app: ai-chat
+      ports:
+        - port: 3004
+    # Allow egress to MongoDB Atlas (external)
+    - ports:
+        - port: 27017
+---
+# ─── auth: receives from backend only ────────────────────────────────────────
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-auth
+  namespace: {{ .Values.global.environment }}
+spec:
+  podSelector:
+    matchLabels:
+      app: auth
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: backend
+  egress:
+    # Allow egress to MongoDB Atlas (external)
+    - ports:
+        - port: 27017
+---
+# ─── learning: receives from backend, ai-chat, assessment, ai-worker ─────────
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-learning
+  namespace: {{ .Values.global.environment }}
+spec:
+  podSelector:
+    matchLabels:
+      app: learning
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: backend
+    - from:
+        - podSelector:
+            matchLabels:
+              app: ai-chat
+    - from:
+        - podSelector:
+            matchLabels:
+              app: ai-worker
+    - from:
+        - podSelector:
+            matchLabels:
+              app: assessment
+    - from:
+        - podSelector:
+            matchLabels:
+              app: learning-seed
+  egress:
+    # Allow egress to MongoDB Atlas (external)
+    - ports:
+        - port: 27017
+---
+# ─── assessment: receives from backend, calls learning ───────────────────────
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-assessment
+  namespace: {{ .Values.global.environment }}
+spec:
+  podSelector:
+    matchLabels:
+      app: assessment
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: backend
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: learning
+      ports:
+        - port: 3002
+    # Allow egress to MongoDB Atlas (external)
+    - ports:
+        - port: 27017
+---
+# ─── ai-chat: receives from backend, calls learning + redis ──────────────────
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ai-chat
+  namespace: {{ .Values.global.environment }}
+spec:
+  podSelector:
+    matchLabels:
+      app: ai-chat
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: backend
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: learning
+      ports:
+        - port: 3002
+    - to:
+        - podSelector:
+            matchLabels:
+              app: redis
+      ports:
+        - port: 6379
+    # Allow egress to MongoDB Atlas (external)
+    - ports:
+        - port: 27017
+    # Allow HTTPS to Gemini API (google.com, port 443)
+    - ports:
+        - port: 443
+---
+# ─── ai-worker: receives from KEDA, calls redis, Gemini API ──────────────────
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ai-worker
+  namespace: {{ .Values.global.environment }}
+spec:
+  podSelector:
+    matchLabels:
+      app: ai-worker
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: keda
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: redis
+      ports:
+        - port: 6379
+    - to:
+        - podSelector:
+            matchLabels:
+              app: learning
+      ports:
+        - port: 3002
+    # Allow egress to MongoDB Atlas (external)
+    - ports:
+        - port: 27017
+    # Allow HTTPS to Gemini API
+    - ports:
+        - port: 443
+---
+# ─── redis: receives from ai-chat and ai-worker only ─────────────────────────
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-redis
+  namespace: {{ .Values.global.environment }}
+spec:
+  podSelector:
+    matchLabels:
+      app: redis
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: ai-chat
+    - from:
+        - podSelector:
+            matchLabels:
+              app: ai-worker
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: keda
