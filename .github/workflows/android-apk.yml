@@ -59,7 +59,7 @@ jobs:
         working-directory: ./ai_tutor_app
         env:
           API_BASE_URL: ${{ inputs.api_base_url }}
-          ANDROID_KEYSTORE_PATH: android/app/signing/release.jks
+          ANDROID_KEYSTORE_PATH: signing/release.jks
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
