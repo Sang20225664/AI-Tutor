@@ -10,6 +10,12 @@ metadata:
     nginx.ingress.kubernetes.io/limit-rps: "10"
     nginx.ingress.kubernetes.io/limit-rpm: "100"
     nginx.ingress.kubernetes.io/limit-req-status-code: "429"
+    # Block /internal/* from external access
+    nginx.ingress.kubernetes.io/server-snippet: |
+      location ~* ^/internal/ {
+        deny all;
+        return 403;
+      }
 spec:
   ingressClassName: {{ .Values.ingress.className }}
   {{- if and .Values.ingress.tls.enabled .Values.ingress.host }}
