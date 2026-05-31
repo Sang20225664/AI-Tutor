@@ -1,5 +1,5 @@
 global:
-  imageTag: d29ce39
+  imageTag: 585afc6
   environment: prod
 backend:
   replicas: 1
