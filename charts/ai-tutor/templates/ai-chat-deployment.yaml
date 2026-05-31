@@ -48,6 +48,10 @@ spec:
               key: GEMINI_API_KEY
         - name: REDIS_URL
           value: redis://redis:6379
+        - name: LEARNING_SERVICE_URL
+          value: http://learning:3002
+        - name: ASSESSMENT_SERVICE_URL
+          value: http://assessment:3003
         - name: AI_JOB_ATTEMPTS
           value: {{ .Values.aiQueue.attempts | quote }}
         - name: AI_JOB_BACKOFF_TYPE

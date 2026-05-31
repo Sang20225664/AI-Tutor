@@ -40,7 +40,11 @@ const worker = new Worker('ai-jobs', async (job) => {
 
   switch (job.name) {
     case 'adaptiveQuiz':
-      return await generateAdaptiveQuiz(job.data.userId, job.data.requestId);
+      return await generateAdaptiveQuiz({
+        userId: job.data.userId,
+        difficulty: job.data.difficulty,
+        questionCount: job.data.questionCount
+      }, job.data.requestId);
 
     case 'generateFlashcards':
       return await generateFlashcards(job.data.lessonId, job.data.count, job.data.requestId);

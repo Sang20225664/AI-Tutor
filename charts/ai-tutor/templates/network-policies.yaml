@@ -5,10 +5,10 @@
 # Communication matrix:
 #   frontend    → backend (API Gateway) only
 #   backend     → auth, learning, assessment, ai-chat (internal service calls)
-#   ai-chat     → learning, redis (context fetch + BullMQ queue)
-#   ai-worker   → redis, ai-chat (job processing + Gemini calls out)
-#   assessment  → learning (weak topic analysis)
-#   learning    → (no outbound service calls, only receives)
+#   ai-chat     → learning, assessment, redis (context + weak-topic lookup + BullMQ queue)
+#   ai-worker   → redis, learning, assessment (job processing + Gemini calls out)
+#   assessment  → learning, redis (weak topic analysis + cache)
+#   learning    → assessment (async progress tracking)
 #   auth        → (no outbound service calls, only receives)
 #   All pods    → Atlas (egress to 0.0.0.0 on 27017) via existing DNS allow in Terraform
 #   All pods    → kube-system (DNS — already allowed in Terraform default-deny)
@@ -148,6 +148,12 @@ spec:
             matchLabels:
               app: learning-seed
   egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: assessment
+      ports:
+        - port: 3003
     # Allow egress to MongoDB Atlas (external)
     - ports:
         - port: 27017
@@ -177,6 +183,12 @@ spec:
               app: learning
       ports:
         - port: 3002
+    - to:
+        - podSelector:
+            matchLabels:
+              app: redis
+      ports:
+        - port: 6379
     # Allow egress to MongoDB Atlas (external)
     - ports:
         - port: 27017
@@ -206,6 +218,12 @@ spec:
               app: learning
       ports:
         - port: 3002
+    - to:
+        - podSelector:
+            matchLabels:
+              app: assessment
+      ports:
+        - port: 3003
     - to:
         - podSelector:
             matchLabels:
@@ -250,6 +268,12 @@ spec:
               app: learning
       ports:
         - port: 3002
+    - to:
+        - podSelector:
+            matchLabels:
+              app: assessment
+      ports:
+        - port: 3003
     # Allow egress to MongoDB Atlas (external)
     - ports:
         - port: 27017
@@ -257,7 +281,7 @@ spec:
     - ports:
         - port: 443
 ---
-# ─── redis: receives from ai-chat and ai-worker only ─────────────────────────
+# ─── redis: receives from ai-chat, ai-worker, assessment, and KEDA ───────────
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -278,6 +302,10 @@ spec:
         - podSelector:
             matchLabels:
               app: ai-worker
+    - from:
+        - podSelector:
+            matchLabels:
+              app: assessment
     - from:
         - namespaceSelector:
             matchLabels:
