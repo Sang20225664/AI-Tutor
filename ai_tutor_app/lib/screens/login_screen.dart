@@ -166,21 +166,15 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     // Logo/Title
-                    Image.asset(
-                      'assets/img/logo.png',
-                      width: Responsive.getValue(
+                    Icon(
+                      Icons.school,
+                      size: Responsive.getValue(
                         context,
                         mobile: 80,
                         tablet: 100,
                         desktop: 120,
                       ),
-                      height: Responsive.getValue(
-                        context,
-                        mobile: 80,
-                        tablet: 100,
-                        desktop: 120,
-                      ),
-                      fit: BoxFit.contain,
+                      color: Theme.of(context).primaryColor,
                     ),
                     const SizedBox(height: 16),
                     Text(
