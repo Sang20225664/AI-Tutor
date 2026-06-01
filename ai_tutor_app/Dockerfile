@@ -12,8 +12,9 @@ FROM nginx:alpine
 # Create cache directory and set permissions for nginx
 RUN mkdir -p /var/cache/nginx/client_temp && \
     mkdir -p /var/run/nginx && \
-    chmod -R 777 /var/cache/nginx && \
-    chmod -R 777 /var/run
+    chown -R nginx:nginx /var/cache/nginx && \
+    chown -R nginx:nginx /var/run && \
+    chown -R nginx:nginx /var/log/nginx
 
 # Remove default Nginx configuration
 RUN rm -rf /etc/nginx/conf.d/* /etc/nginx/nginx.conf
@@ -26,6 +27,9 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Copy Flutter Web build output
 COPY --from=build-env /app/build/web /usr/share/nginx/html
+
+# Run as non-root
+USER nginx
 
 # Expose port 80
 EXPOSE 80
