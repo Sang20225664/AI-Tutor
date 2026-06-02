@@ -1,4 +1,5 @@
 # Stage 1: Build Flutter Web
+ARG BUILDPLATFORM=linux/amd64
 FROM --platform=$BUILDPLATFORM ghcr.io/cirruslabs/flutter:latest AS build-env
 WORKDIR /app
 COPY pubspec.yaml pubspec.lock ./
@@ -31,12 +32,12 @@ COPY --from=build-env /app/build/web /usr/share/nginx/html
 # Run as non-root
 USER nginx
 
-# Expose port 80
-EXPOSE 80
+# Expose non-privileged HTTP port for non-root runtime
+EXPOSE 8080
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost/health || exit 1
+    CMD wget --no-verbose --tries=1 --spider http://localhost:8080/health || exit 1
 
 # Start Nginx
 CMD ["nginx", "-g", "daemon off;"]
