@@ -1,5 +1,5 @@
 # STAGE 1: BUILDER
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 
 WORKDIR /usr/src/app
 
@@ -9,7 +9,7 @@ RUN npm ci
 COPY . .
 
 # STAGE 2: PRODUCTION
-FROM node:18-alpine AS production
+FROM node:20-alpine AS production
 
 ENV NODE_ENV=production
 
