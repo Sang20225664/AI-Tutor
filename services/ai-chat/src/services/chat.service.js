@@ -1,5 +1,5 @@
 const Conversation = require('../models/conversation.model');
-const Usage = require('../models/usage.model');
+const usageService = require('./usage.service');
 const geminiClient = require('./gemini.client');
 const learningClient = require('./learning.client');
 
@@ -74,13 +74,12 @@ const processMessage = async (userId, message, subjectId, lessonId, conversation
 
     // Track usage asynchronously (no need to await)
     if (aiResponse.usage) {
-        Usage.create({
+        usageService.logUsage({
             userId,
-            conversationId: conversation._id,
-            promptTokens: aiResponse.usage.promptTokens,
-            completionTokens: aiResponse.usage.completionTokens,
-            totalTokens: aiResponse.usage.totalTokens
-        }).catch(err => console.error('Failed to log AI usage', err));
+            type: 'chat',
+            usage: aiResponse.usage,
+            conversationId: conversation._id
+        });
     }
 
     return {

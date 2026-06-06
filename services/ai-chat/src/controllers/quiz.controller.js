@@ -27,8 +27,10 @@ const generateQuiz = async (req, res) => {
         const diff = ['easy', 'medium', 'hard'].includes(difficulty) ? difficulty : 'medium';
 
         const requestId = req.headers['x-request-id'];
+        const userId = req.user?.userId || req.user?.id;
 
         const job = await aiQueue.add('generateQuiz', {
+            userId,
             lessonId,
             difficulty: diff,
             questionCount: count,

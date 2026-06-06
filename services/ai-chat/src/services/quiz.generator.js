@@ -1,12 +1,13 @@
 const geminiClient = require('./gemini.client');
 const learningClient = require('./learning.client');
+const usageService = require('./usage.service');
 const logger = require('../config/logger');
 
 /**
  * AI Quiz Generator Service
  * Flow: Fetch Lesson → Prompt Gemini → Parse JSON → Save Quiz to Learning DB
  */
-const generateQuiz = async ({ lessonId, difficulty = 'medium', questionCount = 5 }, requestId) => {
+const generateQuiz = async ({ userId, lessonId, difficulty = 'medium', questionCount = 5 }, requestId) => {
     // 1️⃣ Fetch lesson content from Learning Service (with 1 retry)
     logger.info(`Fetching lesson ${lessonId} for quiz generation`, { headers: { 'x-request-id': requestId } });
     let lesson;
@@ -57,11 +58,20 @@ Rules:
     logger.info(`Calling Gemini for ${questionCount} questions (${difficulty})`, { headers: { 'x-request-id': requestId } });
     const aiResponse = await geminiClient.generateQuizContent(prompt);
 
+    if (aiResponse.usage) {
+        usageService.logUsage({
+            userId,
+            type: 'quiz',
+            usage: aiResponse.usage,
+            requestId
+        });
+    }
+
     // 4️⃣ Parse AI response — handle potential markdown code blocks
     let quizData;
     try {
         // Strip markdown code blocks if present (```json ... ```)
-        let cleanResponse = aiResponse.trim();
+        let cleanResponse = aiResponse.content.trim();
         if (cleanResponse.startsWith('```')) {
             cleanResponse = cleanResponse.replace(/^```(?:json)?\s*\n?/, '').replace(/\n?```\s*$/, '');
         }

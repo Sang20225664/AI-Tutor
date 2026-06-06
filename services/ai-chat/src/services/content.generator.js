@@ -1,5 +1,6 @@
 const geminiClient = require('./gemini.client');
 const learningClient = require('./learning.client');
+const usageService = require('./usage.service');
 const logger = require('../config/logger');
 const redis = require('../config/redis');
 
@@ -17,7 +18,7 @@ const buildCacheKey = (lessonId, model, promptVersion) =>
 /**
  * Generate flashcards from a lesson (cache-first)
  */
-const generateFlashcards = async (lessonId, count = 10, requestId) => {
+const generateFlashcards = async (userId, lessonId, count = 10, requestId) => {
     const cacheKey = buildCacheKey(lessonId, AI_MODEL, FLASHCARD_PROMPT_VERSION);
 
     // 1. Check cache
@@ -71,9 +72,18 @@ Rules:
 
     const aiResponse = await geminiClient.generateQuizContent(prompt);
 
+    if (aiResponse.usage) {
+        usageService.logUsage({
+            userId,
+            type: 'flashcard',
+            usage: aiResponse.usage,
+            requestId
+        });
+    }
+
     let data;
     try {
-        let cleanResponse = aiResponse.trim();
+        let cleanResponse = aiResponse.content.trim();
         if (cleanResponse.startsWith('```')) {
             cleanResponse = cleanResponse.replace(/^```(?:json)?\s*\n?/, '').replace(/\n?```\s*$/, '');
         }
@@ -110,7 +120,7 @@ Rules:
 /**
  * Generate a bullet-point summary from a lesson (cache-first)
  */
-const generateSummary = async (lessonId, requestId) => {
+const generateSummary = async (userId, lessonId, requestId) => {
     const cacheKey = buildCacheKey(lessonId, AI_MODEL, SUMMARY_PROMPT_VERSION);
 
     // 1. Check cache
@@ -162,9 +172,18 @@ Rules:
 
     const aiResponse = await geminiClient.generateQuizContent(prompt);
 
+    if (aiResponse.usage) {
+        usageService.logUsage({
+            userId,
+            type: 'summary',
+            usage: aiResponse.usage,
+            requestId
+        });
+    }
+
     let data;
     try {
-        let cleanResponse = aiResponse.trim();
+        let cleanResponse = aiResponse.content.trim();
         if (cleanResponse.startsWith('```')) {
             cleanResponse = cleanResponse.replace(/^```(?:json)?\s*\n?/, '').replace(/\n?```\s*$/, '');
         }

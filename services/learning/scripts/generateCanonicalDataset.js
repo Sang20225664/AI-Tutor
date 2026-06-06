@@ -66,6 +66,7 @@ const subjects = {
     },
     physics: {
         name: 'Vật lý',
+        // Grade 10 is excluded here because physics10 is a protectedFolder (hand-authored data).
         grades: [6, 7, 8, 9, 11, 12],
         lessonsPerGrade: 2,
         topics: [
@@ -78,6 +79,7 @@ const subjects = {
     },
     chemistry: {
         name: 'Hóa học',
+        // Grade 10 is excluded here because chemistry10 is a protectedFolder (hand-authored data).
         grades: [8, 9, 11, 12],
         lessonsPerGrade: 2,
         topics: [
@@ -123,6 +125,9 @@ const subjects = {
     }
 };
 
+// Folders listed here contain hand-authored data from the original dataset
+// This script will NOT overwrite or delete them, even when re-generating.
+// Their grades are excluded from the auto-generation config below to avoid conflicts.
 const protectedFolders = new Set(['math10', 'physics10', 'chemistry10', 'english10']);
 
 function slugify(text) {

@@ -1,5 +1,6 @@
 const geminiClient = require('./gemini.client');
 const learningClient = require('./learning.client');
+const usageService = require('./usage.service');
 const logger = require('../config/logger');
 const axios = require('axios');
 
@@ -82,10 +83,19 @@ Rules:
     logger.info(`Calling Gemini for Lesson Suggestions`, { headers: { 'x-request-id': requestId } });
     const aiResponse = await geminiClient.generateQuizContent(prompt); // Reusing the content generator method since it just uses gemini-pro
 
+    if (aiResponse.usage) {
+        usageService.logUsage({
+            userId,
+            type: 'suggestion',
+            usage: aiResponse.usage,
+            requestId
+        });
+    }
+
     // 5. Parse response
     let suggestionsData;
     try {
-        let cleanResponse = aiResponse.trim();
+        let cleanResponse = aiResponse.content.trim();
         if (cleanResponse.startsWith('```')) {
             cleanResponse = cleanResponse.replace(/^```(?:json)?\s*\n?/, '').replace(/\n?```\s*$/, '');
         }

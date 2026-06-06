@@ -161,6 +161,8 @@ services:
       - ASSESSMENT_SERVICE_URL=http://assessment:3003
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - JWT_SECRET=${JWT_SECRET}
+      - AI_DAILY_TOKEN_LIMIT=${AI_DAILY_TOKEN_LIMIT:-50000}
+      - ADMIN_USER_IDS=${ADMIN_USER_IDS:-}
       - REDIS_HOST=redis
       - NODE_ENV=production
     networks:

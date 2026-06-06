@@ -47,16 +47,17 @@ const worker = new Worker('ai-jobs', async (job) => {
       }, job.data.requestId);
 
     case 'generateFlashcards':
-      return await generateFlashcards(job.data.lessonId, job.data.count, job.data.requestId);
+      return await generateFlashcards(job.data.userId, job.data.lessonId, job.data.count, job.data.requestId);
 
     case 'summarizeLesson':
-      return await generateSummary(job.data.lessonId, job.data.requestId);
+      return await generateSummary(job.data.userId, job.data.lessonId, job.data.requestId);
 
     case 'suggestLessons':
       return await generateLessonSuggestions(job.data.userId, job.data.grade, job.data.requestId);
 
     case 'generateQuiz':
       return await quizGenerator.generateQuiz({
+        userId: job.data.userId,
         lessonId: job.data.lessonId,
         difficulty: job.data.difficulty,
         questionCount: job.data.questionCount

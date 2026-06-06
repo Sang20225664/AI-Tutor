@@ -55,6 +55,7 @@ Nếu học sinh hỏi một câu cụ thể, hãy trả lời câu đó và có
         return {
             content: response.text,
             usage: {
+                model: AI_MODEL,
                 promptTokens: response.usageMetadata?.promptTokenCount || 0,
                 completionTokens: response.usageMetadata?.candidatesTokenCount || 0,
                 totalTokens: response.usageMetadata?.totalTokenCount || 0
@@ -79,7 +80,15 @@ const generateQuizContent = async (prompt) => {
                 temperature: 0.3, // Lower temperature for consistent JSON
             }
         });
-        return response.text;
+        return {
+            content: response.text,
+            usage: {
+                model: AI_MODEL,
+                promptTokens: response.usageMetadata?.promptTokenCount || 0,
+                completionTokens: response.usageMetadata?.candidatesTokenCount || 0,
+                totalTokens: response.usageMetadata?.totalTokenCount || 0
+            }
+        };
     } catch (error) {
         console.error('❌ Gemini Quiz Generation Error:', error);
         throw new Error('Failed to generate quiz from AI');

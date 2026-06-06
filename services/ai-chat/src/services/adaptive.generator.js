@@ -1,5 +1,6 @@
 const geminiClient = require('./gemini.client');
 const learningClient = require('./learning.client');
+const usageService = require('./usage.service');
 const logger = require('../config/logger');
 const axios = require('axios');
 
@@ -102,10 +103,19 @@ Rules:
     logger.info(`Calling Gemini for adaptive quiz (${questionCount} questions)`, { headers: { 'x-request-id': requestId } });
     const aiResponse = await geminiClient.generateQuizContent(prompt);
 
+    if (aiResponse.usage) {
+        usageService.logUsage({
+            userId,
+            type: 'adaptive_quiz',
+            usage: aiResponse.usage,
+            requestId
+        });
+    }
+
     // 5. Parse response
     let quizData;
     try {
-        let cleanResponse = aiResponse.trim();
+        let cleanResponse = aiResponse.content.trim();
         if (cleanResponse.startsWith('```')) {
             cleanResponse = cleanResponse.replace(/^```(?:json)?\s*\n?/, '').replace(/\n?```\s*$/, '');
         }

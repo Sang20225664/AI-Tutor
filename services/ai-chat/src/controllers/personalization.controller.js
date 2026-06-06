@@ -64,8 +64,10 @@ const generateFlashcards = async (req, res) => {
 
         const cardCount = Math.min(Math.max(parseInt(count) || 10, 3), 20);
         const requestId = req.headers['x-request-id'];
+        const userId = req.user?.userId || req.user?.id;
 
         const job = await aiQueue.add('generateFlashcards', {
+            userId,
             lessonId,
             count: cardCount,
             requestId
@@ -101,8 +103,10 @@ const summarizeLesson = async (req, res) => {
         }
 
         const requestId = req.headers['x-request-id'];
+        const userId = req.user?.userId || req.user?.id;
 
         const job = await aiQueue.add('summarizeLesson', {
+            userId,
             lessonId,
             requestId
         });
