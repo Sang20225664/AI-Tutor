@@ -55,7 +55,7 @@ The JSON must follow this EXACT format and be an array of objects:
     "description": "A 2-sentence encouraging description of what they will learn and why it helps.",
     "subjectName": "Toán học",
     "difficultyText": "Trung bình",
-    "difficulty": "medium",
+    "difficulty": "intermediate",
     "duration": 30,
     "icon": "calculate",
     "backgroundColor": "0xFFE3F2FD",
@@ -67,7 +67,8 @@ Rules:
 - Give exactly 3 to 5 suggestions.
 - All text strings must be in Vietnamese.
 - Make the descriptions motivating.
-- Keep the JSON strictly compliant to the array format above.`;
+- Keep the JSON strictly compliant to the array format above.
+- "difficulty" must be one of: "beginner", "intermediate", "advanced".`;
 
     // 4. Call Gemini
     logger.info(`Calling Gemini for Lesson Suggestions`, { headers: { 'x-request-id': requestId } });

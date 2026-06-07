@@ -4,6 +4,17 @@ const logger = require('../config/logger');
 const AiSuggestion = require('../models/aiSuggestion.model');
 const { buildRedisConnection } = require('../config/redisConnection');
 
+// Normalize AI-returned difficulty to match AiSuggestion model enum
+const VALID_DIFFICULTIES = ['beginner', 'intermediate', 'advanced'];
+const normalizeDifficulty = (value) => {
+    const normalized = String(value || '').trim().toLowerCase();
+    if (VALID_DIFFICULTIES.includes(normalized)) return normalized;
+    if (normalized === 'easy') return 'beginner';
+    if (normalized === 'medium') return 'intermediate';
+    if (normalized === 'hard') return 'advanced';
+    return 'beginner';
+};
+
 const queueEvents = new QueueEvents('ai-jobs', {
     connection: buildRedisConnection()
 });
@@ -152,24 +163,21 @@ const suggestLessons = async (req, res) => {
 
         const result = await job.waitUntilFinished(queueEvents, 60000);
 
-        // Save each suggestion to MongoDB
-        const savedSuggestions = [];
-        for (const item of result) {
-            const doc = await AiSuggestion.create({
-                userId,
-                grade: targetGrade,
-                title: item.title,
-                description: item.description,
-                subjectName: item.subjectName || '',
-                difficulty: item.difficulty || 'beginner',
-                difficultyText: item.difficultyText || 'Cơ bản',
-                duration: item.duration || 30,
-                icon: item.icon || 'lightbulb',
-                backgroundColor: item.backgroundColor || '0xFFE3F2FD',
-                topics: item.topics || [],
-            });
-            savedSuggestions.push(doc);
-        }
+        // Save all suggestions in a single bulk insert
+        const docs = result.map(item => ({
+            userId,
+            grade: targetGrade,
+            title: item.title,
+            description: item.description,
+            subjectName: item.subjectName || '',
+            difficulty: normalizeDifficulty(item.difficulty),
+            difficultyText: item.difficultyText || 'Cơ bản',
+            duration: item.duration || 30,
+            icon: item.icon || 'lightbulb',
+            backgroundColor: item.backgroundColor || '0xFFE3F2FD',
+            topics: item.topics || [],
+        }));
+        const savedSuggestions = await AiSuggestion.insertMany(docs, { ordered: false });
 
         res.status(201).json({
             success: true,
