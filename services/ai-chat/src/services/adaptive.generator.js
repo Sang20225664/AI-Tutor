@@ -157,7 +157,7 @@ Rules:
     const savedQuiz = await learningClient.saveQuiz(quizPayload, requestId);
     return {
         ...savedQuiz,
-        weakTopicsUsed: topWeakLessons.map(t => ({ lessonId: t.lessonId, lessonTitle: t.title, accuracy: t.accuracy }))
+        weakTopicsUsed: topWeakLessons.map(t => ({ lessonId: t.lessonId, lessonTitle: t.lessonTitle, accuracy: t.accuracy }))
     };
 };
 
