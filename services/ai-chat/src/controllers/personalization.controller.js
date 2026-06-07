@@ -32,7 +32,7 @@ const generateAdaptiveQuiz = async (req, res) => {
             requestId
         });
 
-        const result = await job.waitUntilFinished(queueEvents);
+        const result = await job.waitUntilFinished(queueEvents, 60000);
 
         res.status(201).json({
             success: true,
@@ -73,7 +73,7 @@ const generateFlashcards = async (req, res) => {
             requestId
         });
 
-        const result = await job.waitUntilFinished(queueEvents);
+        const result = await job.waitUntilFinished(queueEvents, 60000);
 
         res.status(201).json({
             success: true,
@@ -111,7 +111,7 @@ const summarizeLesson = async (req, res) => {
             requestId
         });
 
-        const result = await job.waitUntilFinished(queueEvents);
+        const result = await job.waitUntilFinished(queueEvents, 60000);
 
         res.json({
             success: true,
@@ -150,7 +150,7 @@ const suggestLessons = async (req, res) => {
             requestId
         });
 
-        const result = await job.waitUntilFinished(queueEvents);
+        const result = await job.waitUntilFinished(queueEvents, 60000);
 
         // Save each suggestion to MongoDB
         const savedSuggestions = [];

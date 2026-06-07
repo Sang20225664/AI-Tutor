@@ -45,7 +45,7 @@ async function proxyAiChat(req, res, targetPath) {
                 host: new URL(AICHAT_SERVICE_URL).host
             },
             data: req.body,
-            timeout: 30000 // Gemini can be slow
+            timeout: 65000 // Must exceed AI job waitUntilFinished timeout (60s)
         });
 
         res.status(response.status).json(response.data);

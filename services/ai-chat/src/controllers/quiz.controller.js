@@ -37,7 +37,7 @@ const generateQuiz = async (req, res) => {
             requestId
         });
 
-        const quiz = await job.waitUntilFinished(queueEvents);
+        const quiz = await job.waitUntilFinished(queueEvents, 60000);
 
         res.status(201).json({
             success: true,

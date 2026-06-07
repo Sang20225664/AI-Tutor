@@ -1,6 +1,6 @@
 require('dotenv').config();
 const { Worker, Queue } = require('bullmq');
-const mongoose = require('mongoose');
+const connectDB = require('../config/mongoose');
 const { buildRedisConnection } = require('../config/redisConnection');
 
 const toPositiveInt = (value, fallback) => {
@@ -9,12 +9,7 @@ const toPositiveInt = (value, fallback) => {
 };
 
 // Wait for mongoose connection before processing jobs
-mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017', {
-  dbName: 'ai_chat_db',
-  serverSelectionTimeoutMS: 10000,
-})
-  .then(() => console.log('Worker MongoDB Connected'))
-  .catch(err => console.error('Worker MongoDB Connection Error:', err));
+connectDB();
 
 // Important Generators
 const { generateAdaptiveQuiz } = require('../services/adaptive.generator');

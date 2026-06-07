@@ -9,6 +9,7 @@ const connectDB = async (retries = 5, delayMs = 3000) => {
                 dbName: 'ai_chat_db',
                 serverSelectionTimeoutMS: 10000,
                 autoIndex: true,
+                maxPoolSize: parseInt(process.env.MONGO_MAX_POOL_SIZE) || 10,
             });
             console.log('✅ Connected to MongoDB (AI Chat DB)');
             return;
