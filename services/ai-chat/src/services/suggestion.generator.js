@@ -1,5 +1,4 @@
 const geminiClient = require('./gemini.client');
-const learningClient = require('./learning.client');
 const usageService = require('./usage.service');
 const logger = require('../config/logger');
 const axios = require('axios');
@@ -30,19 +29,10 @@ const generateLessonSuggestions = async (userId, grade, requestId) => {
         logger.warn(`Failed to fetch weak topics for suggestions: ${err.message}`, { headers: { 'x-request-id': requestId } });
     }
 
-    // 2. Fetch all subjects to make realistic suggestions
-    let subjectsContext = '';
-    try {
-        const subjectsRes = await axios.get(`http://learning:3002/api/v1/lessons/subjects`); // Note: you might need to adjust URL if you have a subject proxy
-        // Just abstracting subjects if needed, or we can just let Gemini infer subjects (Math, Science, etc) for the grade.
-    } catch (e) {
-        // ignore
-    }
-
     let weakTopicSummary = '';
     if (weakTopics.length > 0) {
         const topWeakLessons = weakTopics.slice(0, 5);
-        weakTopicSummary = topWeakLessons.map(l => `- "${l.title}" (Accuracy: ${l.accuracy}%)`).join('\n');
+        weakTopicSummary = topWeakLessons.map(l => `- "${l.lessonTitle}" (Accuracy: ${l.accuracy}%)`).join('\n');
     }
 
     // 3. Build Prompt
@@ -63,12 +53,12 @@ The JSON must follow this EXACT format and be an array of objects:
   {
     "title": "Title of the lesson",
     "description": "A 2-sentence encouraging description of what they will learn and why it helps.",
-    "subjectName": "Toán học" (or "Vật Lý", "Hóa học", etc.),
-    "difficultyText": "Trung bình" (or "Dễ", "Khó"),
-    "difficulty": "medium" (must be enum: "beginner", "intermediate", "advanced"),
-    "duration": 30, // integer representing minutes
-    "icon": "calculate", // use Material Icon names like calculate, science, book, language, history, school
-    "backgroundColor": "0xFFE3F2FD", // a flutter hex color string. Examples: Blue(0xFFE3F2FD), Orange(0xFFFFF3E0), Green(0xFFE8F5E9), Purple(0xFFF3E5F5)
+    "subjectName": "Toán học",
+    "difficultyText": "Trung bình",
+    "difficulty": "medium",
+    "duration": 30,
+    "icon": "calculate",
+    "backgroundColor": "0xFFE3F2FD",
     "topics": ["Topic 1", "Topic 2"]
   }
 ]
