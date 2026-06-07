@@ -10,16 +10,18 @@ const FLASHCARD_PROMPT_VERSION = 'v1';
 const SUMMARY_PROMPT_VERSION = 'v1';
 
 /**
- * Build composite cache key: lessonId:model:promptVersion
+ * Build composite cache key: lessonId:model:promptVersion[:count]
  */
-const buildCacheKey = (lessonId, model, promptVersion) =>
-    `${lessonId}:${model}:${promptVersion}`;
+const buildCacheKey = (lessonId, model, promptVersion, count) => {
+    const base = `${lessonId}:${model}:${promptVersion}`;
+    return count !== undefined ? `${base}:${count}` : base;
+};
 
 /**
  * Generate flashcards from a lesson (cache-first)
  */
 const generateFlashcards = async (userId, lessonId, count = 10, requestId) => {
-    const cacheKey = buildCacheKey(lessonId, AI_MODEL, FLASHCARD_PROMPT_VERSION);
+    const cacheKey = buildCacheKey(lessonId, AI_MODEL, FLASHCARD_PROMPT_VERSION, count);
 
     // 1. Check cache
     const cachedStr = await redis.get(cacheKey);

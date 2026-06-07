@@ -97,7 +97,8 @@ Rules:
 - "answer" is the 0-based index of the correct option (0, 1, 2, or 3)
 - Each question MUST have exactly 4 options
 - Questions should be in Vietnamese if the lesson content is in Vietnamese
-- Focus on the student's weak areas to help them improve`;
+- Focus on the student's weak areas to help them improve
+- Generate a FRESH VARIANT: approach the weak topics from different angles and question styles each time. Avoid predictable or repetitive question patterns so the student faces varied practice.`;
 
     // 4. Call Gemini
     logger.info(`Calling Gemini for adaptive quiz (${questionCount} questions)`, { headers: { 'x-request-id': requestId } });

@@ -52,7 +52,9 @@ Rules:
 - Each question MUST have exactly 4 options
 - Questions should match the "${difficulty}" difficulty level
 - Questions should be in Vietnamese if the lesson content is in Vietnamese
-- Generate exactly ${questionCount} questions`;
+- Generate exactly ${questionCount} questions
+- Generate a FRESH VARIANT: use different question angles, wording, and focus areas from common or basic questions about this topic. Avoid predictable or repetitive question patterns.`;
+
 
     // 3️⃣ Call Gemini
     logger.info(`Calling Gemini for ${questionCount} questions (${difficulty})`, { headers: { 'x-request-id': requestId } });
