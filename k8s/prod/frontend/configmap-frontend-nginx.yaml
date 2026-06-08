@@ -42,7 +42,7 @@ data:
         add_header X-XSS-Protection "1; mode=block" always;
 
         server {
-            listen 80;
+            listen 8080;
             server_name localhost;
 
             # Health check endpoint - proxy to backend
