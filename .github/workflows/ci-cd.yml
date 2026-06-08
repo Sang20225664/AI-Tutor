@@ -94,11 +94,88 @@ jobs:
           severity: 'CRITICAL'
           exit-code: '1'
 
+  validate-backend:
+    name: Validate Backend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: './ai_tutor_backend/package-lock.json'
+      - name: Install dependencies
+        run: npm ci
+        working-directory: ./ai_tutor_backend
+      - name: Run tests if configured
+        run: |
+          TEST_SCRIPT=$(npm pkg get scripts.test || echo null)
+          if echo "$TEST_SCRIPT" | grep -qi "no test specified"; then
+            echo "No tests configured"
+          else
+            npm run test --if-present
+          fi
+        working-directory: ./ai_tutor_backend
+
+  validate-services:
+    name: Validate Microservices
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [auth, learning, assessment, ai-chat]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: './services/${{ matrix.service }}/package-lock.json'
+      - name: Install dependencies
+        run: npm ci
+        working-directory: ./services/${{ matrix.service }}
+      - name: Run tests if configured
+        run: |
+          TEST_SCRIPT=$(npm pkg get scripts.test || echo null)
+          if echo "$TEST_SCRIPT" | grep -qi "no test specified"; then
+            echo "No tests configured"
+          else
+            npm run test --if-present
+          fi
+        working-directory: ./services/${{ matrix.service }}
+
+  validate-frontend:
+    name: Validate Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x'
+          channel: 'stable'
+          cache: true
+      - name: Install dependencies
+        run: flutter pub get
+        working-directory: ./ai_tutor_app
+      - name: Analyze
+        run: flutter analyze --no-fatal-infos
+        working-directory: ./ai_tutor_app
+      - name: Test
+        run: |
+          if find test -type f -name '*_test.dart' 2>/dev/null | grep -q .; then
+            flutter test
+          else
+            echo "No Flutter tests configured"
+          fi
+        working-directory: ./ai_tutor_app
+      - name: Build Web
+        run: flutter build web
+        working-directory: ./ai_tutor_app
+
   build-backend:
     name: Build Backend
     runs-on: ubuntu-latest
-    if: github.actor != 'github-actions[bot]'
-    needs: [policy-checks, trivy-scan]
+    if: github.event_name == 'push' && github.actor != 'github-actions[bot]'
+    needs: [policy-checks, trivy-scan, validate-backend]
     outputs:
       image_tag: ${{ steps.meta.outputs.version }}
     steps:
@@ -161,8 +238,8 @@ jobs:
   build-frontend:
     name: Build Frontend
     runs-on: ubuntu-latest
-    if: github.actor != 'github-actions[bot]'
-    needs: [policy-checks, trivy-scan]
+    if: github.event_name == 'push' && github.actor != 'github-actions[bot]'
+    needs: [policy-checks, trivy-scan, validate-frontend]
     outputs:
       image_tag: ${{ steps.meta.outputs.version }}
     steps:
@@ -225,8 +302,8 @@ jobs:
   build-services:
     name: Build Microservices
     runs-on: ubuntu-latest
-    if: github.actor != 'github-actions[bot]'
-    needs: [policy-checks, trivy-scan]
+    if: github.event_name == 'push' && github.actor != 'github-actions[bot]'
+    needs: [policy-checks, trivy-scan, validate-services]
     strategy:
       matrix:
         service: [auth, learning, assessment, ai-chat]
