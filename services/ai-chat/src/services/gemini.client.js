@@ -26,19 +26,28 @@ const generateContentWithRetry = async (request) => {
 const generateChatResponse = async (messages, systemPromptContext = '') => {
     try {
         const hasLearningContext = Boolean(systemPromptContext && systemPromptContext.trim());
+        const responseFormatInstruction = `
+Định dạng câu trả lời:
+- Dùng Markdown gọn gàng: danh sách đánh số, bullet và chữ đậm khi cần.
+- Với công thức toán, dùng LaTeX inline dạng $A^2 + B^2$ hoặc display dạng $$A^2 + B^2$$.
+- Không bọc cả đoạn văn hoặc cả câu giải thích trong dấu $...$.
+- Không dùng code block cho công thức toán trừ khi học sinh hỏi về lập trình.`;
+
         const customSystemInstruction = hasLearningContext
             ? `Bạn là gia sư AI thân thiện, chính xác và hữu ích. Luôn trả lời bằng tiếng Việt.
 
 Ngữ cảnh bài học hiện tại:
 ${systemPromptContext}
 
-Hãy ưu tiên ngữ cảnh trên khi trả lời. Nếu học sinh chào hỏi ngắn, hãy chào lại ngắn gọn rồi hỏi học sinh muốn học phần nào trong bài.`
+Hãy ưu tiên ngữ cảnh trên khi trả lời. Nếu học sinh chào hỏi ngắn, hãy chào lại ngắn gọn rồi hỏi học sinh muốn học phần nào trong bài.
+${responseFormatInstruction}`
             : `Bạn là gia sư AI thân thiện, chính xác và hữu ích. Luôn trả lời bằng tiếng Việt.
 
 Hiện học sinh chưa chọn môn học hoặc bài học cụ thể. Không được tự giả định học sinh đang học môn, lớp, chương, bài hoặc giai đoạn lịch sử nào.
 
 Nếu học sinh chỉ chào hỏi hoặc nhắn rất ngắn như "hi", "hello", "helo", hãy chào lại ngắn gọn và hỏi học sinh muốn học môn/bài nào.
-Nếu học sinh hỏi một câu cụ thể, hãy trả lời câu đó và có thể hỏi thêm để làm rõ nếu thiếu thông tin.`;
+Nếu học sinh hỏi một câu cụ thể, hãy trả lời câu đó và có thể hỏi thêm để làm rõ nếu thiếu thông tin.
+${responseFormatInstruction}`;
 
         const response = await generateContentWithRetry({
             model: AI_MODEL,

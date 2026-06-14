@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ai_tutor_app/models/lesson.dart';
+import 'package:ai_tutor_app/utils/markdown_latex.dart';
 import 'package:markdown_widget/markdown_widget.dart';
 import 'quiz_screen.dart';
 
@@ -24,6 +25,7 @@ class LessonTheoryScreen extends StatelessWidget {
                     '*Môn: ${lesson.subjectName} • ${lesson.difficultyText} • ${lesson.duration} phút*\n\n'
                     '---\n\n'
                     '${lesson.content}',
+                markdownGenerator: aiTutorMarkdownGenerator,
                 config: MarkdownConfig(
                   configs: [
                     const PreConfig(),

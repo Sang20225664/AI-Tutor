@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:ai_tutor_app/utils/markdown_latex.dart';
 import 'package:ai_tutor_app/utils/responsive_utils.dart';
 import 'package:markdown_widget/markdown_widget.dart';
 
 import '../../services/api_service.dart';
 
 class ChatScreen extends StatefulWidget {
-  final String? subject; 
+  final String? subject;
   const ChatScreen({super.key, this.subject});
 
   @override
@@ -17,7 +18,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _controller = TextEditingController();
   final List<ChatMessage> _messages = [];
   final ScrollController _scrollController = ScrollController();
-  
+
   bool _isLoading = false;
   String initialSystemMessage = '';
   String? _sessionId;
@@ -53,7 +54,7 @@ class _ChatScreenState extends State<ChatScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-           SnackBar(content: Text('Lỗi tải lịch sử chat: $e')),
+          SnackBar(content: Text('Lỗi tải lịch sử chat: $e')),
         );
       }
     } finally {
@@ -161,10 +162,8 @@ class _ChatScreenState extends State<ChatScreen> {
       _messages.clear();
       if (chat['messages'] != null) {
         for (var msg in chat['messages']) {
-           _messages.add(ChatMessage(
-              text: msg['content'],
-              isUser: msg['role'] == 'user'
-           ));
+          _messages.add(
+              ChatMessage(text: msg['content'], isUser: msg['role'] == 'user'));
         }
       }
     });
@@ -173,27 +172,29 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<void> _deleteChat(String chatId) async {
-      try {
-        final response = await ApiService.deleteChatHistory(chatId);
-        if (response['success'] == true) {
-           if (_sessionId == chatId) {
-              _createNewChat(); // Active chat deleted, reset
-           } else {
-              _fetchChatHistory();
-           }
+    try {
+      final response = await ApiService.deleteChatHistory(chatId);
+      if (response['success'] == true) {
+        if (_sessionId == chatId) {
+          _createNewChat(); // Active chat deleted, reset
+        } else {
+          _fetchChatHistory();
         }
-      } catch (e) {
-         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Lỗi xóa: $e")));
       }
+    } catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text("Lỗi xóa: $e")));
+    }
   }
 
   Future<void> _togglePin(String chatId) async {
-      try {
-         await ApiService.toggleChatPin(chatId);
-         _fetchChatHistory();
-      } catch (e) {
-         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Lỗi ghim: $e")));
-      }
+    try {
+      await ApiService.toggleChatPin(chatId);
+      _fetchChatHistory();
+    } catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text("Lỗi ghim: $e")));
+    }
   }
 
   String _formatTimestamp(String? timestamp) {
@@ -205,7 +206,7 @@ class _ChatScreenState extends State<ChatScreen> {
       return '';
     }
   }
-  
+
   String _getChatSubtitle(List<dynamic> messages) {
     if (messages.isEmpty) return 'No messages';
     final lastMessage = messages.last;
@@ -214,122 +215,129 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildDrawer() {
-     final pinnedChats = _chatSessions.where((c) => c['isPinned'] == true).toList();
-     final recentChats = _chatSessions.where((c) => c['isPinned'] != true).toList();
+    final pinnedChats =
+        _chatSessions.where((c) => c['isPinned'] == true).toList();
+    final recentChats =
+        _chatSessions.where((c) => c['isPinned'] != true).toList();
 
-     return Drawer(
+    return Drawer(
         child: Column(
-           children: [
-             DrawerHeader(
-               decoration: BoxDecoration(color: Colors.blue),
-               child: Center(
-                  child: Text(
-                     "Lịch sử Trò chuyện",
-                     style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)
+      children: [
+        DrawerHeader(
+          decoration: BoxDecoration(color: Colors.blue),
+          child: Center(
+              child: Text("Lịch sử Trò chuyện",
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold))),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: ElevatedButton.icon(
+              onPressed: _createNewChat,
+              icon: Icon(Icons.add),
+              label: Text("Cuộc trò chuyện mới"),
+              style:
+                  ElevatedButton.styleFrom(minimumSize: Size.fromHeight(45))),
+        ),
+        Expanded(
+          child: RefreshIndicator(
+            onRefresh: _fetchChatHistory,
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                if (pinnedChats.isNotEmpty) ...[
+                  _buildSectionHeader("Đã ghim", Icons.push_pin),
+                  ...pinnedChats.map((c) => _buildChatItem(c)).toList(),
+                  Divider(),
+                ],
+                if (recentChats.isNotEmpty) ...[
+                  _buildSectionHeader("Gần đây", Icons.history),
+                  ...recentChats.map((c) => _buildChatItem(c)).toList(),
+                ],
+                if (_chatSessions.isEmpty && !_isLoadingHistory)
+                  Padding(
+                    padding: EdgeInsets.all(20),
+                    child: Center(
+                        child: Text("Bạn chưa có lịch sử trò chuyện nào.",
+                            style: TextStyle(color: Colors.grey))),
                   )
-               ),
-             ),
-             Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: ElevatedButton.icon(
-                   onPressed: _createNewChat,
-                   icon: Icon(Icons.add),
-                   label: Text("Cuộc trò chuyện mới"),
-                   style: ElevatedButton.styleFrom(
-                      minimumSize: Size.fromHeight(45)
-                   )
-                ),
-             ),
-             Expanded(
-               child: RefreshIndicator(
-                 onRefresh: _fetchChatHistory,
-                 child: ListView(
-                    padding: EdgeInsets.zero,
-                    children: [
-                       if (pinnedChats.isNotEmpty) ...[
-                          _buildSectionHeader("Đã ghim", Icons.push_pin),
-                          ...pinnedChats.map((c) => _buildChatItem(c)).toList(),
-                          Divider(),
-                       ],
-                       if (recentChats.isNotEmpty) ...[
-                          _buildSectionHeader("Gần đây", Icons.history),
-                          ...recentChats.map((c) => _buildChatItem(c)).toList(),
-                       ],
-                       if (_chatSessions.isEmpty && !_isLoadingHistory)
-                          Padding(
-                             padding: EdgeInsets.all(20),
-                             child: Center(child: Text("Bạn chưa có lịch sử trò chuyện nào.", style: TextStyle(color: Colors.grey))),
-                          )
-                    ],
-                 ),
-               ),
-             )
-           ],
+              ],
+            ),
+          ),
         )
-     );
+      ],
+    ));
   }
 
   Widget _buildSectionHeader(String title, IconData icon) {
-     return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: Row(
-           children: [
-              Icon(icon, size: 18, color: Colors.grey[700]),
-              SizedBox(width: 8),
-              Text(title, style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey[800])),
-           ]
-        ),
-     );
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(children: [
+        Icon(icon, size: 18, color: Colors.grey[700]),
+        SizedBox(width: 8),
+        Text(title,
+            style: TextStyle(
+                fontWeight: FontWeight.bold, color: Colors.grey[800])),
+      ]),
+    );
   }
 
   Widget _buildChatItem(dynamic chat) {
-      final chatId = chat['_id'];
-      final messages = chat['messages'] ?? [];
-      final timestamp = _formatTimestamp(chat['updatedAt'] ?? chat['createdAt']);
-      final isPinned = chat['isPinned'] == true;
-      final isActive = _sessionId == chatId;
+    final chatId = chat['_id'];
+    final messages = chat['messages'] ?? [];
+    final timestamp = _formatTimestamp(chat['updatedAt'] ?? chat['createdAt']);
+    final isPinned = chat['isPinned'] == true;
+    final isActive = _sessionId == chatId;
 
-      return Dismissible(
-         key: Key(chatId),
-         background: Container(
-            color: Colors.red,
-            alignment: Alignment.centerRight,
-            padding: EdgeInsets.only(right: 20),
-            child: Icon(Icons.delete, color: Colors.white),
-         ),
-         direction: DismissDirection.endToStart,
-         confirmDismiss: (direction) async {
-            return await showDialog(
-              context: context,
-              builder: (context) => AlertDialog(
-                title: const Text('Xóa Trò Chuyện'),
-                content: const Text('Bạn có chắc chắn muốn xóa không?'),
-                actions: [
-                  TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Hủy')),
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(true),
-                    child: const Text('Xóa', style: TextStyle(color: Colors.red)),
-                  ),
-                ],
-              ),
-            );
-         },
-         onDismissed: (_) => _deleteChat(chatId),
-         child: ListTile(
-            selected: isActive,
-            selectedTileColor: Colors.blue.withOpacity(0.1),
-            title: Text(chat['title'] ?? 'Chat', maxLines: 1, overflow: TextOverflow.ellipsis,
-               style: TextStyle(fontWeight: isActive ? FontWeight.bold : FontWeight.normal)),
-            subtitle: Text("${_getChatSubtitle(messages)}\n$timestamp", 
-               maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12)),
-            trailing: IconButton(
-               icon: Icon(isPinned ? Icons.push_pin : Icons.push_pin_outlined, 
-                  color: isPinned ? Colors.blue : null, size: 20),
-               onPressed: () => _togglePin(chatId),
+    return Dismissible(
+        key: Key(chatId),
+        background: Container(
+          color: Colors.red,
+          alignment: Alignment.centerRight,
+          padding: EdgeInsets.only(right: 20),
+          child: Icon(Icons.delete, color: Colors.white),
+        ),
+        direction: DismissDirection.endToStart,
+        confirmDismiss: (direction) async {
+          return await showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Xóa Trò Chuyện'),
+              content: const Text('Bạn có chắc chắn muốn xóa không?'),
+              actions: [
+                TextButton(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    child: const Text('Hủy')),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: const Text('Xóa', style: TextStyle(color: Colors.red)),
+                ),
+              ],
             ),
-            onTap: () => _loadChat(chat),
-         )
-      );
+          );
+        },
+        onDismissed: (_) => _deleteChat(chatId),
+        child: ListTile(
+          selected: isActive,
+          selectedTileColor: Colors.blue.withOpacity(0.1),
+          title: Text(chat['title'] ?? 'Chat',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                  fontWeight: isActive ? FontWeight.bold : FontWeight.normal)),
+          subtitle: Text("${_getChatSubtitle(messages)}\n$timestamp",
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontSize: 12)),
+          trailing: IconButton(
+            icon: Icon(isPinned ? Icons.push_pin : Icons.push_pin_outlined,
+                color: isPinned ? Colors.blue : null, size: 20),
+            onPressed: () => _togglePin(chatId),
+          ),
+          onTap: () => _loadChat(chat),
+        ));
   }
 
   @override
@@ -442,6 +450,7 @@ class ChatBubble extends StatelessWidget {
                 data: message.text,
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
+                markdownGenerator: aiTutorMarkdownGenerator,
                 config: MarkdownConfig(
                   configs: [
                     const PConfig(

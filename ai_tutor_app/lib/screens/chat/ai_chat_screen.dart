@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ai_tutor_app/services/gemini_service.dart';
+import 'package:ai_tutor_app/utils/markdown_latex.dart';
 import 'package:ai_tutor_app/utils/responsive_utils.dart';
 import 'package:markdown_widget/markdown_widget.dart';
 import '../../models/subject.dart';
@@ -251,6 +252,7 @@ class ChatBubble extends StatelessWidget {
             : MarkdownWidget(
                 data: message.text,
                 shrinkWrap: true,
+                markdownGenerator: aiTutorMarkdownGenerator,
                 config: MarkdownConfig(
                   configs: [
                     const PConfig(
