@@ -30,8 +30,6 @@ const aiLimiter = rateLimit({
     legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 });
 
-router.use(aiLimiter);
-
 // Generic proxy function
 async function proxyAiChat(req, res, targetPath) {
     try {
@@ -60,27 +58,27 @@ async function proxyAiChat(req, res, targetPath) {
 }
 
 // Proxy /api/chat POST -> AI Chat Service /api/v1/ai/messages
-router.post('/chat', (req, res) => proxyAiChat(req, res, '/api/v1/ai/messages'));
-router.post('/gemini/chat', (req, res) => proxyAiChat(req, res, '/api/v1/ai/messages'));
+router.post('/chat', aiLimiter, (req, res) => proxyAiChat(req, res, '/api/v1/ai/messages'));
+router.post('/gemini/chat', aiLimiter, (req, res) => proxyAiChat(req, res, '/api/v1/ai/messages'));
 
 // Proxy /api/generate-quiz POST -> AI Chat Service /api/v1/ai/generate-quiz
-router.post('/generate-quiz', (req, res) => proxyAiChat(req, res, '/api/v1/ai/generate-quiz'));
+router.post('/generate-quiz', aiLimiter, (req, res) => proxyAiChat(req, res, '/api/v1/ai/generate-quiz'));
 
 // Phase 2: AI Personalization
-router.post('/adaptive-quiz', (req, res) => proxyAiChat(req, res, '/api/v1/ai/adaptive-quiz'));
-router.post('/generate-flashcards', (req, res) => proxyAiChat(req, res, '/api/v1/ai/generate-flashcards'));
-router.post('/summarize', (req, res) => proxyAiChat(req, res, '/api/v1/ai/summarize'));
-router.post('/suggest-lessons', (req, res) => proxyAiChat(req, res, '/api/v1/ai/suggest-lessons'));
-router.get('/suggest-lessons', (req, res) => proxyAiChat(req, res, '/api/v1/ai/suggest-lessons'));
+router.post('/adaptive-quiz', aiLimiter, (req, res) => proxyAiChat(req, res, '/api/v1/ai/adaptive-quiz'));
+router.post('/generate-flashcards', aiLimiter, (req, res) => proxyAiChat(req, res, '/api/v1/ai/generate-flashcards'));
+router.post('/summarize', aiLimiter, (req, res) => proxyAiChat(req, res, '/api/v1/ai/summarize'));
+router.post('/suggest-lessons', aiLimiter, (req, res) => proxyAiChat(req, res, '/api/v1/ai/suggest-lessons'));
+router.get('/suggest-lessons', aiLimiter, (req, res) => proxyAiChat(req, res, '/api/v1/ai/suggest-lessons'));
 
 // Proxy /api/chat-history GET -> AI Chat Service /api/v1/ai/conversations
-router.get('/chat-history', (req, res) => proxyAiChat(req, res, '/api/v1/ai/conversations'));
-router.get('/chats', (req, res) => proxyAiChat(req, res, '/api/v1/ai/conversations'));
-router.delete('/chats/:id', (req, res) => proxyAiChat(req, res, `/api/v1/ai/conversations/${req.params.id}`));
-router.patch('/chats/:id/pin', (req, res) => proxyAiChat(req, res, `/api/v1/ai/conversations/${req.params.id}/pin`));
+router.get('/chat-history', aiLimiter, (req, res) => proxyAiChat(req, res, '/api/v1/ai/conversations'));
+router.get('/chats', aiLimiter, (req, res) => proxyAiChat(req, res, '/api/v1/ai/conversations'));
+router.delete('/chats/:id', aiLimiter, (req, res) => proxyAiChat(req, res, `/api/v1/ai/conversations/${req.params.id}`));
+router.patch('/chats/:id/pin', aiLimiter, (req, res) => proxyAiChat(req, res, `/api/v1/ai/conversations/${req.params.id}/pin`));
 
 // Support direct calls if needed
-router.use('/ai', async (req, res) => {
+router.use('/ai', aiLimiter, async (req, res) => {
     // /api/ai/health -> /health or /api/v1/ai/health
     const path = req.path;
     await proxyAiChat(req, res, `/api/v1/ai${path}`);
